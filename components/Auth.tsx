@@ -35,6 +35,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
   const [error, setError] = useState(authFeedback || '');
   const [successMsg, setSuccessMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [signupStep, setSignupStep] = useState(1);
 
   // Waitlist State
   const [waitlistEmail, setWaitlistEmail] = useState('');
@@ -112,6 +113,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
   useEffect(() => {
     if (type === 'signin' || type === 'signup') {
       setCurrentView(type);
+      setSignupStep(1);
       if (!authFeedback) setError('');
       setSuccessMsg('');
     }
@@ -490,15 +492,36 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
             )}
             {currentView === 'signup' && (
               <form onSubmit={handleSignUp} className="space-y-3">
-                <div className="grid grid-cols-2 gap-2"><input name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required /><input name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required /></div>
-                <input name="username" placeholder="Username" value={formData.username} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required />
-                <input name="email" type="email" placeholder="Email Address" value={formData.email} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required />
-                <div className="grid grid-cols-2 gap-2"><input name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required /><input name="pin" type="password" maxLength={4} placeholder="PIN (4)" value={formData.pin} onChange={handleInputChange} className={`${inputClass.replace('pl-9', 'pl-3')} text-center`} required /></div>
-                <div className="space-y-2 pt-1 border-t border-white/20"><p className="text-[9px] font-bold text-white/70 uppercase">Details</p><input name="phone" type="tel" placeholder="Phone" value={formData.phone} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} /><div className="grid grid-cols-2 gap-2"><input name="city" placeholder="City" value={formData.city} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} /><input name="country" placeholder="Country" value={formData.country} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} /></div></div>
-                <button type="submit" disabled={isLoading} className="w-full py-2.5 bg-blue-600/80 hover:bg-blue-600 text-white rounded-xl font-bold text-xs transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98] mt-2 flex items-center justify-center gap-2 backdrop-blur-sm border border-blue-500/30">{isLoading ? <Loader2 className="animate-spin" size={16} /> : 'Create Account'}</button>
-                <div className="relative flex py-1 items-center"><div className="flex-grow border-t border-white/20"></div><span className="flex-shrink-0 mx-2 text-white/70 text-[9px] font-bold uppercase">Or</span><div className="flex-grow border-t border-white/20"></div></div>
-                <button type="button" onClick={handleGoogleSignIn} className={`w-full py-2.5 bg-white/5 border border-white/20 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-white/10 text-white transition-all backdrop-blur-[2px]`}><GoogleLogo /> Continue with Google</button>
-                <p className="text-center text-[10px] text-white/90 font-medium">Have an account? <button type="button" onClick={() => onSwitch('signin')} className="text-white font-bold hover:underline ml-1">Log in</button></p>
+                {signupStep === 1 ? (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-right-4">
+                    <div className="grid grid-cols-2 gap-2"><input name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required /><input name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required /></div>
+                    <input name="email" type="email" placeholder="Email Address" value={formData.email} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required />
+                    <div className="grid grid-cols-2 gap-2"><input name="password" type="password" placeholder="Password" value={formData.password} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required /><input name="pin" type="password" maxLength={4} placeholder="PIN (4)" value={formData.pin} onChange={handleInputChange} className={`${inputClass.replace('pl-9', 'pl-3')} text-center`} required /></div>
+                    <button type="button" onClick={() => {
+                      if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || formData.pin.length !== 4) {
+                        setError("Please complete all required fields and a 4-digit PIN.");
+                        return;
+                      }
+                      setError("");
+                      setSignupStep(2);
+                    }} className="w-full py-2.5 bg-blue-600/80 hover:bg-blue-600 text-white rounded-xl font-bold text-xs transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98] mt-2 flex items-center justify-center gap-2 backdrop-blur-sm border border-blue-500/30">Next Step <ArrowRight size={14} /></button>
+                    <div className="relative flex py-1 items-center"><div className="flex-grow border-t border-white/20"></div><span className="flex-shrink-0 mx-2 text-white/70 text-[9px] font-bold uppercase">Or</span><div className="flex-grow border-t border-white/20"></div></div>
+                    <button type="button" onClick={handleGoogleSignIn} className={`w-full py-2.5 bg-white/5 border border-white/20 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-white/10 text-white transition-all backdrop-blur-[2px]`}><GoogleLogo /> Continue with Google</button>
+                    <p className="text-center text-[10px] text-white/90 font-medium pt-1">Have an account? <button type="button" onClick={() => { setSignupStep(1); onSwitch('signin'); }} className="text-white font-bold hover:underline ml-1">Log in</button></p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 animate-in fade-in slide-in-from-right-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <button type="button" onClick={() => setSignupStep(1)} className="text-white/70 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"><ArrowLeft size={16} /></button>
+                      <p className="text-[10px] font-bold text-white/90 uppercase tracking-widest">Additional Details</p>
+                    </div>
+                    <input name="username" placeholder="Username" value={formData.username} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} required />
+                    <input name="phone" type="tel" placeholder="Phone" value={formData.phone} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} />
+                    <div className="grid grid-cols-2 gap-2"><input name="city" placeholder="City" value={formData.city} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} /><input name="country" placeholder="Country" value={formData.country} onChange={handleInputChange} className={inputClass.replace('pl-9', 'pl-3')} /></div>
+                    <button type="submit" disabled={isLoading} className="w-full py-2.5 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-xl font-bold text-xs transition-all shadow-lg shadow-emerald-600/20 active:scale-[0.98] mt-2 flex items-center justify-center gap-2 backdrop-blur-sm border border-emerald-500/30">{isLoading ? <Loader2 className="animate-spin" size={16} /> : 'Complete Registration'}</button>
+                    <p className="text-center text-[10px] text-white/90 font-medium pt-1">Have an account? <button type="button" onClick={() => { setSignupStep(1); onSwitch('signin'); }} className="text-white font-bold hover:underline ml-1">Log in</button></p>
+                  </div>
+                )}
               </form>
             )}
             {(currentView === 'verify_otp' || currentView === 'reset_password') && (<div className="space-y-4 text-center"><div className="flex justify-center gap-2">{otp.map((digit, index) => (<input key={index} ref={(el) => (otpInputs.current[index] = el)} type="text" inputMode="numeric" maxLength={1} value={digit} onChange={(e) => handleOtpChange(index, e.target.value)} onKeyDown={(e) => { if (e.key === 'Backspace' && !digit && index > 0) otpInputs.current[index - 1]?.focus(); }} className="w-9 h-11 text-center text-lg font-bold border border-white/20 rounded-lg bg-black/20 focus:bg-black/30 outline-none transition-all focus:border-blue-300 text-white backdrop-blur-[2px] shadow-sm" />))}</div>{currentView === 'reset_password' && (<input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className={`${inputClass} text-center`} placeholder="Enter New Password" />)}<div className="text-[10px] text-white/70 bg-white/5 p-2 rounded-lg border border-white/10"><p><strong>Note:</strong> Emails may take 2-5 minutes to arrive.</p><p>Please check your <strong>Spam</strong> or <strong>Junk</strong> folder.</p></div><button onClick={() => submitTokenVerification(otp.join(''))} disabled={isLoading} className="w-full py-2.5 bg-blue-600/80 hover:bg-blue-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 backdrop-blur-sm border border-blue-500/30">{isLoading ? <Loader2 className="animate-spin" size={16} /> : (currentView === 'reset_password' ? 'Save New Password' : 'Verify Code')}</button><div className="flex justify-between items-center px-1"><button onClick={() => { setCurrentView('signin'); onSwitch('signin'); }} className="text-[10px] font-bold text-white hover:text-white/80">Back</button><button onClick={handleResend} disabled={resendTimer > 0 || isLoading} className={`text-[10px] font-bold ${resendTimer > 0 ? 'text-white/50' : 'text-blue-300 hover:text-blue-200'}`}>{resendTimer > 0 ? `Wait ${resendTimer}s` : (isLoading ? 'Sending...' : 'Resend Code')}</button></div>{currentView === 'verify_otp' && (<div className="pt-2 border-t border-white/10"><button type="button" onClick={handleGoogleSignIn} className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-bold text-white transition-all flex items-center justify-center gap-2"><GoogleLogo /> No email received? Use Google</button></div>)}</div>)}
