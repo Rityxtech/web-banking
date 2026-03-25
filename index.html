@@ -1,0 +1,169 @@
+<!-- 
+/*************************************************************************************************
+ *  WARNING: PROTECTED CODEBASE
+ *  
+ *  NO DEVELOPER IS ALLOWED TO TAMPER WITH OR MODIFY THIS CODE UNLESS EXPLICITLY INSTRUCTED.
+ *  
+ *  IF INSTRUCTED TO MAKE CHANGES:
+ *  1. YOU MUST ONLY TAMPER WITH THE SPECIFIC PARTS YOU WERE ASKED TO MODIFY.
+ *  2. YOU MUST LEAVE EVERY OTHER THING EXACTLY AS IT IS.
+ *  3. DO NOT CHANGE THE VISUAL APPEARANCE OR FUNCTIONALITY OF EXISTING FEATURES.
+ *
+ *  STRICT COMPLIANCE IS REQUIRED.
+ *************************************************************************************************/
+-->
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lennox Bank</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            display: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            background: '#f8f9fd',
+            surface: '#ffffff',
+            primary: '#137fec', // Blue-600 matching requested UI
+            secondary: '#64748b', // Slate-500
+            success: '#10b981', // Emerald-500
+            danger: '#ef4444', // Red-500
+            border: '#e2e8f0', // Slate-200
+            "background-light": "#f6f7f8",
+            "background-dark": "#101922",
+          },
+          boxShadow: {
+            'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+          },
+          keyframes: {
+            'fade-in': {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            'slide-up': {
+              '0%': { transform: 'translateY(100%)' },
+              '100%': { transform: 'translateY(0)' },
+            },
+            'slide-up-fade': {
+              '0%': { transform: 'translateY(40px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            'zoom-in': {
+              '0%': { opacity: '0', transform: 'scale(0.95)' },
+              '100%': { opacity: '1', transform: 'scale(1)' },
+            }
+          },
+          animation: {
+            'fade-in': 'fade-in 0.5s ease-out forwards',
+            'slide-up': 'slide-up 0.3s ease-out forwards',
+            'slide-up-fade': 'slide-up-fade 0.3s ease-out forwards',
+            'zoom-in': 'zoom-in 0.2s ease-out forwards',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #f8f9fd;
+      color: #1e293b;
+      -webkit-user-select: none;
+      /* Safari */
+      -moz-user-select: none;
+      /* Firefox */
+      -ms-user-select: none;
+      /* IE10+/Edge */
+      user-select: none;
+      /* Standard */
+      -webkit-touch-callout: none;
+      /* iOS Safari */
+    }
+
+    img {
+      pointer-events: none;
+      /* Disables image interactions including drag/drop */
+    }
+
+    .dark body {
+      background-color: #101922;
+      /* matching requested UI */
+      color: #f1f5f9;
+      /* slate-100 */
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .filled-icon {
+      font-variation-settings: 'FILL' 1;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "recharts": "https://esm.sh/recharts@^2.12.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@^2.45.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    // Disable right-click globally
+    document.addEventListener('contextmenu', event => event.preventDefault());
+  </script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
