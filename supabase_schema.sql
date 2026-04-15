@@ -282,7 +282,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     -- Create profile for new user
     INSERT INTO mvp_profiles (user_id, name, email, balance)
-    VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'name', NEW.email), NEW.email, 1000.00);
+    VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'name', NEW.email), NEW.email, 2.00);
 
     -- Create default checking account
     INSERT INTO mvp_accounts (user_id, name, type, balance, account_number, is_main)
@@ -290,7 +290,7 @@ BEGIN
         NEW.id,
         'Main Wallet',
         'Checking',
-        1000.00,
+        2.00,
         '****' || RIGHT(NEW.id::text, 4),
         TRUE
     );
@@ -306,7 +306,7 @@ BEGIN
         'from-blue-600 to-blue-500',
         'shadow-blue-500/20',
         TRUE,
-        1000.00
+        2.00
     );
 
     RETURN NEW;
