@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS mvp_waitlist (
 CREATE TABLE IF NOT EXISTS mvp_profiles (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    name VARCHAR(255),
+    full_name VARCHAR(255),
     email VARCHAR(255),
     avatar_url TEXT,
     pin VARCHAR(6),
@@ -307,12 +307,13 @@ END;
 $$ language 'plpgsql';
 
 -- Function to handle new user signup
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Create profile for new user
-    INSERT INTO mvp_profiles (user_id, name, email, balance)
-    VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'name', NEW.email), NEW.email, 2.00);
+    INSERT INTO mvp_profiles (user_id, full_name, email, balance)
+    VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', NEW.email), NEW.email, 2.00);
 
     -- Create default checking account
     INSERT INTO mvp_accounts (user_id, name, type, balance, account_number, is_main)
@@ -321,7 +322,7 @@ BEGIN
         'Main Wallet',
         'Checking',
         2.00,
-        '****' || RIGHT(NEW.id::text, 4),
+        '****' || UPPER(SUBSTRING(NEW.id::text, 1, 8)),
         TRUE
     );
 
@@ -330,8 +331,8 @@ BEGIN
     VALUES (
         NEW.id,
         'VISA',
-        '****' || RIGHT(NEW.id::text, 4),
-        COALESCE(NEW.raw_user_meta_data->>'name', 'Card Holder'),
+        '****' || UPPER(SUBSTRING(NEW.id::text, 10, 8)),
+        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'Card Holder'),
         TO_CHAR(CURRENT_DATE + INTERVAL '3 years', 'MM/YY'),
         'from-blue-600 to-blue-500',
         'shadow-blue-500/20',
@@ -352,6 +353,14 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Add triggers for updated_at
+DROP TRIGGER IF EXISTS update_mvp_profiles_updated_at ON mvp_profiles;
+DROP TRIGGER IF EXISTS update_mvp_accounts_updated_at ON mvp_accounts;
+DROP TRIGGER IF EXISTS update_mvp_cards_updated_at ON mvp_cards;
+DROP TRIGGER IF EXISTS update_mvp_loans_updated_at ON mvp_loans;
+DROP TRIGGER IF EXISTS update_mvp_assets_updated_at ON mvp_assets;
+DROP TRIGGER IF EXISTS update_mvp_kyc_documents_updated_at ON mvp_kyc_documents;
+DROP TRIGGER IF EXISTS update_mvp_app_settings_updated_at ON mvp_app_settings;
+
 CREATE TRIGGER update_mvp_profiles_updated_at BEFORE UPDATE ON mvp_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mvp_accounts_updated_at BEFORE UPDATE ON mvp_accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mvp_cards_updated_at BEFORE UPDATE ON mvp_cards FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

@@ -35,6 +35,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(authFeedback || '');
   const [successMsg, setSuccessMsg] = useState('');
+  const [debugInfo, setDebugInfo] = useState<Record<string, any> | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [signupStep, setSignupStep] = useState(1);
 
@@ -246,6 +247,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
 
     setIsLoading(true);
     setError('');
+    setDebugInfo(null);
 
     // Explicitly set intent
     localStorage.setItem('lennox_auth_intent', 'signup');
@@ -271,7 +273,20 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Capture every field Supabase gives us
+        const debug: Record<string, any> = {
+          message: error.message,
+          status: (error as any).status ?? 'n/a',
+          code: (error as any).code ?? 'n/a',
+          name: (error as any).name ?? 'n/a',
+          details: (error as any).__isAuthError ? 'AuthError' : 'unknown',
+        };
+        // Log full raw object to console too
+        console.error('[SignUp Error] Full error object:', JSON.stringify(error, null, 2));
+        setDebugInfo(debug);
+        throw error;
+      }
 
       if (data.user && data.user.identities && data.user.identities.length === 0) {
         throw new Error(`Account ${formData.email} already exists. Please sign in.`);
@@ -280,7 +295,6 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       setSignInEmail(formData.email);
 
       if (data.session && data.user) {
-        // Trigger welcome email immediately if session exists (shouldn't happen with email verification enabled)
         const userName = data.user.user_metadata?.full_name || 'Valued Client';
         const { subject, content } = getEmailTemplate('welcome', { user_name: userName });
         mvp.sendEmail(data.user.email!, subject, content).catch(console.error);
@@ -291,7 +305,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         setResendTimer(60);
       }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Signup failed.');
     } finally {
       setIsLoading(false);
     }
@@ -469,6 +483,20 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
           </div>
           <div className="px-8 pb-6 pt-4">
             {(error || successMsg) && (<div className={`mb-4 px-3 py-2 rounded-lg flex items-center gap-2 text-[10px] font-bold backdrop-blur-md border ${error ? 'bg-red-500/20 text-white border-red-200/30' : 'bg-emerald-500/20 text-white border-emerald-200/30'}`}>{error ? <AlertCircle size={14} /> : <CheckCircle size={14} />} <span className="flex-1">{error || successMsg}</span></div>)}
+            {debugInfo && (
+              <div className="mb-4 p-3 rounded-xl bg-black/60 border border-yellow-400/40 text-left backdrop-blur-md">
+                <p className="text-[9px] font-black text-yellow-400 uppercase tracking-widest mb-2">⚠ Debug Info — Share this with support</p>
+                <div className="space-y-1">
+                  {Object.entries(debugInfo).map(([key, val]) => (
+                    <div key={key} className="flex gap-2">
+                      <span className="text-[9px] font-bold text-yellow-300/70 uppercase w-16 shrink-0">{key}:</span>
+                      <span className="text-[9px] text-white/90 break-all font-mono">{String(val)}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[9px] text-white/40 mt-2">Full error also logged to browser console (F12 → Console)</p>
+              </div>
+            )}
             {currentView === 'signin' && (
               <form onSubmit={handleSignIn} className="space-y-3">
                 <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white" size={14} /><input type="email" value={signInEmail} onChange={e => setSignInEmail(e.target.value)} className={inputClass} placeholder="Email address" required /></div>
