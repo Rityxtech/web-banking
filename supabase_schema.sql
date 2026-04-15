@@ -214,6 +214,36 @@ ALTER TABLE mvp_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mvp_support_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mvp_kyc_documents ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Allow read access to app_settings" ON mvp_app_settings;
+DROP POLICY IF EXISTS "Allow insert to waitlist" ON mvp_waitlist;
+DROP POLICY IF EXISTS "Users can view own profile" ON mvp_profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON mvp_profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON mvp_profiles;
+DROP POLICY IF EXISTS "Users can view own accounts" ON mvp_accounts;
+DROP POLICY IF EXISTS "Users can insert own accounts" ON mvp_accounts;
+DROP POLICY IF EXISTS "Users can update own accounts" ON mvp_accounts;
+DROP POLICY IF EXISTS "Users can view own transactions" ON mvp_transactions;
+DROP POLICY IF EXISTS "Users can insert own transactions" ON mvp_transactions;
+DROP POLICY IF EXISTS "Users can view own cards" ON mvp_cards;
+DROP POLICY IF EXISTS "Users can insert own cards" ON mvp_cards;
+DROP POLICY IF EXISTS "Users can update own cards" ON mvp_cards;
+DROP POLICY IF EXISTS "Users can view own loans" ON mvp_loans;
+DROP POLICY IF EXISTS "Users can insert own loans" ON mvp_loans;
+DROP POLICY IF EXISTS "Users can update own loans" ON mvp_loans;
+DROP POLICY IF EXISTS "Users can view own assets" ON mvp_assets;
+DROP POLICY IF EXISTS "Users can insert own assets" ON mvp_assets;
+DROP POLICY IF EXISTS "Users can update own assets" ON mvp_assets;
+DROP POLICY IF EXISTS "Users can view own notifications" ON mvp_notifications;
+DROP POLICY IF EXISTS "Users can insert own notifications" ON mvp_notifications;
+DROP POLICY IF EXISTS "Users can update own notifications" ON mvp_notifications;
+DROP POLICY IF EXISTS "Users can view own support messages" ON mvp_support_messages;
+DROP POLICY IF EXISTS "Users can insert own support messages" ON mvp_support_messages;
+DROP POLICY IF EXISTS "Users can update own support messages" ON mvp_support_messages;
+DROP POLICY IF EXISTS "Users can view own kyc documents" ON mvp_kyc_documents;
+DROP POLICY IF EXISTS "Users can insert own kyc documents" ON mvp_kyc_documents;
+DROP POLICY IF EXISTS "Users can update own kyc documents" ON mvp_kyc_documents;
+
 -- Public tables (no auth required)
 CREATE POLICY "Allow read access to app_settings" ON mvp_app_settings FOR SELECT USING (true);
 CREATE POLICY "Allow insert to waitlist" ON mvp_waitlist FOR INSERT WITH CHECK (true);
@@ -312,6 +342,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql' SECURITY DEFINER;
+
+-- Drop existing trigger if it exists
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 -- Trigger to create profile and default data on user signup
 CREATE TRIGGER on_auth_user_created
