@@ -55,7 +55,7 @@ export const APP_CONFIG = {
     /**
      * Vercel API endpoint for database operations.
      */
-    API_BASE_URL: '/api',
+    API_BASE_URL: '/api/db',
 
     // ─── localStorage / sessionStorage key prefixes ──────────
     /** Prefix used for all localStorage keys */
