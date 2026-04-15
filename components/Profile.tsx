@@ -226,17 +226,17 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto animate-fade-in pb-[15px]">
+    <div className="w-full animate-fade-in pb-8">
       {statusMsg?.type === 'diag' && (
-        <div className="mb-4 bg-red-600 text-white rounded-xl p-4 shadow-xl border border-red-500 animate-in slide-in-from-top-2">
+        <div className="mb-6 bg-red-600 text-white rounded-xl p-4 shadow-xl border border-red-500 animate-in slide-in-from-top-2">
           <div className="flex items-start gap-3">
             <AlertTriangle className="shrink-0 mt-1" size={20} />
             <div className="flex-1">
               <h4 className="text-[10px] font-black uppercase tracking-widest mb-1">System Diagnostic Fault</h4>
-              <p className="text-xs font-bold leading-relaxed mb-3">{statusMsg.text}</p>
+              <p className="text-sm font-bold leading-relaxed mb-3">{statusMsg.text}</p>
               <div className="flex flex-wrap gap-2">
-                <button onClick={() => window.location.reload()} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] font-black uppercase transition-all"><RefreshCw size={12} /> Force Resync</button>
-                <button onClick={() => setStatusMsg(null)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] font-black uppercase transition-all">Dismiss</button>
+                <button onClick={() => window.location.reload()} className="flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-black uppercase transition-all"><RefreshCw size={14} /> Force Resync</button>
+                <button onClick={() => setStatusMsg(null)} className="flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-black uppercase transition-all">Dismiss</button>
               </div>
             </div>
           </div>
@@ -244,14 +244,14 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
       )}
 
       {statusMsg && statusMsg.type !== 'diag' && (
-        <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[100] px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-bold shadow-2xl animate-in slide-in-from-top-4 ${statusMsg.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
-          {statusMsg.type === 'success' ? <CheckCircle size={12} /> : <AlertTriangle size={12} />}
+        <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-bold shadow-2xl animate-in slide-in-from-top-4 ${statusMsg.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}`}>
+          {statusMsg.type === 'success' ? <CheckCircle size={14} /> : <AlertTriangle size={14} />}
           {statusMsg.text}
-          <button onClick={() => setStatusMsg(null)} className="ml-1 opacity-70 hover:opacity-100"><X size={10} /></button>
+          <button onClick={() => setStatusMsg(null)} className="ml-2 opacity-70 hover:opacity-100"><X size={12} /></button>
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 p-3 md:p-4 mb-2.5 shadow-sm relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 md:p-8 mb-6 shadow-sm relative overflow-hidden">
         <div className="flex flex-col md:flex-row items-center gap-3 relative z-10">
           <div className="relative group">
             <div className="w-14 h-14 md:w-16 md:h-16 rounded-full border border-slate-100 dark:border-slate-800 overflow-hidden bg-slate-50 dark:bg-slate-800 flex items-center justify-center shadow-sm">
