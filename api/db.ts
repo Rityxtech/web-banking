@@ -4,10 +4,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || '';
 
-const supabase = supabaseUrl && supabaseServiceKey 
+const supabase = supabaseUrl && supabaseServiceKey
   ? createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    })
+    auth: { autoRefreshToken: false, persistSession: false }
+  })
   : null;
 
 const PUBLIC_TABLES = ['mvp_app_settings', 'mvp_waitlist'];
@@ -17,7 +17,18 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Backend not configured - missing Supabase credentials' });
   }
 
-  const { op, table, data, id, columns, limit, offset, user_id } = req.body;
+  let parsedBody = req.body;
+  if (typeof req.body === 'string') {
+    try {
+      parsedBody = JSON.parse(req.body);
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid JSON body format' });
+    }
+  } else if (!req.body) {
+    parsedBody = {};
+  }
+
+  const { op, table, data, id, columns, limit, offset, user_id } = parsedBody;
   if (!op || !table) {
     return res.status(400).json({ error: 'Missing required fields: op, table' });
   }
@@ -27,7 +38,7 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
   const needsAuth = !isPublicTable || !isRead;
 
   let authToken = req.headers.authorization?.replace('Bearer ', '');
-  
+
   if (needsAuth && !authToken) {
     return res.status(401).json({ error: 'Authentication required' });
   }
