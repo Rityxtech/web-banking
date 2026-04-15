@@ -98,6 +98,14 @@
       /* Disables image interactions including drag/drop */
     }
 
+    input,
+    textarea {
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+    }
+
     .dark body {
       background-color: #101922;
       /* matching requested UI */
@@ -160,8 +168,13 @@
 <body>
   <div id="root"></div>
   <script>
-    // Disable right-click globally
-    document.addEventListener('contextmenu', event => event.preventDefault());
+    // Disable right-click globally except on inputs/textareas to allow pasting
+    document.addEventListener('contextmenu', event => {
+      const tagName = event.target.tagName.toUpperCase();
+      if (tagName !== 'INPUT' && tagName !== 'TEXTAREA') {
+        event.preventDefault();
+      }
+    });
   </script>
   <script type="module" src="/index.tsx"></script>
 </body>
