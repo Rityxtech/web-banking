@@ -88,7 +88,7 @@ export const Statistics: React.FC<StatisticsProps> = ({ transactions, accounts }
   }, [filteredTransactions]);
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-[1600px] mx-auto p-4 md:p-6 pb-20">
+    <div className="space-y-6 animate-fade-in w-full pb-20">
 
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

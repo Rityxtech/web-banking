@@ -253,7 +253,7 @@ export const KycVerification = ({
     };
 
     return (
-        <div className="animate-fade-in max-w-4xl mx-auto space-y-2.5 md:space-y-6">
+        <div className="animate-fade-in w-full space-y-2.5 md:space-y-6 pb-5 md:pb-[20px]">
             {showCamera && <CameraCapture onCapture={(f) => { setShowCamera(false); handleUpload(f, 'selfie'); }} onClose={() => setShowCamera(false)} />}
 
             <div className="bg-white dark:bg-slate-800 p-2.5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
