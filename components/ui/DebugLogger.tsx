@@ -1,17 +1,20 @@
 
 import React, { useEffect, useState } from 'react';
 import { mvp } from '../../services/mvpService';
-import { X, RefreshCw, Activity, CreditCard, Terminal, MousePointer2, AlertTriangle } from 'lucide-react';
+import { X, RefreshCw, Activity, CreditCard, Terminal, MousePointer2 } from 'lucide-react';
 
 declare global {
     interface Window {
-        lennoxDebug?: {
+        appDebug?: {
             log: (msg: string, type?: 'info' | 'success' | 'error' | 'warn') => void;
         };
     }
 }
 
 export const DebugLogger = ({ user }: { user: any }) => {
+    // Development-only tool — never rendered in production builds
+    if (!import.meta.env.DEV) return null;
+
     const [isOpen, setIsOpen] = useState(false);
     const [logs, setLogs] = useState<string[]>([]);
     const [cards, setCards] = useState<any[]>([]);
@@ -28,8 +31,8 @@ export const DebugLogger = ({ user }: { user: any }) => {
     };
 
     useEffect(() => {
-        window.lennoxDebug = { log: addLog };
-        return () => { delete window.lennoxDebug; };
+        window.appDebug = { log: addLog };
+        return () => { delete window.appDebug; };
     }, []);
 
     useEffect(() => {
@@ -47,7 +50,7 @@ export const DebugLogger = ({ user }: { user: any }) => {
             msg += ` | ${layerInfo} | ${pointerInfo}`;
             if (target.innerText?.includes('Provision') || target.closest('button')?.innerText?.includes('Provision')) {
                 msg += " ✅ TARGET: PROVISION BTN"; logType = 'success';
-            } else if (isInteractive) { msg += " (Interactive)"; } 
+            } else if (isInteractive) { msg += " (Interactive)"; }
             else { msg += " ⚠️ POSS. OVERLAY"; logType = 'warn'; }
             addLog(msg, logType);
         };
@@ -79,7 +82,7 @@ export const DebugLogger = ({ user }: { user: any }) => {
             addLog("1️⃣ Checking API Health...", 'info');
             const start = Date.now();
             const res = await fetch('https://lennoxmh.com/server/wp-content/plugins/mvp-baas/api.php', {
-                method: 'POST', 
+                method: 'POST',
                 headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({ op: 'health' })
             });
@@ -118,7 +121,7 @@ export const DebugLogger = ({ user }: { user: any }) => {
             } else {
                 addLog(`❌ FAILED: ${res?.error || JSON.stringify(res)}`, 'error');
             }
-        } catch (e: any) { addLog(`❌ EXCEPTION: ${e.message}`, 'error'); } 
+        } catch (e: any) { addLog(`❌ EXCEPTION: ${e.message}`, 'error'); }
         finally { setLoading(false); }
     };
 
@@ -134,8 +137,8 @@ export const DebugLogger = ({ user }: { user: any }) => {
     return (
         <div className="fixed bottom-6 left-6 w-[450px] max-w-[90vw] bg-[#0d1117] text-white rounded-xl shadow-2xl z-[9999] border border-slate-700 flex flex-col overflow-hidden max-h-[600px] font-sans">
             <div className="p-3 bg-slate-800 border-b border-slate-700 flex justify-between items-center">
-                <div className="flex items-center gap-2"><Terminal size={16} className="text-blue-400"/> <span className="font-bold text-xs uppercase tracking-wider text-blue-100">System Inspector</span></div>
-                <div className="flex gap-2"><button onClick={fetchCards} className="hover:text-blue-400 transition-colors"><RefreshCw size={16}/></button><button onClick={() => setIsOpen(false)} className="hover:text-red-400 transition-colors"><X size={16}/></button></div>
+                <div className="flex items-center gap-2"><Terminal size={16} className="text-blue-400" /> <span className="font-bold text-xs uppercase tracking-wider text-blue-100">System Inspector</span></div>
+                <div className="flex gap-2"><button onClick={fetchCards} className="hover:text-blue-400 transition-colors"><RefreshCw size={16} /></button><button onClick={() => setIsOpen(false)} className="hover:text-red-400 transition-colors"><X size={16} /></button></div>
             </div>
             <div className="p-3 bg-[#090c10] overflow-y-auto h-64 font-mono text-[10px] space-y-1 border-b border-slate-700 custom-scrollbar">
                 {logs.length === 0 && <span className="text-slate-600 italic">Ready to run diagnostics...</span>}

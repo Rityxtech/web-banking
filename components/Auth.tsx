@@ -4,6 +4,7 @@ import { Mail, Lock, Loader2, CheckCircle, AlertCircle, ArrowLeft, User, Phone, 
 import { supabase } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
+import { APP_CONFIG } from '../config';
 
 interface AuthProps {
   type: 'signin' | 'signup';
@@ -69,8 +70,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
   const displayLogo = logoUrl && logoUrl.trim() !== '' ? logoUrl : defaultLogo;
 
   const checkIsAdmin = (email: string) => {
-    const adminEmails = ['admin@lennox.bank', 'akugbof@gmail.com'];
-    return adminEmails.includes(email?.trim().toLowerCase());
+    return APP_CONFIG.ADMIN_EMAILS.includes(email?.trim().toLowerCase());
   };
 
   // Only block the Registration view if allowSignup is false

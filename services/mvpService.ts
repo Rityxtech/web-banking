@@ -1,7 +1,8 @@
 
 import { supabase } from './supabase';
+import { APP_CONFIG } from '../config';
 
-const BASE_URL = 'https://lennoxmh.com/server/wp-content/plugins/mvp-baas/api.php';
+const BASE_URL = APP_CONFIG.API_BASE_URL;
 
 export const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {

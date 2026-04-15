@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabase';
 import { AlertCircle, CheckCircle2, Cpu, Database, Fingerprint, Loader2, RefreshCw, ShieldCheck, X } from 'lucide-react';
+import { APP_CONFIG } from '../../config';
 
 interface CheckItem {
     status: 'pending' | 'ok' | 'warn' | 'error';
@@ -19,7 +19,14 @@ interface TerminalDebuggerProps {
     onReady?: (status: boolean) => void;
 }
 
+/**
+ * Development-only terminal diagnostic overlay.
+ * Automatically stripped from production builds.
+ */
 export const TerminalDebugger: React.FC<TerminalDebuggerProps> = ({ onReady }) => {
+    // Development-only tool — never rendered in production builds
+    if (!import.meta.env.DEV) return null;
+
     const [checks, setChecks] = useState<ChecksState>({
         session: { status: 'pending', label: 'Identity Node' },
         token: { status: 'pending', label: 'Auth Token' },
@@ -48,17 +55,17 @@ export const TerminalDebugger: React.FC<TerminalDebuggerProps> = ({ onReady }) =
             setChecks(prev => ({ ...prev, token: { ...prev.token, status: 'ok' } }));
 
             try {
-                const res = await fetch('https://lennoxmh.com/server/wp-content/plugins/mvp-baas/api.php', {
+                const res = await fetch(APP_CONFIG.API_BASE_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ op: 'read', table: 'mvp_app_settings', limit: 1 })
                 });
-                
+
                 if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-                
+
                 const text = await res.text();
                 if (text.includes('Fatal error')) throw new Error("API_CRASH: " + text.substring(0, 50));
-                
+
                 try {
                     JSON.parse(text);
                 } catch (e) {
@@ -74,7 +81,7 @@ export const TerminalDebugger: React.FC<TerminalDebuggerProps> = ({ onReady }) =
             }
 
             try {
-                const res = await fetch('https://lennoxmh.com/server/wp-content/plugins/mvp-baas/api.php', {
+                const res = await fetch(APP_CONFIG.API_BASE_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ op: 'read', table: 'mvp_messages', limit: 1, columns: 'id,ticket_id' })
@@ -107,7 +114,7 @@ export const TerminalDebugger: React.FC<TerminalDebuggerProps> = ({ onReady }) =
     };
 
     if (!isOpen) return (
-        <button 
+        <button
             onClick={() => setIsOpen(true)}
             className="fixed bottom-24 right-6 z-[100] bg-slate-900 text-white p-3 rounded-full shadow-2xl border border-white/10 opacity-40 hover:opacity-100 transition-all hover:scale-110 md:bottom-10"
         >
@@ -126,7 +133,7 @@ export const TerminalDebugger: React.FC<TerminalDebuggerProps> = ({ onReady }) =
                 </div>
                 <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-white"><X size={14} /></button>
             </div>
-            
+
             <div className="p-4 space-y-3">
                 {checkList.map((check, i) => (
                     <div key={i} className="flex items-center justify-between">
@@ -142,7 +149,7 @@ export const TerminalDebugger: React.FC<TerminalDebuggerProps> = ({ onReady }) =
                     </div>
                 )}
 
-                <button 
+                <button
                     onClick={runDiagnostics}
                     className="w-full mt-2 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-black uppercase text-slate-300 transition-all flex items-center justify-center gap-2"
                 >

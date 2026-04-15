@@ -4,6 +4,7 @@ import { supabase } from './services/supabase';
 import { mvp } from './services/mvpService';
 import { Loader2, ShieldCheck, Save, AlertCircle, ShieldAlert, LogOut, Send, CheckCircle, Ticket, Lock, Clock, ChevronRight, MessageSquare, Mail, Key, UserX, AlertTriangle, Ban } from 'lucide-react';
 import { getEmailTemplate } from './utils/emailTemplates';
+import { APP_CONFIG } from './config';
 
 // Components
 import { Layout } from './components/ui/Layout';
@@ -327,7 +328,7 @@ const CompleteRegistration = ({ user, onComplete }: { user: any, onComplete: () 
 
             await mvp.create('profiles', {
                 user_id: user.id,
-                full_name: user.user_metadata?.full_name || 'Lennox Bank',
+                full_name: user.user_metadata?.full_name || APP_CONFIG.BANK_NAME,
                 email: user.email,
                 settings: JSON.stringify({ pinSet: true })
             });
@@ -681,7 +682,7 @@ function App() {
                 // (We now do this for ALL authenticated users who lack a profile)
                 await mvp.create('profiles', {
                     user_id: userId,
-                    full_name: userMetadata?.full_name || 'Lennox Client',
+                    full_name: userMetadata?.full_name || `${APP_CONFIG.BRAND_NAME} Client`,
                     email: userMetadata?.email || '',
                     kyc_level: 0 // Explicitly set to 0 for new users
                 });
@@ -710,7 +711,7 @@ function App() {
                     }
                     return {
                         id: userId,
-                        name: profile.full_name || prev?.name || 'Lennox Client',
+                        name: profile.full_name || prev?.name || `${APP_CONFIG.BRAND_NAME} Client`,
                         email: profile.email || prev?.email || '',
                         avatarUrl: prev?.avatarUrl || profile.avatar_url || '',
                         pin: userMetadata?.pin // Include PIN in user object
