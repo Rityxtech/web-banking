@@ -311,35 +311,54 @@ DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Create profile for new user
-    INSERT INTO mvp_profiles (user_id, full_name, email, balance)
-    VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', NEW.email), NEW.email, 2.00);
+    -- 1. Create profile for new user
+    BEGIN
+        INSERT INTO mvp_profiles (user_id, full_name, email, balance)
+        VALUES (
+            NEW.id, 
+            COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', NEW.email), 
+            NEW.email, 
+            2.00
+        );
+    EXCEPTION WHEN OTHERS THEN
+        -- Simply ignore profile insert errors. The app will auto-heal/create on first login.
+        RAISE NOTICE 'Failed to create profile for user %: %', NEW.id, SQLERRM;
+    END;
 
-    -- Create default checking account
-    INSERT INTO mvp_accounts (user_id, name, type, balance, account_number, is_main)
-    VALUES (
-        NEW.id,
-        'Main Wallet',
-        'Checking',
-        2.00,
-        '****' || UPPER(SUBSTRING(NEW.id::text, 1, 8)),
-        TRUE
-    );
+    -- 2. Create default checking account
+    BEGIN
+        INSERT INTO mvp_accounts (user_id, name, type, balance, account_number, is_main)
+        VALUES (
+            NEW.id,
+            'Main Wallet',
+            'Checking',
+            2.00,
+            '****' || UPPER(SUBSTRING(NEW.id::text, 1, 8)),
+            TRUE
+        );
+    EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE 'Failed to create account for user %: %', NEW.id, SQLERRM;
+    END;
 
-    -- Create default debit card
-    INSERT INTO mvp_cards (user_id, type, number, holder, expiry, gradient, shadow, is_default, balance)
-    VALUES (
-        NEW.id,
-        'VISA',
-        '****' || UPPER(SUBSTRING(NEW.id::text, 10, 8)),
-        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'Card Holder'),
-        TO_CHAR(CURRENT_DATE + INTERVAL '3 years', 'MM/YY'),
-        'from-blue-600 to-blue-500',
-        'shadow-blue-500/20',
-        TRUE,
-        2.00
-    );
+    -- 3. Create default debit card
+    BEGIN
+        INSERT INTO mvp_cards (user_id, type, number, holder, expiry, gradient, shadow, is_default, balance)
+        VALUES (
+            NEW.id,
+            'VISA',
+            '****' || UPPER(SUBSTRING(NEW.id::text, 10, 8)),
+            COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'Card Holder'),
+            TO_CHAR(CURRENT_DATE + INTERVAL '3 years', 'MM/YY'),
+            'from-blue-600 to-blue-500',
+            'shadow-blue-500/20',
+            TRUE,
+            2.00
+        );
+    EXCEPTION WHEN OTHERS THEN
+        RAISE NOTICE 'Failed to create card for user %: %', NEW.id, SQLERRM;
+    END;
 
+    -- MUST return NEW to allow the auth.user insert to succeed
     RETURN NEW;
 END;
 $$ language 'plpgsql' SECURITY DEFINER;
