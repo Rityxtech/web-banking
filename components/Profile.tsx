@@ -13,8 +13,8 @@ interface ProfileProps {
 }
 
 const FormField = ({ label, name, value, onChange, placeholder, type = "text", options, disabled = true }: any) => (
-  <div className="space-y-0.5">
-    <label className="text-[8px] font-black text-slate-400 dark:text-slate-500 ml-0.5 uppercase tracking-tighter" htmlFor={name}>
+  <div className="space-y-1.5">
+    <label className="block text-xs md:text-sm font-black text-slate-400 dark:text-slate-500 ml-1 uppercase tracking-wider" htmlFor={name}>
       {label}
     </label>
     {type === "select" ? (
@@ -24,7 +24,7 @@ const FormField = ({ label, name, value, onChange, placeholder, type = "text", o
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-[11px] font-semibold text-slate-900 dark:text-white transition-all appearance-none disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 md:py-3.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm md:text-base font-semibold text-slate-900 dark:text-white transition-all appearance-none disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
       </select>
@@ -37,7 +37,7 @@ const FormField = ({ label, name, value, onChange, placeholder, type = "text", o
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-[11px] font-semibold text-slate-900 dark:text-white transition-all placeholder:text-slate-400 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 md:py-3.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm md:text-base font-semibold text-slate-900 dark:text-white transition-all placeholder:text-slate-400 disabled:opacity-60 disabled:cursor-not-allowed"
       />
     )}
   </div>
@@ -212,14 +212,14 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
   const SectionControls = ({ section }: { section: SectionType }) => {
     const isEditing = editingSection === section;
     return (
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-3">
         {isEditing ? (
           <>
-            <button onClick={() => setEditingSection(null)} className="text-[8px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-tighter transition-colors">Cancel</button>
-            <button onClick={() => handleSectionSave(section)} disabled={isLoading} className="flex items-center gap-1 text-[8px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-tighter transition-all">{isLoading ? <Loader2 size={8} className="animate-spin" /> : <Save size={8} />}Update</button>
+            <button onClick={() => setEditingSection(null)} className="text-xs md:text-sm font-bold text-slate-400 hover:text-slate-600 uppercase tracking-wider transition-colors px-3 py-2">Cancel</button>
+            <button onClick={() => handleSectionSave(section)} disabled={isLoading} className="flex items-center gap-2 text-xs md:text-sm font-black text-blue-600 hover:text-blue-700 uppercase tracking-wider transition-all px-3 py-2">{isLoading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}Update</button>
           </>
         ) : (
-          <button onClick={() => setEditingSection(section)} className="flex items-center gap-1 text-[8px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-tighter transition-all"><Edit2 size={8} />Edit</button>
+          <button onClick={() => setEditingSection(section)} className="flex items-center gap-2 text-xs md:text-sm font-black text-slate-400 hover:text-blue-600 uppercase tracking-wider transition-all px-3 py-2"><Edit2 size={16} />Edit</button>
         )}
       </div>
     );
@@ -251,48 +251,48 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 md:p-8 mb-6 shadow-sm relative overflow-hidden">
-        <div className="flex flex-col md:flex-row items-center gap-3 relative z-10">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-8 md:p-10 mb-8 shadow-sm relative overflow-hidden">
+        <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8 relative z-10">
           <div className="relative group">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full border border-slate-100 dark:border-slate-800 overflow-hidden bg-slate-50 dark:bg-slate-800 flex items-center justify-center shadow-sm">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border border-slate-100 dark:border-slate-800 overflow-hidden bg-slate-50 dark:bg-slate-800 flex items-center justify-center shadow-sm">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <div className="flex flex-col items-center text-slate-300 dark:text-slate-600">
-                  <UserRound size={20} />
-                  <span className="text-[5px] font-black mt-0.5 uppercase tracking-tighter">Root</span>
+                <div className="flex flex-col items-center justify-center text-slate-300 dark:text-slate-600">
+                  <UserRound size={40} className="md:w-12 md:h-12" />
+                  <span className="text-xs font-black mt-2 uppercase tracking-wider">Root</span>
                 </div>
               )}
               {isUploading && (
                 <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                  <Loader2 size={14} className="text-white animate-spin" />
+                  <Loader2 size={24} className="text-white animate-spin" />
                 </div>
               )}
             </div>
           </div>
 
-          <div className="text-center md:text-left space-y-1 flex-1">
-            <h3 className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Platform Identity</h3>
-            <div className="flex flex-wrap justify-center md:justify-start gap-1.5">
-              <label className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[8px] font-bold transition-all flex items-center gap-1 cursor-pointer shadow-sm active:scale-95">
-                <Upload size={8} />
-                Change
+          <div className="text-center md:text-left space-y-3 flex-1">
+            <h3 className="text-xs md:text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Platform Identity</h3>
+            <div className="flex flex-wrap justify-center md:justify-start gap-4">
+              <label className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95">
+                <Upload size={16} />
+                Change Photo
                 <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={isUploading} />
               </label>
-              <button onClick={handleRemoveAvatar} disabled={isUploading || !avatarUrl} className="bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 px-2 py-1 rounded text-[8px] font-bold transition-all disabled:opacity-50">Remove</button>
+              <button onClick={handleRemoveAvatar} disabled={isUploading || !avatarUrl} className="bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 px-6 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50">Remove</button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="space-y-2.5">
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-3 py-1.5 border-b border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30 flex items-center justify-between">
-            <div className="flex items-center gap-1.5"><BadgeInfo className="text-blue-600" size={10} /><h3 className="text-[8px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Personal Details</h3></div>
+      <div className="space-y-6 md:space-y-8">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 md:px-8 border-b border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30 flex items-center justify-between">
+            <div className="flex items-center gap-3"><BadgeInfo className="text-blue-600 w-5 h-5 md:w-6 md:h-6" /><h3 className="text-sm md:text-base font-black text-slate-900 dark:text-white uppercase tracking-widest">Personal Details</h3></div>
             <SectionControls section="personal" />
           </div>
-          <div className="p-3 space-y-2.5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div className="p-6 md:p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               <FormField label="First Name" name="firstName" value={formData.firstName} onChange={handleInputChange} disabled={editingSection !== 'personal'} placeholder="First Name" />
               <FormField label="Last Name" name="lastName" value={formData.lastName} onChange={handleInputChange} disabled={editingSection !== 'personal'} placeholder="Last Name" />
               <FormField label="Gender" name="gender" value={formData.gender} onChange={handleInputChange} disabled={editingSection !== 'personal'} type="select" options={["Male", "Female", "Non-binary", "Other", "Prefer not to say"]} />
@@ -301,13 +301,13 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-3 py-1.5 border-b border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30 flex items-center justify-between">
-            <div className="flex items-center gap-1.5"><Contact className="text-blue-600" size={10} /><h3 className="text-[8px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Connectivity</h3></div>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 md:px-8 border-b border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30 flex items-center justify-between">
+            <div className="flex items-center gap-3"><Contact className="text-blue-600 w-5 h-5 md:w-6 md:h-6" /><h3 className="text-sm md:text-base font-black text-slate-900 dark:text-white uppercase tracking-widest">Connectivity</h3></div>
             <SectionControls section="contact" />
           </div>
-          <div className="p-3 space-y-2.5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div className="p-6 md:p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               <FormField label="Email Terminal" name="email" value={formData.email} onChange={handleInputChange} placeholder="Email" type="email" disabled={true} />
               <FormField label="Secure Phone" name="phone" value={formData.phone} onChange={handleInputChange} disabled={editingSection !== 'contact'} placeholder="+1 (555) 000-0000" type="tel" />
             </div>
