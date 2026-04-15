@@ -109,7 +109,7 @@ async function request(payload: any): Promise<any> {
     } else {
         options = {
             method: 'POST',
-            headers: { ...headers, 'Content-Type': 'text/plain' },
+            headers: { ...headers, 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         };
     }
