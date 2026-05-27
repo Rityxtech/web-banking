@@ -1,25 +1,41 @@
--- Lennox Bank Database Schema
--- Run this in Supabase SQL Editor to set up the complete database
+-- ============================================================
+--  LENNOX BANK — COMPLETE UNIFIED SUPABASE SCHEMA
+--  Generated: Full audit of all frontend + admin components
+--  Run this in Supabase SQL Editor to set up the database
+-- ============================================================
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- ===========================================
--- APP SETTINGS TABLE
--- ===========================================
+-- ============================================================
+-- 1. APP SETTINGS  (Global config: maintenance, limits, branding)
+--    Used by: App.tsx, AdminDashboard.tsx, mvpService.ts
+-- ============================================================
 CREATE TABLE IF NOT EXISTS mvp_app_settings (
     id SERIAL PRIMARY KEY,
     maintenance_mode INTEGER DEFAULT 0,
     allow_registration INTEGER DEFAULT 1,
     max_transaction_limit DECIMAL(15,2) DEFAULT 50000.00,
+    -- Extended settings (prevent AdminDashboard "settings upgrade" workaround)
+    disable_transactions INTEGER DEFAULT 0,
+    email_notifications INTEGER DEFAULT 1,
+    site_name VARCHAR(255) DEFAULT 'Lennox Bank',
+    site_logo TEXT,
+    enable_daily_limit INTEGER DEFAULT 0,
+    enable_weekly_limit INTEGER DEFAULT 0,
+    enable_monthly_limit INTEGER DEFAULT 0,
+    daily_limit DECIMAL(15,2) DEFAULT 50000.00,
+    weekly_limit DECIMAL(15,2) DEFAULT 250000.00,
+    monthly_limit DECIMAL(15,2) DEFAULT 500000.00,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
--- WAITLIST TABLE
--- ===========================================
+-- ============================================================
+-- 2. WAITLIST  (Public signup queue)
+--    Used by: Auth.tsx (direct Supabase), HomePage.tsx
+-- ============================================================
 CREATE TABLE IF NOT EXISTS mvp_waitlist (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -27,9 +43,11 @@ CREATE TABLE IF NOT EXISTS mvp_waitlist (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
--- PROFILES TABLE (User profiles)
--- ===========================================
+-- ============================================================
+-- 3. PROFILES  (Per-user identity, KYC, preferences)
+--    Used by: App.tsx, AdminDashboard.tsx, Settings.tsx,
+--             Profile.tsx, KycVerification.tsx, Auth.tsx
+-- ============================================================
 CREATE TABLE IF NOT EXISTS mvp_profiles (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -37,9 +55,25 @@ CREATE TABLE IF NOT EXISTS mvp_profiles (
     email VARCHAR(255),
     avatar_url TEXT,
     pin VARCHAR(6),
-    kyc_level INTEGER DEFAULT 0,
-    is_suspended BOOLEAN DEFAULT FALSE,
+    -- Admin / role system
+    role VARCHAR(20) DEFAULT 'user',
     is_admin BOOLEAN DEFAULT FALSE,
+    -- KYC & compliance
+    kyc_level INTEGER DEFAULT 0,
+    kyc_documents JSONB DEFAULT '{}',
+    -- Account status
+    is_suspended BOOLEAN DEFAULT FALSE,
+    theme VARCHAR(20) DEFAULT 'dark',
+    -- Contact info
+    phone VARCHAR(50),
+    gender VARCHAR(20),
+    dob VARCHAR(20),
+    occupation VARCHAR(100),
+    address TEXT,
+    city VARCHAR(100),
+    zip VARCHAR(20),
+    country VARCHAR(100),
+    -- Legacy limit columns (currently calculated client-side, kept for future)
     balance DECIMAL(15,2) DEFAULT 0.00,
     daily_limit DECIMAL(15,2) DEFAULT 1000.00,
     weekly_limit DECIMAL(15,2) DEFAULT 5000.00,
@@ -47,6 +81,7 @@ CREATE TABLE IF NOT EXISTS mvp_profiles (
     daily_usage DECIMAL(15,2) DEFAULT 0.00,
     weekly_usage DECIMAL(15,2) DEFAULT 0.00,
     monthly_usage DECIMAL(15,2) DEFAULT 0.00,
+    -- JSON blobs
     settings JSONB DEFAULT '{}',
     card_controls JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -54,9 +89,11 @@ CREATE TABLE IF NOT EXISTS mvp_profiles (
     UNIQUE(user_id)
 );
 
--- ===========================================
--- ACCOUNTS TABLE
--- ===========================================
+-- ============================================================
+-- 4. ACCOUNTS  (Checking, Savings, Investment wallets)
+--    Used by: App.tsx, Accounts.tsx, Transfers.tsx,
+--             TopUp.tsx, AdminDashboard.tsx
+-- ============================================================
 CREATE TABLE IF NOT EXISTS mvp_accounts (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -70,9 +107,11 @@ CREATE TABLE IF NOT EXISTS mvp_accounts (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
--- TRANSACTIONS TABLE
--- ===========================================
+-- ============================================================
+-- 5. TRANSACTIONS  (All money movement + admin manual entries)
+--    Used by: App.tsx, Accounts.tsx, Transactions.tsx,
+--             AdminDashboard.tsx, Investments.tsx
+-- ============================================================
 CREATE TABLE IF NOT EXISTS mvp_transactions (
     id SERIAL PRIMARY KEY,
     uuid VARCHAR(36) UNIQUE DEFAULT uuid_generate_v4()::text,
@@ -89,9 +128,10 @@ CREATE TABLE IF NOT EXISTS mvp_transactions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
--- CARDS TABLE
--- ===========================================
+-- ============================================================
+-- 6. CARDS  (Virtual / physical debit cards)
+--    Used by: App.tsx, TopUp.tsx, AdminDashboard.tsx
+-- ============================================================
 CREATE TABLE IF NOT EXISTS mvp_cards (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -110,9 +150,11 @@ CREATE TABLE IF NOT EXISTS mvp_cards (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
--- LOANS TABLE
--- ===========================================
+-- ============================================================
+-- 7. LOANS  (Loan products)
+--    NOTE: Loans.tsx component exists but is not currently
+--    wired into App.tsx. Table kept for future integration.
+-- ============================================================
 CREATE TABLE IF NOT EXISTS mvp_loans (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -128,9 +170,10 @@ CREATE TABLE IF NOT EXISTS mvp_loans (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
--- ASSETS TABLE (Investments)
--- ===========================================
+-- ============================================================
+-- 8. ASSETS  (Investment / stock holdings)
+--    Used by: App.tsx, Investments.tsx, AdminDashboard.tsx
+-- ============================================================
 CREATE TABLE IF NOT EXISTS mvp_assets (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -144,9 +187,10 @@ CREATE TABLE IF NOT EXISTS mvp_assets (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
--- NOTIFICATIONS TABLE
--- ===========================================
+-- ============================================================
+-- 9. NOTIFICATIONS  (User in-app alerts)
+--    Used by: App.tsx, Settings.tsx, AdminDashboard.tsx
+-- ============================================================
 CREATE TABLE IF NOT EXISTS mvp_notifications (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -157,49 +201,74 @@ CREATE TABLE IF NOT EXISTS mvp_notifications (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
--- SUPPORT MESSAGES TABLE
--- ===========================================
-CREATE TABLE IF NOT EXISTS mvp_support_messages (
+-- ============================================================
+-- 10. MESSAGES  (AI chat + live support thread)
+--    Used by: App.tsx, AiAssistant.tsx, Support.tsx, AdminDashboard.tsx
+-- ============================================================
+CREATE TABLE IF NOT EXISTS mvp_messages (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    message TEXT NOT NULL,
-    is_from_user BOOLEAN DEFAULT TRUE,
+    ticket_id INTEGER,
+    text TEXT NOT NULL,
+    sender VARCHAR(20) DEFAULT 'user',
     is_read BOOLEAN DEFAULT FALSE,
+    client_id VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
--- KYC DOCUMENTS TABLE
--- ===========================================
-CREATE TABLE IF NOT EXISTS mvp_kyc_documents (
+-- ============================================================
+-- 11. SUPPORT TICKETS  (User-submitted support requests)
+--    Used by: App.tsx, Support.tsx, AdminDashboard.tsx
+-- ============================================================
+CREATE TABLE IF NOT EXISTS mvp_support_tickets (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    document_type VARCHAR(50) NOT NULL,
-    document_url TEXT,
-    status VARCHAR(20) DEFAULT 'pending',
-    rejection_reason TEXT,
+    subject VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'Open',
+    is_read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- ===========================================
+-- ============================================================
+-- 12. BANKS  (External bank list for wire transfers)
+--    Used by: Transfers.tsx, AdminDashboard.tsx
+-- ============================================================
+CREATE TABLE IF NOT EXISTS mvp_banks (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    logo TEXT,
+    color VARCHAR(50) DEFAULT 'bg-slate-500',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================
 -- INDEXES FOR PERFORMANCE
--- ===========================================
+-- ============================================================
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON mvp_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_profiles_email ON mvp_profiles(email);
+CREATE INDEX IF NOT EXISTS idx_profiles_role ON mvp_profiles(role);
 CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON mvp_accounts(user_id);
+CREATE INDEX IF NOT EXISTS idx_accounts_type ON mvp_accounts(type);
 CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON mvp_transactions(user_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_account_id ON mvp_transactions(account_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_date ON mvp_transactions(date);
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON mvp_transactions(status);
 CREATE INDEX IF NOT EXISTS idx_cards_user_id ON mvp_cards(user_id);
 CREATE INDEX IF NOT EXISTS idx_loans_user_id ON mvp_loans(user_id);
 CREATE INDEX IF NOT EXISTS idx_assets_user_id ON mvp_assets(user_id);
+CREATE INDEX IF NOT EXISTS idx_assets_symbol ON mvp_assets(symbol);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON mvp_notifications(user_id);
-CREATE INDEX IF NOT EXISTS idx_support_messages_user_id ON mvp_support_messages(user_id);
-CREATE INDEX IF NOT EXISTS idx_kyc_documents_user_id ON mvp_kyc_documents(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON mvp_notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_messages_user_id ON mvp_messages(user_id);
+CREATE INDEX IF NOT EXISTS idx_messages_ticket_id ON mvp_messages(ticket_id);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_user_id ON mvp_support_tickets(user_id);
+CREATE INDEX IF NOT EXISTS idx_support_tickets_status ON mvp_support_tickets(status);
 
--- ===========================================
--- ROW LEVEL SECURITY POLICIES
--- ===========================================
+-- ============================================================
+-- ROW LEVEL SECURITY (RLS)
+-- ============================================================
 
 -- Enable RLS on all tables
 ALTER TABLE mvp_app_settings ENABLE ROW LEVEL SECURITY;
@@ -211,10 +280,11 @@ ALTER TABLE mvp_cards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mvp_loans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mvp_assets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mvp_notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE mvp_support_messages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE mvp_kyc_documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mvp_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mvp_support_tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mvp_banks ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies if they exist
+-- Helper: drop any legacy policies from old schema
 DROP POLICY IF EXISTS "Allow read access to app_settings" ON mvp_app_settings;
 DROP POLICY IF EXISTS "Allow insert to waitlist" ON mvp_waitlist;
 DROP POLICY IF EXISTS "Users can view own profile" ON mvp_profiles;
@@ -237,16 +307,18 @@ DROP POLICY IF EXISTS "Users can update own assets" ON mvp_assets;
 DROP POLICY IF EXISTS "Users can view own notifications" ON mvp_notifications;
 DROP POLICY IF EXISTS "Users can insert own notifications" ON mvp_notifications;
 DROP POLICY IF EXISTS "Users can update own notifications" ON mvp_notifications;
-DROP POLICY IF EXISTS "Users can view own support messages" ON mvp_support_messages;
-DROP POLICY IF EXISTS "Users can insert own support messages" ON mvp_support_messages;
-DROP POLICY IF EXISTS "Users can update own support messages" ON mvp_support_messages;
-DROP POLICY IF EXISTS "Users can view own kyc documents" ON mvp_kyc_documents;
-DROP POLICY IF EXISTS "Users can insert own kyc documents" ON mvp_kyc_documents;
-DROP POLICY IF EXISTS "Users can update own kyc documents" ON mvp_kyc_documents;
+DROP POLICY IF EXISTS "Users can view own messages" ON mvp_messages;
+DROP POLICY IF EXISTS "Users can insert own messages" ON mvp_messages;
+DROP POLICY IF EXISTS "Users can update own messages" ON mvp_messages;
+DROP POLICY IF EXISTS "Users can view own support_tickets" ON mvp_support_tickets;
+DROP POLICY IF EXISTS "Users can insert own support_tickets" ON mvp_support_tickets;
+DROP POLICY IF EXISTS "Users can update own support_tickets" ON mvp_support_tickets;
+DROP POLICY IF EXISTS "Allow read all banks" ON mvp_banks;
 
 -- Public tables (no auth required)
 CREATE POLICY "Allow read access to app_settings" ON mvp_app_settings FOR SELECT USING (true);
 CREATE POLICY "Allow insert to waitlist" ON mvp_waitlist FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow read all banks" ON mvp_banks FOR SELECT USING (true);
 
 -- User-specific policies
 CREATE POLICY "Users can view own profile" ON mvp_profiles FOR SELECT USING (auth.uid() = user_id);
@@ -276,52 +348,77 @@ CREATE POLICY "Users can view own notifications" ON mvp_notifications FOR SELECT
 CREATE POLICY "Users can insert own notifications" ON mvp_notifications FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own notifications" ON mvp_notifications FOR UPDATE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can view own support messages" ON mvp_support_messages FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own support messages" ON mvp_support_messages FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own support messages" ON mvp_support_messages FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can view own messages" ON mvp_messages FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own messages" ON mvp_messages FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own messages" ON mvp_messages FOR UPDATE USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can view own kyc documents" ON mvp_kyc_documents FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can insert own kyc documents" ON mvp_kyc_documents FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own kyc documents" ON mvp_kyc_documents FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can view own support_tickets" ON mvp_support_tickets FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own support_tickets" ON mvp_support_tickets FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own support_tickets" ON mvp_support_tickets FOR UPDATE USING (auth.uid() = user_id);
 
--- ===========================================
+-- ============================================================
 -- DEFAULT DATA
--- ===========================================
+-- ============================================================
 
--- Insert default app settings
-INSERT INTO mvp_app_settings (maintenance_mode, allow_registration, max_transaction_limit)
-VALUES (0, 1, 50000.00)
-ON CONFLICT DO NOTHING;
+-- Seed default app settings (id=1 is expected by AdminDashboard)
+INSERT INTO mvp_app_settings (
+    id, maintenance_mode, allow_registration, max_transaction_limit,
+    disable_transactions, email_notifications, site_name, site_logo,
+    enable_daily_limit, enable_weekly_limit, enable_monthly_limit,
+    daily_limit, weekly_limit, monthly_limit
+)
+VALUES (
+    1, 0, 1, 50000.00,
+    0, 1, 'Lennox Bank', '',
+    0, 0, 0,
+    50000.00, 250000.00, 500000.00
+)
+ON CONFLICT (id) DO UPDATE SET
+    maintenance_mode = EXCLUDED.maintenance_mode,
+    allow_registration = EXCLUDED.allow_registration,
+    max_transaction_limit = EXCLUDED.max_transaction_limit,
+    disable_transactions = EXCLUDED.disable_transactions,
+    email_notifications = EXCLUDED.email_notifications,
+    site_name = EXCLUDED.site_name,
+    site_logo = EXCLUDED.site_logo,
+    enable_daily_limit = EXCLUDED.enable_daily_limit,
+    enable_weekly_limit = EXCLUDED.enable_weekly_limit,
+    enable_monthly_limit = EXCLUDED.enable_monthly_limit,
+    daily_limit = EXCLUDED.daily_limit,
+    weekly_limit = EXCLUDED.weekly_limit,
+    monthly_limit = EXCLUDED.monthly_limit,
+    updated_at = NOW();
 
--- ===========================================
--- FUNCTIONS
--- ===========================================
+-- ============================================================
+-- FUNCTIONS & TRIGGERS
+-- ============================================================
 
--- Function to update updated_at timestamp
+-- Auto-update updated_at helper
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
--- Function to handle new user signup
+-- Handle new user signup: auto-create profile, checking account, and card
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- 1. Create profile for new user
+    -- 1. Create profile
     BEGIN
-        INSERT INTO mvp_profiles (user_id, full_name, email, balance)
-        VALUES (
-            NEW.id, 
-            COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', NEW.email), 
-            NEW.email, 
+        INSERT INTO mvp_profiles (
+            user_id, full_name, email, role, balance
+        ) VALUES (
+            NEW.id,
+            COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', NEW.email),
+            NEW.email,
+            'user',
             2.00
         );
     EXCEPTION WHEN OTHERS THEN
-        -- Simply ignore profile insert errors. The app will auto-heal/create on first login.
         RAISE NOTICE 'Failed to create profile for user %: %', NEW.id, SQLERRM;
     END;
 
@@ -358,32 +455,29 @@ BEGIN
         RAISE NOTICE 'Failed to create card for user %: %', NEW.id, SQLERRM;
     END;
 
-    -- MUST return NEW to allow the auth.user insert to succeed
     RETURN NEW;
 END;
-$$ language 'plpgsql' SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Drop existing trigger if it exists
+-- Attach trigger to auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-
--- Trigger to create profile and default data on user signup
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Add triggers for updated_at
+-- Auto-update triggers for tables with updated_at
 DROP TRIGGER IF EXISTS update_mvp_profiles_updated_at ON mvp_profiles;
 DROP TRIGGER IF EXISTS update_mvp_accounts_updated_at ON mvp_accounts;
 DROP TRIGGER IF EXISTS update_mvp_cards_updated_at ON mvp_cards;
 DROP TRIGGER IF EXISTS update_mvp_loans_updated_at ON mvp_loans;
 DROP TRIGGER IF EXISTS update_mvp_assets_updated_at ON mvp_assets;
-DROP TRIGGER IF EXISTS update_mvp_kyc_documents_updated_at ON mvp_kyc_documents;
 DROP TRIGGER IF EXISTS update_mvp_app_settings_updated_at ON mvp_app_settings;
+DROP TRIGGER IF EXISTS update_mvp_support_tickets_updated_at ON mvp_support_tickets;
 
 CREATE TRIGGER update_mvp_profiles_updated_at BEFORE UPDATE ON mvp_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mvp_accounts_updated_at BEFORE UPDATE ON mvp_accounts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mvp_cards_updated_at BEFORE UPDATE ON mvp_cards FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mvp_loans_updated_at BEFORE UPDATE ON mvp_loans FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mvp_assets_updated_at BEFORE UPDATE ON mvp_assets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_mvp_kyc_documents_updated_at BEFORE UPDATE ON mvp_kyc_documents FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mvp_app_settings_updated_at BEFORE UPDATE ON mvp_app_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_mvp_support_tickets_updated_at BEFORE UPDATE ON mvp_support_tickets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

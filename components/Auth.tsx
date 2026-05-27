@@ -393,7 +393,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
     if (!waitlistEmail) return;
     setIsWaitlistSubmitting(true);
     try {
-      await supabase.from('waitlist').insert({ email: waitlistEmail });
+      await supabase.from('mvp_waitlist').insert({ email: waitlistEmail });
       setHasJoinedWaitlist(true);
     } catch (err) {
       setHasJoinedWaitlist(true);

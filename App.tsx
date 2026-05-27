@@ -326,12 +326,20 @@ const CompleteRegistration = ({ user, onComplete }: { user: any, onComplete: () 
             });
             if (updateError) throw updateError;
 
-            await mvp.create('profiles', {
-                user_id: user.id,
-                full_name: user.user_metadata?.full_name || APP_CONFIG.BANK_NAME,
-                email: user.email,
-                settings: JSON.stringify({ pinSet: true })
-            });
+            const profiles = await mvp.read('profiles', true);
+            const existing = profiles.find((p: any) => p.user_id === user.id);
+            if (existing) {
+                await mvp.update('profiles', existing.id, {
+                    settings: JSON.stringify({ pinSet: true })
+                });
+            } else {
+                await mvp.create('profiles', {
+                    user_id: user.id,
+                    full_name: user.user_metadata?.full_name || APP_CONFIG.BANK_NAME,
+                    email: user.email,
+                    settings: JSON.stringify({ pinSet: true })
+                });
+            }
 
             onComplete();
         } catch (err: any) {
@@ -664,6 +672,7 @@ function App() {
 
     const fetchAllUserData = useCallback(async (userId: string, userMetadata?: any) => {
         if (initRef.current === userId) return;
+        initRef.current = userId; // Lock immediately to prevent concurrent runs
 
         setLoadingData(true);
         setNotificationsSynced(false); // Hide badge until fetch complete
@@ -672,26 +681,29 @@ function App() {
             const profiles = await mvp.read('profiles', true, { columns: 'id,user_id,full_name,email,role,kyc_level,is_suspended,theme,avatar_url,settings' });
             let profile = profiles.find((p: any) => p.user_id === userId);
 
-            // LOGIC: If profile doesn't exist, check intent.
+            // LOGIC: If profile doesn't exist, create it (self-healing).
             if (!profile) {
-                // SELF-HEALING: If user is authenticated but has no profile, create it.
-                // This fixes issues where registration was interrupted (network, etc).
                 console.log("No profile found for authenticated user. Auto-creating profile...");
-
-                // If intent was signup (or null/unknown), proceed to create
-                // (We now do this for ALL authenticated users who lack a profile)
-                await mvp.create('profiles', {
-                    user_id: userId,
-                    full_name: userMetadata?.full_name || `${APP_CONFIG.BRAND_NAME} Client`,
-                    email: userMetadata?.email || '',
-                    kyc_level: 0 // Explicitly set to 0 for new users
-                });
+                try {
+                    await mvp.create('profiles', {
+                        user_id: userId,
+                        full_name: userMetadata?.full_name || `${APP_CONFIG.BRAND_NAME} Client`,
+                        email: userMetadata?.email || '',
+                        kyc_level: 0
+                    });
+                } catch (createErr: any) {
+                    // Trigger or race may have already created it — re-read
+                    if (createErr.message?.includes('23505') || createErr.message?.includes('duplicate') || createErr.message?.includes('unique constraint')) {
+                        console.warn('Profile already exists (race with trigger), re-reading...');
+                    } else {
+                        throw createErr;
+                    }
+                }
                 const updatedProfiles = await mvp.read('profiles', true, { columns: 'id,user_id,full_name,email,role,kyc_level,is_suspended,theme,avatar_url,settings' });
                 profile = updatedProfiles.find((p: any) => p.user_id === userId);
             }
 
             if (profile) {
-                initRef.current = userId;
                 setIsSuspended(profile.is_suspended == "1" || profile.is_suspended == 1 || profile.is_suspended === true);
                 if (profile.theme) setIsDarkMode(profile.theme === 'dark');
 
@@ -813,13 +825,13 @@ function App() {
 
         } catch (error: any) {
             console.error("Error fetching user data:", error);
-            initRef.current = null;
 
             // FIX: Handle spurious AUTH_SESSION_EXPIRED by verifying session existence
             if (error.message === 'AUTH_SESSION_EXPIRED' || error.message?.includes('AUTH_SESSION_LOST')) {
                 const { data } = await supabase.auth.getSession();
                 // Only force sign out if session is truly null. If token is valid, it might be a temp glitch.
                 if (!data.session) {
+                    initRef.current = null;
                     await supabase.auth.signOut();
                     setCurrentUser(null);
                     setCurrentView('signin');
