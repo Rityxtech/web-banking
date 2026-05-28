@@ -481,3 +481,43 @@ CREATE TRIGGER update_mvp_loans_updated_at BEFORE UPDATE ON mvp_loans FOR EACH R
 CREATE TRIGGER update_mvp_assets_updated_at BEFORE UPDATE ON mvp_assets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mvp_app_settings_updated_at BEFORE UPDATE ON mvp_app_settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_mvp_support_tickets_updated_at BEFORE UPDATE ON mvp_support_tickets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================
+-- MIGRATION: Fix existing databases (safe to re-run)
+-- Run this section if admin settings don't save properly
+-- ============================================================
+
+-- Ensure mvp_profiles has all columns for Profile.tsx
+ALTER TABLE mvp_profiles 
+ADD COLUMN IF NOT EXISTS gender VARCHAR(20),
+ADD COLUMN IF NOT EXISTS dob VARCHAR(20),
+ADD COLUMN IF NOT EXISTS occupation VARCHAR(100),
+ADD COLUMN IF NOT EXISTS zip VARCHAR(20);
+
+-- Ensure mvp_app_settings has all columns for AdminDashboard
+ALTER TABLE mvp_app_settings 
+ADD COLUMN IF NOT EXISTS site_name VARCHAR(255) DEFAULT 'Lennox Bank',
+ADD COLUMN IF NOT EXISTS site_logo TEXT,
+ADD COLUMN IF NOT EXISTS disable_transactions INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS email_notifications INTEGER DEFAULT 1,
+ADD COLUMN IF NOT EXISTS enable_daily_limit INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS enable_weekly_limit INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS enable_monthly_limit INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS daily_limit DECIMAL(15,2) DEFAULT 50000.00,
+ADD COLUMN IF NOT EXISTS weekly_limit DECIMAL(15,2) DEFAULT 250000.00,
+ADD COLUMN IF NOT EXISTS monthly_limit DECIMAL(15,2) DEFAULT 500000.00;
+
+-- Ensure seed row exists (id=1 required by AdminDashboard)
+INSERT INTO mvp_app_settings (
+    id, maintenance_mode, allow_registration, max_transaction_limit,
+    disable_transactions, email_notifications, site_name, site_logo,
+    enable_daily_limit, enable_weekly_limit, enable_monthly_limit,
+    daily_limit, weekly_limit, monthly_limit
+)
+VALUES (
+    1, 0, 1, 50000.00,
+    0, 1, 'Lennox Bank', '',
+    0, 0, 0,
+    50000.00, 250000.00, 500000.00
+)
+ON CONFLICT (id) DO NOTHING;

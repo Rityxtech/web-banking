@@ -8,6 +8,7 @@ import { AboutUsContent, CareersContent, BlogContent, PressContent, HelpCenterCo
 interface HomePageProps {
    onNavigate: (page: 'signin' | 'signup', email?: string) => void;
    logoUrl?: string;
+   siteName?: string;
 }
 
 interface RevealProps {
@@ -184,12 +185,13 @@ const FooterPage = ({ page, onBack, onNavigate }: { page: string, onBack: () => 
    );
 };
 
-export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl }) => {
+export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl, siteName }) => {
    const [heroEmail, setHeroEmail] = useState('');
    const [activePage, setActivePage] = useState<string>('home');
 
    const defaultLogo = "https://image2url.com/r2/default/images/1769428285590-d43b30ba-a0ba-499f-a066-6411c1619f75.webp";
    const displayLogo = logoUrl && logoUrl.trim() !== '' ? logoUrl : defaultLogo;
+   const displayName = siteName && siteName.trim() !== '' ? siteName.split(' ')[0] : 'Lennox';
 
    if (activePage !== 'home') {
       return <FooterPage page={activePage} onBack={() => setActivePage('home')} onNavigate={onNavigate} />;
@@ -205,11 +207,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl }) => {
                   <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                      <img
                         src={displayLogo}
-                        alt="Lennox"
+                        alt={displayName}
                         className="w-8 h-8 object-contain"
                         onError={(e) => { (e.target as HTMLImageElement).src = defaultLogo; }}
                      />
-                     <span className="text-lg md:text-xl font-bold tracking-tight uppercase">Lennox</span>
+                     <span className="text-lg md:text-xl font-bold tracking-tight uppercase">{displayName}</span>
                   </div>
                   <div className="hidden md:flex items-center space-x-8">
                      <a href="#home" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Home</a>
@@ -585,11 +587,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl }) => {
                      <div className="flex items-center gap-2 mb-6">
                         <img
                            src={displayLogo}
-                           alt="Lennox"
+                           alt={displayName}
                            className="w-8 h-8 object-contain"
                            onError={(e) => { (e.target as HTMLImageElement).src = defaultLogo; }}
                         />
-                        <span className="text-xl font-bold tracking-tight uppercase">Lennox</span>
+                        <span className="text-xl font-bold tracking-tight uppercase">{displayName}</span>
                      </div>
                      <p className="text-slate-500 text-xs md:text-sm leading-relaxed mb-6">Redefining the digital banking experience through innovative cloud technology and human-centric design.</p>
                      <div className="flex gap-4">

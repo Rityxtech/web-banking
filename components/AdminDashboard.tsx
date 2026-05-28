@@ -521,6 +521,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         }
     }, [isActionLoading, activeSection]);
 
+    // DEBUG: Test logo save from browser console
+    // Run: window.testLogoSave('data:image/png;base64,...')
+    useEffect(() => {
+        (window as any).testLogoSave = async (testLogo?: string) => {
+            const logoToTest = testLogo || globalConfig.siteLogo || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+            console.log('[DEBUG] Testing logo save...');
+            console.log('[DEBUG] Logo length:', logoToTest.length);
+            console.log('[DEBUG] Logo preview:', logoToTest.substring(0, 100));
+
+            try {
+                // Test 1: Direct update
+                console.log('[DEBUG] Step 1: Saving logo via mvp.update...');
+                const updateResult = await mvp.update('app_settings', 1, { site_logo: logoToTest });
+                console.log('[DEBUG] Update result:', updateResult);
+
+                // Test 2: Read back
+                console.log('[DEBUG] Step 2: Reading back from DB...');
+                const settings = await mvp.getSettings();
+                console.log('[DEBUG] Retrieved settings:', settings);
+                console.log('[DEBUG] site_logo length:', settings.site_logo?.length || 0);
+                console.log('[DEBUG] site_logo matches:', settings.site_logo === logoToTest ? 'YES' : 'NO');
+
+                if (settings.site_logo !== logoToTest) {
+                    console.error('[DEBUG] MISMATCH! Logo was not saved correctly.');
+                    console.log('[DEBUG] Expected:', logoToTest.substring(0, 100));
+                    console.log('[DEBUG] Got:', settings.site_logo?.substring(0, 100) || 'NULL');
+                } else {
+                    console.log('[DEBUG] SUCCESS! Logo saved and retrieved correctly.');
+                }
+            } catch (err: any) {
+                console.error('[DEBUG] ERROR:', err.message);
+                console.error('[DEBUG] Full error:', err);
+            }
+        };
+    }, [globalConfig.siteLogo]);
+
     const unreadLiveCount = useMemo(() => {
         return liveMessages.filter(m =>
             m.sender === 'user' &&
@@ -1364,9 +1400,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             }
 
             // ── STEP 2: Extended save (optional columns) ──────────────────────────────
-            // Try to save the extra limit/logo columns. If they don't exist in the DB
-            // yet, this will throw — we catch and silently ignore so the core save above
-            // is never rolled back. Run app_settings_upgrade.sql to enable these fields.
             if (saveOk) {
                 const extendedPayload = {
                     site_logo: globalConfig.siteLogo,
@@ -1379,12 +1412,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 };
                 try {
                     await mvp.update('app_settings', 1, extendedPayload);
-                } catch (_) {
-                    // Extended columns not in DB yet — non-critical, core settings already saved
-                    console.warn('[Settings] Extended columns not available in DB yet. Run app_settings_upgrade.sql.');
+                    setSuccessMsg('Settings saved successfully.');
+                } catch (extErr: any) {
+                    // Show error but don't fail entirely since core settings saved
+                    console.error('[Settings] Extended save error:', extErr);
+                    setSuccessMsg(`Core settings saved, but logo/limits failed: ${extErr.message}`);
                 }
 
-                setSuccessMsg('Core parameters synchronized.');
                 setTimeout(() => setSuccessMsg(null), 5000);
                 isEditingSettings.current = false;
                 await fetchData(false);

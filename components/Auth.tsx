@@ -13,6 +13,7 @@ interface AuthProps {
   allowSignup?: boolean;
   maintenanceMode?: boolean;
   logoUrl?: string;
+  siteName?: string;
   onAuthSuccess: () => void;
   onAdminBypass?: () => void;
   onSwitch: (type: 'signin' | 'signup') => void;
@@ -30,7 +31,7 @@ const GoogleLogo = () => (
 
 type AuthView = 'signin' | 'signup' | 'verify_otp' | 'forgot_password' | 'reset_password';
 
-export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '', allowSignup = true, maintenanceMode = false, logoUrl, onAuthSuccess, onAdminBypass, onSwitch, onShowMaintenance }) => {
+export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '', allowSignup = true, maintenanceMode = false, logoUrl, siteName, onAuthSuccess, onAdminBypass, onSwitch, onShowMaintenance }) => {
   const [currentView, setCurrentView] = useState<AuthView>(type);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(authFeedback || '');
@@ -69,6 +70,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
 
   const defaultLogo = "https://image2url.com/r2/default/images/1769428285590-d43b30ba-a0ba-499f-a066-6411c1619f75.webp";
   const displayLogo = logoUrl && logoUrl.trim() !== '' ? logoUrl : defaultLogo;
+  const displayName = siteName && siteName.trim() !== '' ? siteName.split(' ')[0] : 'Lennox';
 
   const checkIsAdmin = (email: string) => {
     return APP_CONFIG.ADMIN_EMAILS.includes(email?.trim().toLowerCase());
@@ -472,7 +474,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
           <div className="pt-6 pb-2 px-8 text-center">
             <img
               src={displayLogo}
-              alt="Lennox"
+              alt={displayName}
               className="w-12 h-12 mx-auto mb-3 object-contain drop-shadow-lg"
               onError={(e) => { (e.target as HTMLImageElement).src = defaultLogo; }}
             />
@@ -556,8 +558,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
             {currentView === 'forgot_password' && (<div className="space-y-3"><div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white" size={14} /><input type="email" value={signInEmail} onChange={e => setSignInEmail(e.target.value)} className={inputClass} placeholder="Registered Email" /></div><button onClick={handleForgotPassword} disabled={isLoading} className="w-full py-2.5 bg-blue-600/80 hover:bg-blue-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 backdrop-blur-sm border border-blue-500/30">{isLoading ? <Loader2 className="animate-spin" size={16} /> : 'Send Reset Code'}</button><div className="text-center pt-1"><button onClick={() => { setCurrentView('signin'); onSwitch('signin'); }} className="text-[10px] font-bold text-white hover:text-white/80">Back to Login</button></div></div>)}
           </div>
         </div>
-        <div className="mt-6 text-center opacity-90"><p className="text-[9px] font-bold text-white/70 uppercase tracking-widest text-shadow-sm drop-shadow-md">Secured by Lennox ID</p></div>
-        <div className="mt-2 text-center opacity-70"><p className="text-[9px] font-medium text-white/50">Need help? <a href="mailto:admin@lennoxmh.com" className="text-white hover:text-blue-300 underline transition-colors">admin@lennoxmh.com</a></p></div>
+        <div className="mt-6 text-center opacity-90"><p className="text-[9px] font-bold text-white/70 uppercase tracking-widest text-shadow-sm drop-shadow-md">Secured by {displayName} ID</p></div>
+        <div className="mt-2 text-center opacity-70"><p className="text-[9px] font-medium text-white/50">Need help? <a href={`mailto:admin@${displayName.toLowerCase()}mh.com`} className="text-white hover:text-blue-300 underline transition-colors">admin@{displayName.toLowerCase()}mh.com</a></p></div>
       </div>
     </div>
   );

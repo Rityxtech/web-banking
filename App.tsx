@@ -1180,12 +1180,12 @@ function App() {
 
 
     if (!currentUser) {
-        if (currentView === 'home') return <HomePage logoUrl={globalSettings.siteLogo} onNavigate={(p, e) => {
+        if (currentView === 'home') return <HomePage logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} onNavigate={(p, e) => {
             window.location.hash = p;
             if (e) setPrefilledEmail(e);
         }} />;
         // Pass authErrorMessage to Auth component so it can display "Account not found..."
-        return <Auth logoUrl={globalSettings.siteLogo} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => window.location.hash = view} onShowMaintenance={() => { setForceMaintenance(true); setCurrentView('home'); }} />;
+        return <Auth logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => window.location.hash = view} onShowMaintenance={() => { setForceMaintenance(true); setCurrentView('home'); }} />;
     }
 
     if (isAdminMode) return (
@@ -1627,7 +1627,7 @@ function App() {
                                     console.error("Investment Error", e);
                                     return false;
                                 }
-                            }} onModalChange={setIsModalOpen} user={currentUser} />;
+                            }} onModalChange={setIsModalOpen} />;
                         case 'settings': return <Settings user={currentUser} settings={userSettings} onUpdateSettings={(s) => {
                             const updated = { ...userSettings, ...s };
                             setUserSettings(updated);
