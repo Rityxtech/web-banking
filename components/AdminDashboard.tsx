@@ -1374,6 +1374,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     // Ref to signal fetchData not to overwrite globalConfig while admin is actively editing settings
     const isEditingSettings = useRef(false);
 
+    // Call this when user starts editing any field
+    const onEditStart = () => {
+        isEditingSettings.current = true;
+    };
+
     const handleUpdateGlobalConfig = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsActionLoading('config_update');
@@ -3018,7 +3023,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                             <div className="grid md:grid-cols-1 gap-8">
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Platform Identity</label>
-                                                    <input value={globalConfig.siteName} onChange={e => setGlobalConfig({ ...globalConfig, siteName: e.target.value })} className="w-full p-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none" />
+                                                    <input value={globalConfig.siteName} onChange={e => { onEditStart(); setGlobalConfig({ ...globalConfig, siteName: e.target.value }); }} onFocus={onEditStart} className="w-full p-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none" />
                                                 </div>
 
                                                 <div className="space-y-2">
@@ -3039,7 +3044,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                                         id="site-logo-upload"
                                                                         className="hidden"
                                                                         accept="image/png, image/jpeg, image/webp"
-                                                                        onChange={handleSiteLogoUpload}
+                                                                        onChange={(e) => { onEditStart(); handleSiteLogoUpload(e); }}
                                                                         disabled={isUploadingSiteLogo}
                                                                     />
                                                                     <label
@@ -3052,7 +3057,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                                     {globalConfig.siteLogo && (
                                                                         <button
                                                                             type="button"
-                                                                            onClick={() => setGlobalConfig(prev => ({ ...prev, siteLogo: '' }))}
+                                                                            onClick={() => { onEditStart(); setGlobalConfig(prev => ({ ...prev, siteLogo: '' })); }}
                                                                             className="p-2.5 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-xl border border-red-100 dark:border-red-900/30"
                                                                         >
                                                                             <Trash2 size={16} />
@@ -3065,7 +3070,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                             <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                                                             <input
                                                                 value={globalConfig.siteLogo}
-                                                                onChange={e => setGlobalConfig({ ...globalConfig, siteLogo: e.target.value })}
+                                                                onChange={e => { onEditStart(); setGlobalConfig({ ...globalConfig, siteLogo: e.target.value }); }}
+                                                                onFocus={onEditStart}
                                                                 className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none"
                                                                 placeholder="Or paste image URL here..."
                                                             />
@@ -3086,7 +3092,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                                 <p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase">Daily Limit</p>
                                                                 <p className="text-[9px] text-slate-500 mt-1">24-hour volume cap.</p>
                                                             </div>
-                                                            <button type="button" onClick={() => setGlobalConfig({ ...globalConfig, enableDailyLimit: !globalConfig.enableDailyLimit })} className={`w-10 h-5 rounded-full relative transition-all flex-shrink-0 ${globalConfig.enableDailyLimit ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                                                            <button type="button" onClick={() => { onEditStart(); setGlobalConfig({ ...globalConfig, enableDailyLimit: !globalConfig.enableDailyLimit }); }} className={`w-10 h-5 rounded-full relative transition-all flex-shrink-0 ${globalConfig.enableDailyLimit ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
                                                                 <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${globalConfig.enableDailyLimit ? 'left-6' : 'left-1'}`}></div>
                                                             </button>
                                                         </div>
@@ -3096,11 +3102,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                                 type="text"
                                                                 value={globalConfig.dailyLimit !== undefined && globalConfig.dailyLimit !== null ? Number(globalConfig.dailyLimit).toLocaleString() : ''}
                                                                 onChange={e => {
+                                                                    onEditStart();
                                                                     const val = e.target.value.replace(/,/g, '');
                                                                     if (!val || /^\d+$/.test(val)) {
                                                                         setGlobalConfig({ ...globalConfig, dailyLimit: val ? Number(val) : 0 });
                                                                     }
                                                                 }}
+                                                                onFocus={onEditStart}
                                                                 className="w-full p-2.5 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none"
                                                             />
                                                         </div>
@@ -3113,7 +3121,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                                 <p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase">Weekly Limit</p>
                                                                 <p className="text-[9px] text-slate-500 mt-1">7-day volume cap.</p>
                                                             </div>
-                                                            <button type="button" onClick={() => setGlobalConfig({ ...globalConfig, enableWeeklyLimit: !globalConfig.enableWeeklyLimit })} className={`w-10 h-5 rounded-full relative transition-all flex-shrink-0 ${globalConfig.enableWeeklyLimit ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                                                            <button type="button" onClick={() => { onEditStart(); setGlobalConfig({ ...globalConfig, enableWeeklyLimit: !globalConfig.enableWeeklyLimit }); }} className={`w-10 h-5 rounded-full relative transition-all flex-shrink-0 ${globalConfig.enableWeeklyLimit ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
                                                                 <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${globalConfig.enableWeeklyLimit ? 'left-6' : 'left-1'}`}></div>
                                                             </button>
                                                         </div>
@@ -3123,11 +3131,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                                 type="text"
                                                                 value={globalConfig.weeklyLimit !== undefined && globalConfig.weeklyLimit !== null ? Number(globalConfig.weeklyLimit).toLocaleString() : ''}
                                                                 onChange={e => {
+                                                                    onEditStart();
                                                                     const val = e.target.value.replace(/,/g, '');
                                                                     if (!val || /^\d+$/.test(val)) {
                                                                         setGlobalConfig({ ...globalConfig, weeklyLimit: val ? Number(val) : 0 });
                                                                     }
                                                                 }}
+                                                                onFocus={onEditStart}
                                                                 className="w-full p-2.5 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none"
                                                             />
                                                         </div>
@@ -3140,7 +3150,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                                 <p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase">Monthly Limit</p>
                                                                 <p className="text-[9px] text-slate-500 mt-1">30-day volume cap.</p>
                                                             </div>
-                                                            <button type="button" onClick={() => setGlobalConfig({ ...globalConfig, enableMonthlyLimit: !globalConfig.enableMonthlyLimit })} className={`w-10 h-5 rounded-full relative transition-all flex-shrink-0 ${globalConfig.enableMonthlyLimit ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                                                            <button type="button" onClick={() => { onEditStart(); setGlobalConfig({ ...globalConfig, enableMonthlyLimit: !globalConfig.enableMonthlyLimit }); }} className={`w-10 h-5 rounded-full relative transition-all flex-shrink-0 ${globalConfig.enableMonthlyLimit ? 'bg-blue-600' : 'bg-slate-300 dark:bg-slate-700'}`}>
                                                                 <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${globalConfig.enableMonthlyLimit ? 'left-6' : 'left-1'}`}></div>
                                                             </button>
                                                         </div>
@@ -3150,11 +3160,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                                 type="text"
                                                                 value={globalConfig.monthlyLimit !== undefined && globalConfig.monthlyLimit !== null ? Number(globalConfig.monthlyLimit).toLocaleString() : ''}
                                                                 onChange={e => {
+                                                                    onEditStart();
                                                                     const val = e.target.value.replace(/,/g, '');
                                                                     if (!val || /^\d+$/.test(val)) {
                                                                         setGlobalConfig({ ...globalConfig, monthlyLimit: val ? Number(val) : 0 });
                                                                     }
                                                                 }}
+                                                                onFocus={onEditStart}
                                                                 className="w-full p-2.5 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none"
                                                             />
                                                         </div>
@@ -3165,11 +3177,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
                                                     <div><p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase">Maintenance Override</p><p className="text-[9px] text-slate-500">Lock the platform to non-admin identities.</p></div>
-                                                    <button type="button" onClick={() => setGlobalConfig({ ...globalConfig, maintenanceMode: !globalConfig.maintenanceMode })} className={`w-12 h-6 rounded-full relative transition-all ${globalConfig.maintenanceMode ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${globalConfig.maintenanceMode ? 'left-7' : 'left-1'}`}></div></button>
+                                                    <button type="button" onClick={() => { onEditStart(); setGlobalConfig({ ...globalConfig, maintenanceMode: !globalConfig.maintenanceMode }); }} className={`w-12 h-6 rounded-full relative transition-all ${globalConfig.maintenanceMode ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-700'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${globalConfig.maintenanceMode ? 'left-7' : 'left-1'}`}></div></button>
                                                 </div>
                                                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
                                                     <div><p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase">Transaction Disruption</p><p className="text-[9px] text-slate-500">Force all monetary flows to fail with network errors.</p></div>
-                                                    <button type="button" onClick={() => setGlobalConfig({ ...globalConfig, forceTransactionFailure: !globalConfig.forceTransactionFailure })} className={`w-12 h-6 rounded-full relative transition-all ${globalConfig.forceTransactionFailure ? 'bg-red-600' : 'bg-slate-300 dark:bg-slate-700'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${globalConfig.forceTransactionFailure ? 'left-7' : 'left-1'}`}></div></button>
+                                                    <button type="button" onClick={() => { onEditStart(); setGlobalConfig({ ...globalConfig, forceTransactionFailure: !globalConfig.forceTransactionFailure }); }} className={`w-12 h-6 rounded-full relative transition-all ${globalConfig.forceTransactionFailure ? 'bg-red-600' : 'bg-slate-300 dark:bg-slate-700'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${globalConfig.forceTransactionFailure ? 'left-7' : 'left-1'}`}></div></button>
                                                 </div>
                                             </div>
                                             <button type="submit" disabled={isActionLoading === 'config_update'} className="w-full py-4 bg-slate-900 dark:bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl hover:opacity-90 disabled:opacity-50">{isActionLoading === 'config_update' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Synchronize Core Parameters</button>
