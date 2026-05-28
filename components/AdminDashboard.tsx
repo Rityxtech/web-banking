@@ -354,6 +354,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         return () => { isMounted.current = false; };
     }, []);
 
+    // Restore active section from localStorage on mount
+    useEffect(() => {
+        const savedSection = localStorage.getItem('lennox_admin_section') as AdminSection | null;
+        if (savedSection && ['overview', 'users', 'transactions', 'requests', 'kyc', 'support_live', 'support_tickets', 'bank_management', 'email_templates', 'settings'].includes(savedSection)) {
+            setActiveSection(savedSection);
+        }
+    }, []);
+
+    // Save active section to localStorage when it changes
+    useEffect(() => {
+        localStorage.setItem('lennox_admin_section', activeSection);
+    }, [activeSection]);
+
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm, txFilters, activeSection]);
