@@ -1024,7 +1024,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         }
     };
 
-    const processImage = (file: File, size: number = 128): Promise<string> => {
+    const processImage = (file: File, size: number = 128, quality: number = 0.7): Promise<string> => {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -1034,15 +1034,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    canvas.width = size;
-                    canvas.height = size;
-                    const scale = Math.min(size / img.width, size / img.height);
-                    const x = (size / 2) - (img.width / 2) * scale;
-                    const y = (size / 2) - (img.height / 2) * scale;
+                    // Limit max dimension to reduce file size
+                    const maxSize = Math.min(size, 128);
+                    canvas.width = maxSize;
+                    canvas.height = maxSize;
+                    const scale = Math.min(maxSize / img.width, maxSize / img.height);
+                    const x = (maxSize / 2) - (img.width / 2) * scale;
+                    const y = (maxSize / 2) - (img.height / 2) * scale;
                     if (ctx) {
-                        ctx.clearRect(0, 0, size, size);
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, maxSize, maxSize);
                         ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-                        resolve(canvas.toDataURL('image/png'));
+                        // Use JPEG with quality compression (much smaller than PNG)
+                        resolve(canvas.toDataURL('image/jpeg', quality));
                     }
                 };
             };
@@ -1061,7 +1065,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     const handleSiteLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setIsUploadingSiteLogo(true);
-            const base64 = await processImage(e.target.files[0], 256);
+            // Use 128px max and 0.6 quality to keep under Vercel's ~4.5MB limit
+            const base64 = await processImage(e.target.files[0], 128, 0.6);
+            console.log('[Logo] Compressed size:', base64.length, 'bytes');
             setGlobalConfig(prev => ({ ...prev, siteLogo: base64 }));
             setIsUploadingSiteLogo(false);
         }
