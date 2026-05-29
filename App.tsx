@@ -857,9 +857,18 @@ function App() {
         } catch (e) { }
     }, [currentUser]);
 
+    // Tracks user IDs that have already passed the maintenance admin check
+    const maintenanceVerifiedRef = useRef<string | null>(null);
+
     useEffect(() => {
-        const handleSession = async (session: any, error: any = null) => {
+        const handleSession = async (session: any, event?: string) => {
             if (isLoggingOut.current) return;
+
+            // TOKEN_REFRESHED fires ~1s after SIGNED_IN — if this admin was already verified,
+            // skip re-running the maintenance check to avoid wrongly signing them out
+            if (session?.user && maintenanceVerifiedRef.current === session.user.id) {
+                return;
+            }
 
             // Fetch fresh settings directly (don't rely on stale globalSettings state)
             let maintenanceMode = false;
@@ -897,6 +906,7 @@ function App() {
 
                 if (maintenanceMode && isAdmin) {
                     console.log('[Maintenance] Allowing admin login:', session.user.email);
+                    maintenanceVerifiedRef.current = session.user.id; // Mark verified — prevents re-check on TOKEN_REFRESHED
                 }
 
                 const hasPin = session.user.user_metadata?.pin;
@@ -929,15 +939,17 @@ function App() {
                 if (!currentUser && !isAdminMode) setLoadingAuth(false);
             }
         };
-        supabase.auth.getSession().then(({ data: { session }, error }) => handleSession(session, error));
+        supabase.auth.getSession().then(({ data: { session } }) => handleSession(session, 'INITIAL_SESSION'));
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_OUT') {
                 setCurrentUser(null);
                 setLoadingAuth(false);
                 setIsPinVerified(false);
+                maintenanceVerifiedRef.current = null; // Reset on logout
                 window.location.hash = '';
+                return;
             }
-            handleSession(session);
+            handleSession(session, event);
         });
         return () => subscription.unsubscribe();
     }, [fetchAllUserData, fetchGlobalSettings]);

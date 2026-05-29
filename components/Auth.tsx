@@ -171,10 +171,15 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       // Check maintenance mode - verify admin status from database
       if (maintenanceMode && data.user) {
         try {
-          const profiles = await mvp.read('profiles', true, { columns: 'id,user_id,role', limit: 1 });
-          const profile = profiles.find((p: any) => p.user_id === data.user!.id);
-          const isAdmin = profile?.role === 'admin' || data.user!.email?.toLowerCase().includes('admin');
-          console.log('[Auth] Maintenance admin check:', { userId: data.user!.id, role: profile?.role, isAdmin });
+          const userEmail = data.user!.email?.toLowerCase() || '';
+          // Match the same hardcoded list as App.tsx handleSession
+          let isAdmin = userEmail === 'admin@lennox.bank' || userEmail === 'akugbof@gmail.com';
+          if (!isAdmin) {
+            const profiles = await mvp.read('profiles', true, { columns: 'id,user_id,role', limit: 1 });
+            const profile = profiles.find((p: any) => p.user_id === data.user!.id);
+            isAdmin = profile?.role === 'admin' || userEmail.includes('admin');
+          }
+          console.log('[Auth] Maintenance admin check:', { userId: data.user!.id, email: userEmail, isAdmin });
 
           if (!isAdmin) {
             // Not admin during maintenance - sign out and show modal
