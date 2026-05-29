@@ -171,19 +171,23 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       // Check maintenance mode - verify admin status from database
       if (maintenanceMode && data.user) {
         try {
-          const profiles = await mvp.read('profiles', true, { columns: 'id,role', limit: 1 });
+          const profiles = await mvp.read('profiles', true, { columns: 'id,user_id,role', limit: 1 });
           const profile = profiles.find((p: any) => p.user_id === data.user!.id);
           const isAdmin = profile?.role === 'admin' || data.user!.email?.toLowerCase().includes('admin');
+          console.log('[Auth] Maintenance admin check:', { userId: data.user!.id, role: profile?.role, isAdmin });
 
           if (!isAdmin) {
             // Not admin during maintenance - sign out and show modal
+            console.log('[Auth] Blocking non-admin during maintenance:', data.user!.email);
             await supabase.auth.signOut();
             setShowMaintenanceModal(true);
             setIsLoading(false);
             return;
           }
           // Admin can proceed - continue with login
+          console.log('[Auth] Allowing admin during maintenance:', data.user!.email);
         } catch (err) {
+          console.error('[Auth] Maintenance profile check error:', err);
           // If profile check fails, block login during maintenance for safety
           await supabase.auth.signOut();
           setShowMaintenanceModal(true);

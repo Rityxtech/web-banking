@@ -871,15 +871,23 @@ function App() {
                         const profiles = await mvp.read('profiles', false, { columns: 'id,user_id,role', limit: 1000 });
                         const profile = profiles.find((p: any) => p.user_id === session.user.id);
                         if (profile?.role === 'admin') isAdmin = true;
-                    } catch (err) { }
+                        console.log('[Maintenance] Profile check:', { userId: session.user.id, role: profile?.role, isAdmin });
+                    } catch (err) {
+                        console.error('[Maintenance] Profile read error:', err);
+                    }
                 }
 
                 if (globalSettings.maintenanceMode && !isAdmin) {
+                    console.log('[Maintenance] Blocking non-admin user during maintenance:', session.user.email);
                     await supabase.auth.signOut();
                     setForceMaintenance(true);
                     setCurrentView('home');
                     setLoadingAuth(false);
                     return;
+                }
+
+                if (globalSettings.maintenanceMode && isAdmin) {
+                    console.log('[Maintenance] Allowing admin login:', session.user.email);
                 }
 
                 const hasPin = session.user.user_metadata?.pin;
