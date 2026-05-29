@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Account } from '../types';
 import { Wallet, CheckCircle, ChevronRight, ChevronDown, User, Hash, DollarSign, ArrowLeft, FileText, ShieldCheck, Clock, Share2, Download, Calendar, Globe, AlertCircle, Loader2, XCircle } from 'lucide-react';
 import { shareReceipt } from '../utils/receipt';
+import { supabase } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { PinVerificationModal } from './ui/PinVerificationModal';
 
@@ -65,7 +66,7 @@ export const Transfers: React.FC<TransfersProps> = ({
         const loadBanks = async () => {
             try {
                 // Pass false to read globally (no user filter)
-                const data = await mvp.read('banks', false);
+                const { data } = await supabase.from('mvp_banks').select('*');
                 if (data && Array.isArray(data) && data.length > 0) {
                     // Sort banks alphabetically (A-Z)
                     data.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));

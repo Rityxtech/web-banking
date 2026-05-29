@@ -5,6 +5,7 @@ import {
   Edit2, AlertTriangle, UserRound, X, Upload,
   BadgeInfo, Contact, Map as MapIcon, Database, RefreshCw
 } from 'lucide-react';
+import { supabase } from '../services/supabase';
 import { mvp, fileToBase64 } from '../services/mvpService';
 
 interface ProfileProps {
@@ -70,8 +71,8 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const profiles = await mvp.read('profiles');
-        const profile = profiles.find((p: any) => p.user_id === user.id || p.id === user.id);
+        const { data: profiles } = await supabase.from('mvp_profiles').select('*');
+        const profile = (profiles || []).find((p: any) => p.user_id === user.id || p.id === user.id);
 
         if (profile) {
           setProfileInternalId(profile.id);
@@ -116,8 +117,8 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
 
       let targetId = profileInternalId;
       if (!targetId) {
-        const profiles = await mvp.read('profiles');
-        const p = profiles.find((x: any) => x.user_id === user.id);
+        const { data: profiles } = await supabase.from('mvp_profiles').select('*');
+        const p = (profiles || []).find((x: any) => x.user_id === user.id);
         if (p) {
           targetId = p.id;
           setProfileInternalId(p.id);
@@ -125,12 +126,9 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
       }
 
       if (targetId) {
-        // Sending raw base64 to PHP update operation
-        // PHP should handle this by saving the file and updating the column
-        const res = await mvp.update('profiles', targetId, { avatar_url: base64Data });
-
-        // If PHP backend returns the new public URL in the response
-        const newUrl = res.avatar_url || base64Data;
+        const { error: avErr } = await supabase.from('mvp_profiles').update({ avatar_url: base64Data }).eq('id', targetId);
+        if (avErr) throw new Error(avErr.message);
+        const newUrl = base64Data;
         setAvatarUrl(newUrl);
         if (onProfileUpdate) onProfileUpdate({ avatarUrl: newUrl });
         setStatusMsg({ type: 'success', text: 'Identity image synchronized with PHP core.' });
@@ -148,7 +146,8 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
     setIsUploading(true);
     try {
       if (profileInternalId) {
-        await mvp.update('profiles', profileInternalId, { avatar_url: '' });
+        const { error: remErr } = await supabase.from('mvp_profiles').update({ avatar_url: '' }).eq('id', profileInternalId);
+        if (remErr) throw new Error(remErr.message);
       }
       setAvatarUrl('');
       if (onProfileUpdate) onProfileUpdate({ avatarUrl: '' });
@@ -169,8 +168,8 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
       let targetId = profileInternalId;
 
       if (!targetId) {
-        const profiles = await mvp.read('profiles');
-        const p = profiles.find((x: any) => x.user_id === user.id);
+        const { data: profiles } = await supabase.from('mvp_profiles').select('*');
+        const p = (profiles || []).find((x: any) => x.user_id === user.id);
         if (p) {
           targetId = p.id;
           setProfileInternalId(p.id);
@@ -190,14 +189,13 @@ export const Profile: React.FC<ProfileProps> = ({ user, onProfileUpdate }) => {
           country: formData.country
         };
 
-        const res = await mvp.update('profiles', targetId, updateData);
-
-        if (res.success || res.id) {
+        const { error: profErr } = await supabase.from('mvp_profiles').update(updateData).eq('id', targetId);
+        if (!profErr) {
           if (onProfileUpdate) onProfileUpdate({ name: fullName });
           setEditingSection(null);
           setStatusMsg({ type: 'success', text: 'Ledger updated successfully.' });
         } else {
-          throw new Error(res.error || "Registry update rejected by server.");
+          throw new Error(profErr.message || "Registry update rejected by server.");
         }
       } else {
         throw new Error("IDENTITY_SYNC_FAIL: Node identity lost. Please refresh.");

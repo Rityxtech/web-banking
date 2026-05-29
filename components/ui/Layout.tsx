@@ -69,11 +69,12 @@ const MobileNavItem = ({ icon: Icon, label, id, active, onClick, badgeCount }: a
   </button>
 );
 
-const getTimeAgo = (dateStr: string) => {
+const getTimeAgo = (dateStr: string | number | Date | undefined) => {
   if (!dateStr) return '';
-  let date = new Date(dateStr);
-  if (isNaN(date.getTime()) || /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(\.\d+)?$/.test(dateStr)) {
-    date = new Date(dateStr.replace(' ', 'T') + 'Z');
+  const str = String(dateStr);
+  let date = new Date(str);
+  if (isNaN(date.getTime()) || /^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}(\.\d+)?$/.test(str)) {
+    date = new Date(str.replace(' ', 'T') + 'Z');
   }
   if (isNaN(date.getTime())) return 'Just now';
   const now = new Date();
@@ -280,7 +281,7 @@ export const Layout: React.FC<LayoutProps> = ({
                     <h3 className="font-bold text-slate-900 dark:text-white text-xs md:text-sm">Notifications</h3>
                     {notifications.length > 0 && (
                       <button
-                        onClick={onClearNotifications}
+                        onClick={() => { if (onClearNotifications) onClearNotifications(); }}
                         className="text-[10px] text-red-500 dark:text-red-400 font-bold hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded-md transition-colors uppercase tracking-tight"
                       >
                         Clear
@@ -291,12 +292,13 @@ export const Layout: React.FC<LayoutProps> = ({
                     {notifications.length > 0 ? (
                       notifications.map(notif => (
                         <div
-                          key={notif.id}
+                          key={String(notif.id)}
                           onClick={() => {
-                            if (notif.id.startsWith('temp-')) return;
-                            if (onMarkRead && !notif.is_read) onMarkRead(notif.id);
+                            const idStr = String(notif.id);
+                            if (idStr.startsWith('temp-')) return;
+                            if (onMarkRead && !notif.is_read) onMarkRead(idStr);
                           }}
-                          className={`p-3 md:p-4 border-b border-slate-50 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group relative ${!notif.is_read ? 'bg-blue-50/20 dark:bg-blue-900/5' : ''} ${notif.id.startsWith('temp-') ? 'opacity-70 cursor-wait' : ''}`}
+                          className={`p-3 md:p-4 border-b border-slate-50 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group relative ${!notif.is_read ? 'bg-blue-50/20 dark:bg-blue-900/5' : ''} ${String(notif.id).startsWith('temp-') ? 'opacity-70 cursor-wait' : ''}`}
                         >
                           {!notif.is_read && (
                             <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500"></div>

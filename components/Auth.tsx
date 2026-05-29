@@ -12,6 +12,7 @@ interface AuthProps {
   initialEmail?: string;
   allowSignup?: boolean;
   maintenanceMode?: boolean;
+  showMaintenanceModal?: boolean;
   logoUrl?: string;
   siteName?: string;
   onAuthSuccess: () => void;
@@ -31,7 +32,7 @@ const GoogleLogo = () => (
 
 type AuthView = 'signin' | 'signup' | 'verify_otp' | 'forgot_password' | 'reset_password';
 
-export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '', allowSignup = true, maintenanceMode = false, logoUrl, siteName, onAuthSuccess, onAdminBypass, onSwitch, onShowMaintenance }) => {
+export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '', allowSignup = true, maintenanceMode = false, showMaintenanceModal: propShowModal = false, logoUrl, siteName, onAuthSuccess, onAdminBypass, onSwitch, onShowMaintenance }) => {
   const [currentView, setCurrentView] = useState<AuthView>(type);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(authFeedback || '');
@@ -40,8 +41,15 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
   const [showPassword, setShowPassword] = useState(false);
   const [signupStep, setSignupStep] = useState(1);
 
-  // Maintenance modal state
-  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+  // Maintenance modal state - controlled by parent prop or local state
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(propShowModal);
+
+  // Sync with parent prop when it changes
+  useEffect(() => {
+    if (propShowModal) {
+      setShowMaintenanceModal(true);
+    }
+  }, [propShowModal]);
 
   // Waitlist State
   const [waitlistEmail, setWaitlistEmail] = useState('');
@@ -175,18 +183,20 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
           // Match the same hardcoded list as App.tsx handleSession
           let isAdmin = userEmail === 'admin@lennox.bank' || userEmail === 'akugbof@gmail.com';
           if (!isAdmin) {
-            const profiles = await mvp.read('profiles', true, { columns: 'id,user_id,role', limit: 1 });
-            const profile = profiles.find((p: any) => p.user_id === data.user!.id);
+            const { data: profiles } = await supabase.from('mvp_profiles').select('id,user_id,role').limit(1);
+            const profile = (profiles || []).find((p: any) => p.user_id === data.user!.id);
             isAdmin = profile?.role === 'admin' || userEmail.includes('admin');
           }
           console.log('[Auth] Maintenance admin check:', { userId: data.user!.id, email: userEmail, isAdmin });
 
           if (!isAdmin) {
-            // Not admin during maintenance - sign out and show modal
+            // Not admin during maintenance - show modal and block login
+            // NOTE: Don't call supabase.auth.signOut() here - it triggers SIGNED_OUT
+            // which resets the view and hides the modal. Just show modal locally.
             console.log('[Auth] Blocking non-admin during maintenance:', data.user!.email);
-            await supabase.auth.signOut();
             setShowMaintenanceModal(true);
             setIsLoading(false);
+            // Prevent any further auth flow - user stays on login page with modal showing
             return;
           }
           // Admin can proceed - continue with login
@@ -194,7 +204,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         } catch (err) {
           console.error('[Auth] Maintenance profile check error:', err);
           // If profile check fails, block login during maintenance for safety
-          await supabase.auth.signOut();
+          // NOTE: Don't signOut here either - it triggers view reset
           setShowMaintenanceModal(true);
           setIsLoading(false);
           return;
@@ -506,7 +516,17 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 font-sans overflow-hidden bg-cover bg-center bg-no-repeat fixed inset-0" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070')" }}>
-      <div className="w-full max-w-[380px] flex flex-col items-center -mt-[50px] md:mt-0 transition-all duration-300 ease-in-out relative z-10">
+      {/* Prominent Maintenance Mode Banner */}
+      {maintenanceMode && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-white px-4 py-3 text-center shadow-lg">
+          <div className="flex items-center justify-center gap-2">
+            <AlertTriangle size={18} />
+            <span className="font-bold text-sm uppercase tracking-wider">System Maintenance in Progress</span>
+          </div>
+          <p className="text-xs text-white/90 mt-1">Only administrators can log in during maintenance</p>
+        </div>
+      )}
+      <div className={`w-full max-w-[380px] flex flex-col items-center transition-all duration-300 ease-in-out relative z-10 ${maintenanceMode ? 'mt-12' : '-mt-[50px] md:mt-0'}`}>
         <div className="w-full bg-black/20 backdrop-blur-[4px] rounded-[24px] shadow-2xl border border-white/20 overflow-hidden transition-all duration-300 ring-1 ring-white/10">
           <div className="pt-6 pb-2 px-8 text-center">
             <img
@@ -517,7 +537,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
             />
             <h1 className="text-lg font-bold text-white tracking-tight drop-shadow-md">{currentView === 'signin' ? 'Welcome Back' : currentView === 'signup' ? 'Create Account' : currentView === 'forgot_password' ? 'Reset Password' : 'Check Your Email'}</h1>
             <p className="text-[11px] text-white/90 mt-1 font-medium drop-shadow-md">
-              {maintenanceMode ? 'System Maintenance Active' : (currentView === 'signin' ? 'Enter details to continue' : currentView === 'signup' ? 'Join our digital banking' : 'We sent you a code')}
+              {maintenanceMode ? 'System Maintenance Active - Admin Access Only' : (currentView === 'signin' ? 'Enter details to continue' : currentView === 'signup' ? 'Join our digital banking' : 'We sent you a code')}
             </p>
           </div>
           <div className="px-8 pb-6 pt-4">

@@ -480,7 +480,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ accounts, transactions, ca
                 </thead>
                 <tbody className="text-xs md:text-sm">
                   {validTransactions.length > 0 ? (
-                    validTransactions.slice(0, 5).map((t, i) => {
+                    [...validTransactions]
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                      .slice(0, 5)
+                      .map((t, i) => {
                       const asset = getTxAsset(t.description, t.category, t.type);
                       return (
                         <tr key={i} className="group hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">

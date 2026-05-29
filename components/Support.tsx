@@ -60,8 +60,11 @@ const TicketTerminal = ({ ticket, user, onBack, onAuthError, onRefreshCounts }: 
         if (unread.length === 0) return;
 
         try {
-            const updatePromises = unread.map(m => mvp.update('messages', m.id, { is_read: 1 }));
-            await Promise.all(updatePromises);
+            const ids = unread.map(m => m.id);
+            if (ids.length > 0) {
+                const { error } = await supabase.from('mvp_messages').update({ is_read: 1 }).in('id', ids);
+                if (error) console.error('Mark read failed:', error.message);
+            }
 
             if (onRefreshCounts) onRefreshCounts();
         } catch (e) {
@@ -71,10 +74,7 @@ const TicketTerminal = ({ ticket, user, onBack, onAuthError, onRefreshCounts }: 
 
     const loadMsgs = async () => {
         try {
-            const data = await mvp.read('messages', true, {
-                columns: 'id,text,sender,created_at,ticket_id,is_read',
-                limit: 500
-            });
+            const { data } = await supabase.from('mvp_messages').select('id,text,sender,created_at,ticket_id,is_read').limit(500);
             if (data && Array.isArray(data)) {
                 const filtered = data.filter((m: any) =>
                     m.ticket_id && String(m.ticket_id) === String(ticket.id)
@@ -111,14 +111,14 @@ const TicketTerminal = ({ ticket, user, onBack, onAuthError, onRefreshCounts }: 
         setSending(true);
 
         try {
-            const res = await mvp.create('messages', {
+            const { error: msgErr } = await supabase.from('mvp_messages').insert([{
                 user_id: user.id,
                 ticket_id: ticket.id,
                 text: text,
                 sender: 'user'
-            });
+            }]);
 
-            if (res) {
+            if (!msgErr) {
                 await loadMsgs();
             }
         } catch (e: any) {
@@ -310,7 +310,7 @@ export const ContactUs = ({ user, unreadCount = 0, onBack, onNavigate, onAuthErr
     const fetchTickets = async () => {
         setIsLoadingTickets(true);
         try {
-            const data = await mvp.read('support_tickets', true, { limit: 50 });
+            const { data } = await supabase.from('mvp_support_tickets').select('*').limit(50);
             if (data && Array.isArray(data)) {
                 const sorted = [...data].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
                 setTickets(sorted);
@@ -333,24 +333,25 @@ export const ContactUs = ({ user, unreadCount = 0, onBack, onNavigate, onAuthErr
         if (!message.trim() || !user) return;
         setIsSubmitting(true);
         try {
-            const res = await mvp.create('support_tickets', {
+            const { data: ticketData, error: ticketErr } = await supabase.from('mvp_support_tickets').insert([{
                 user_id: user.id,
                 subject,
                 message,
                 status: 'Open'
-            });
+            }]).select('id');
 
-            if (res && res.success) {
-                if (attachment) {
+            if (!ticketErr && ticketData) {
+                const newTicketId = ticketData[0]?.id;
+                if (attachment && newTicketId) {
                     try {
                         const base64 = await fileToBase64(attachment);
                         const mediaMsg = `[MEDIA:${attachment.type}]${base64}`;
-                        await mvp.create('messages', {
+                        await supabase.from('mvp_messages').insert([{
                             user_id: user.id,
-                            ticket_id: res.id,
+                            ticket_id: newTicketId,
                             text: mediaMsg,
                             sender: 'user'
-                        });
+                        }]);
                     } catch (attachErr) {
                         console.error("Failed to upload attachment", attachErr);
                     }

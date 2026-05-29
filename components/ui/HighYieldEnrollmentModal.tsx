@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, TrendingUp, Check, ChevronRight, ShieldCheck, Lock, ArrowRight, Loader2, DollarSign } from 'lucide-react';
 import { PinVerificationModal } from './PinVerificationModal';
 
@@ -32,6 +32,12 @@ export const HighYieldEnrollmentModal: React.FC<HighYieldEnrollmentModalProps> =
     );
 
     const [selectedAccountId, setSelectedAccountId] = useState<number>(0);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => { isMountedRef.current = false; };
+    }, []);
 
     React.useEffect(() => {
         if (fundingAccounts.length > 0 && selectedAccountId === 0) {
@@ -68,14 +74,27 @@ export const HighYieldEnrollmentModal: React.FC<HighYieldEnrollmentModalProps> =
     };
 
     const handlePinSuccess = async () => {
+        console.log('[HYI] PIN verified, starting enrollment...');
         setShowPin(false);
         setIsProcessing(true);
+
+        // Safety timeout: if enrollment hangs, reset after 15s
+        const safetyTimeout = setTimeout(() => {
+            console.warn('[HYI] Enrollment safety timeout triggered — forcing state reset');
+            if (isMountedRef.current) setIsProcessing(false);
+        }, 15000);
+
         try {
             await onEnroll(parseFloat(amount.replace(/,/g, '')), selectedAccountId);
-            // Parent handles closing/success state usually, but we can ensure safe close
+            console.log('[HYI] Enrollment completed successfully');
         } catch (error) {
-            console.error(error);
-            setIsProcessing(false);
+            console.error('[HYI] Enrollment failed:', error);
+        } finally {
+            clearTimeout(safetyTimeout);
+            if (isMountedRef.current) {
+                setIsProcessing(false);
+                console.log('[HYI] Processing state reset');
+            }
         }
     };
 
@@ -258,18 +277,20 @@ export const HighYieldEnrollmentModal: React.FC<HighYieldEnrollmentModalProps> =
             </div>
 
             {showPin && (
-                <PinVerificationModal
-                    isOpen={showPin}
-                    title="Authorize Activation"
-                    subtitle="Enter PIN to create your Investment Account"
-                    expectedPin={userPin || '0000'}
-                    onSuccess={handlePinSuccess}
-                    onClose={() => setShowPin(false)}
-                    email={userEmail}
-                    onSendOtp={onSendOtp}
-                    onVerifyOtp={onVerifyOtp}
-                    onUpdatePin={onUpdatePin}
-                />
+                <div className="fixed inset-0 z-[200]">
+                    <PinVerificationModal
+                        isOpen={showPin}
+                        title="Authorize Activation"
+                        subtitle="Enter PIN to create your Investment Account"
+                        expectedPin={userPin || '0000'}
+                        onSuccess={handlePinSuccess}
+                        onClose={() => setShowPin(false)}
+                        email={userEmail}
+                        onSendOtp={onSendOtp}
+                        onVerifyOtp={onVerifyOtp}
+                        onUpdatePin={onUpdatePin}
+                    />
+                </div>
             )}
 
             {isProcessing && (

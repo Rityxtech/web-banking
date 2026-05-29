@@ -298,6 +298,7 @@ DROP POLICY IF EXISTS "Users can insert own transactions" ON mvp_transactions;
 DROP POLICY IF EXISTS "Users can view own cards" ON mvp_cards;
 DROP POLICY IF EXISTS "Users can insert own cards" ON mvp_cards;
 DROP POLICY IF EXISTS "Users can update own cards" ON mvp_cards;
+DROP POLICY IF EXISTS "Users can delete own cards" ON mvp_cards;
 DROP POLICY IF EXISTS "Users can view own loans" ON mvp_loans;
 DROP POLICY IF EXISTS "Users can insert own loans" ON mvp_loans;
 DROP POLICY IF EXISTS "Users can update own loans" ON mvp_loans;
@@ -335,6 +336,7 @@ CREATE POLICY "Users can insert own transactions" ON mvp_transactions FOR INSERT
 CREATE POLICY "Users can view own cards" ON mvp_cards FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own cards" ON mvp_cards FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own cards" ON mvp_cards FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own cards" ON mvp_cards FOR DELETE USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can view own loans" ON mvp_loans FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own loans" ON mvp_loans FOR INSERT WITH CHECK (auth.uid() = user_id);

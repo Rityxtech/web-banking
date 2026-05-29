@@ -394,10 +394,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         if (!user) return;
         setIsLoadingUserDetails(true);
         try {
-            const [userCards, userAccounts, userAssets] = await Promise.all([
-                mvp.read('cards', false, { user_id: user.user_id }),
-                mvp.read('accounts', false, { user_id: user.user_id }),
-                mvp.read('assets', false, { user_id: user.user_id })
+            const [{ data: userCards }, { data: userAccounts }, { data: userAssets }] = await Promise.all([
+                supabaseAdmin.from('mvp_cards').select('*').eq('user_id', user.user_id),
+                supabaseAdmin.from('mvp_accounts').select('*').eq('user_id', user.user_id),
+                supabaseAdmin.from('mvp_assets').select('*').eq('user_id', user.user_id)
             ]);
             if (!isMounted.current) return;
 
@@ -462,13 +462,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
         try {
             // PHASE 1: Critical Data (Unblock UI ASAP)
-            const [settings, u] = await Promise.all([
-                mvp.getSettings(),
-                mvp.read('profiles', false, {
-                    columns: 'id,user_id,full_name,email,role,kyc_level,is_suspended,phone,address,city,country,created_at,settings,kyc_documents',
-                    limit: 200
-                })
+            const [{ data: settingsData }, { data: u }] = await Promise.all([
+                supabase.from('mvp_app_settings').select('*').eq('id', 1).single(),
+                supabaseAdmin.from('mvp_profiles').select('id,user_id,full_name,email,role,kyc_level,is_suspended,phone,address,city,country,created_at,settings').limit(50)
             ]);
+            const settings = settingsData || null;
 
             if (!isMounted.current) return;
 
@@ -496,9 +494,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             if (showLoading) setIsLoading(false);
 
             // PHASE 2: Operational Data
-            const [tickets, msgs] = await Promise.all([
-                mvp.read('support_tickets', false, { limit: 100 }),
-                mvp.read('messages', false, { limit: 500 })
+            const [{ data: tickets }, { data: msgs }] = await Promise.all([
+                supabaseAdmin.from('mvp_support_tickets').select('*').limit(50),
+                supabaseAdmin.from('mvp_messages').select('*').limit(100)
             ]);
 
             if (isMounted.current) {
@@ -511,10 +509,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             const shouldFetchBanks = activeSection === 'bank_management';
             const shouldFetchLiquidity = activeSection === 'overview';
 
-            const [tx, b, accLiq] = await Promise.all([
-                shouldFetchTx ? mvp.read('transactions', false, { limit: 1000 }) : Promise.resolve(null),
-                shouldFetchBanks ? mvp.read('banks', false, { limit: 500 }) : Promise.resolve(null),
-                shouldFetchLiquidity ? mvp.read('accounts', false, { columns: 'balance', limit: 200 }) : Promise.resolve(null)
+            const [{ data: tx }, { data: b }, { data: accLiq }] = await Promise.all([
+                shouldFetchTx ? supabaseAdmin.from('mvp_transactions').select('*').limit(50) : Promise.resolve({ data: null }),
+                shouldFetchBanks ? supabaseAdmin.from('mvp_banks').select('*').limit(50) : Promise.resolve({ data: null }),
+                shouldFetchLiquidity ? supabaseAdmin.from('mvp_accounts').select('balance').limit(50) : Promise.resolve({ data: null })
             ]);
 
             if (isMounted.current) {
@@ -546,12 +544,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             try {
                 // Test 1: Direct update
                 console.log('[DEBUG] Step 1: Saving logo via mvp.update...');
-                const updateResult = await mvp.update('app_settings', 1, { site_logo: logoToTest });
+                const { error: logoErr } = await supabase.from('mvp_app_settings').update({ site_logo: logoToTest }).eq('id', 1);
+                const updateResult = logoErr ? { success: false, error: logoErr.message } : { success: true };
                 console.log('[DEBUG] Update result:', updateResult);
 
                 // Test 2: Read back
                 console.log('[DEBUG] Step 2: Reading back from DB...');
-                const settings = await mvp.getSettings();
+                const { data: settings } = await supabase.from('mvp_app_settings').select('*').eq('id', 1).single();
                 console.log('[DEBUG] Retrieved settings:', settings);
                 console.log('[DEBUG] site_logo length:', settings.site_logo?.length || 0);
                 console.log('[DEBUG] site_logo matches:', settings.site_logo === logoToTest ? 'YES' : 'NO');
@@ -667,10 +666,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         try {
             const promises: Promise<any>[] = [];
             if (unreadMsgs.length > 0) {
-                unreadMsgs.forEach(m => promises.push(mvp.update('messages', m.id, { is_read: 1 })));
+                unreadMsgs.forEach(m => promises.push(supabaseAdmin.from('mvp_messages').update({ is_read: 1 }).eq('id', m.id)));
             }
             if (ticketNeedsUpdate && ticketId) {
-                promises.push(mvp.update('support_tickets', ticketId, { is_read: 1 }));
+                promises.push(supabaseAdmin.from('mvp_support_tickets').update({ is_read: 1 }).eq('id', ticketId));
             }
             await Promise.all(promises);
         } catch (err) {
@@ -689,7 +688,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 is_frozen: 0,
                 is_default: adminAddCardForm.is_default ? 1 : 0
             };
-            await mvp.create('cards', payload);
+            const { error: cardErr } = await supabaseAdmin.from('mvp_cards').insert([payload]);
+            if (cardErr) throw new Error(cardErr.message);
             setSuccessMsg("Card provisioned for node.");
             setShowAddCardModal(false);
             setAdminAddCardForm({
@@ -726,7 +726,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 if (finalDelta !== 0) {
                     const currentBalance = Number(selectedUserAccount.balance) || 0;
                     const newBalance = currentBalance + finalDelta;
-                    await mvp.update('accounts', selectedUserAccount.id, { balance: newBalance });
+                    const { error: balErr } = await supabaseAdmin.from('mvp_accounts').update({ balance: newBalance }).eq('id', selectedUserAccount.id);
+                    if (balErr) throw new Error(balErr.message);
                 }
             }
 
@@ -748,7 +749,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 date: new Date(createTxForm.date).toISOString()
             };
 
-            await mvp.create('transactions', payload);
+            const { error: txErr } = await supabaseAdmin.from('mvp_transactions').insert([payload]);
+            if (txErr) throw new Error(txErr.message);
 
             setSuccessMsg("Transaction created successfully.");
             setShowCreateTxModal(false);
@@ -808,7 +810,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 merchant: editTxForm.merchant || null
             };
 
-            await mvp.update('transactions', selectedTxToEdit.id, payload);
+            const { error: txErr } = await supabaseAdmin.from('mvp_transactions').update(payload).eq('id', selectedTxToEdit.id);
+            if (txErr) throw new Error(txErr.message);
+
+            // Sync balance if status crossed the Success boundary
+            if (selectedTxToEdit.status !== payload.status) {
+                const effectiveAmount = payload.status === 'Success' ? payload.amount : undefined;
+                await syncTransactionBalance(selectedTxToEdit, selectedTxToEdit.status, payload.status, effectiveAmount);
+            }
+
             setSuccessMsg("Transaction record updated.");
             setSelectedTxToEdit(null);
             await fetchData(false);
@@ -847,7 +857,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 is_positive: editAssetForm.is_positive ? 1 : 0,
                 created_at: new Date(editAssetForm.created_at).toISOString()
             };
-            await mvp.update('assets', selectedAssetToEdit.id, payload);
+            const { error: assetErr } = await supabaseAdmin.from('mvp_assets').update(payload).eq('id', selectedAssetToEdit.id);
+            if (assetErr) throw new Error(assetErr.message);
             setSuccessMsg("Investment node updated.");
             setSelectedAssetToEdit(null);
             await fetchUserDetails(selectedUser);
@@ -859,30 +870,67 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         }
     };
 
-    const handleApproveRequest = async (txId: string) => {
+    // ── Balance Sync Helper ─────────────────────────────────────────────────
+    // Adds/subtracts transaction amount from account balance whenever status
+    // crosses the Success boundary.  Called from Approve and Edit handlers.
+    const syncTransactionBalance = async (
+        tx: any,
+        oldStatus: string,
+        newStatus: string,
+        effectiveAmount?: number   // use this when status becomes Success (may differ from stored amount)
+    ) => {
+        if (!tx.account_id || !tx.user_id) {
+            console.warn('[BalanceSync] Missing account_id or user_id, skipping');
+            return;
+        }
+        const wasSuccess = oldStatus === 'Success';
+        const isSuccess  = newStatus === 'Success';
+
+        let delta = 0;
+        if (!wasSuccess && isSuccess) {
+            delta = Number(effectiveAmount ?? tx.amount) || 0;   // became Success → add amount
+        } else if (wasSuccess && !isSuccess) {
+            delta = -(Number(tx.amount) || 0);                   // left Success → subtract original amount
+        } else {
+            return;                                              // no boundary crossing
+        }
+
+        const { data: accounts } = await supabaseAdmin
+            .from('mvp_accounts')
+            .select('*')
+            .eq('user_id', tx.user_id);
+
+        if (!accounts) { console.warn('[BalanceSync] No accounts found'); return; }
+        const acc = accounts.find((a: any) => String(a.id) === String(tx.account_id));
+        if (!acc) { console.warn('[BalanceSync] No account matched id', tx.account_id); return; }
+
+        const currentBal = Number(acc.balance) || 0;
+        const newBalance = currentBal + delta;
+        const { error: balErr } = await supabaseAdmin
+            .from('mvp_accounts')
+            .update({ balance: newBalance })
+            .eq('id', acc.id);
+
+        if (balErr) throw new Error(balErr.message);
+    };
+    // ──────────────────────────────────────────────────────────────────────
+
+    const handleApproveRequest = async (txId: string | number) => {
         setIsActionLoading(`approve_${txId}`);
         try {
-            const tx = transactions.find(t => t.id === txId || t.uuid === txId);
+            const tx = transactions.find(t => String(t.id) === String(txId) || t.uuid === String(txId));
             if (!tx) throw new Error("Transaction not found");
             if (tx.status !== 'Pending') throw new Error("Transaction is not pending");
 
             // 1. Update transaction status
-            await mvp.update('transactions', txId, { status: 'Success' });
-            setTransactions(prev => prev.map(t => (t.id === txId || t.uuid === txId) ? { ...t, status: 'Success' } : t));
-            setRecentActions(prev => ({ ...prev, [txId]: 'approved' }));
+            const dbId = tx.id || txId;
+            const { error: txErr } = await supabaseAdmin.from('mvp_transactions').update({ status: 'Success' }).eq('id', dbId);
+            if (txErr) throw new Error(txErr.message);
+            setTransactions(prev => prev.map(t => (String(t.id) === String(txId) || t.uuid === String(txId)) ? { ...t, status: 'Success' } : t));
+            setRecentActions(prev => ({ ...prev, [String(txId)]: 'approved' }));
 
-            // 2. Update user balance
-            if (tx.account_id) {
-                const accounts = await mvp.read('accounts', false, { user_id: tx.user_id });
-                if (accounts) {
-                    const acc = accounts.find((a: any) => a.id == tx.account_id);
-                    if (acc) {
-                        const newBalance = (Number(acc.balance) || 0) + Number(tx.amount);
-                        await mvp.update('accounts', acc.id, { balance: newBalance });
-                    }
-                }
-            }
-
+            // 2. Sync user balance (Pending → Success)
+            await syncTransactionBalance(tx, 'Pending', 'Success');
 
             setSuccessMsg("Transaction request approved and balance updated.");
             fetchData(false);
@@ -894,15 +942,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         }
     };
 
-    const handleRejectRequest = async (txId: string) => {
+    const handleRejectRequest = async (txId: string | number) => {
         setIsActionLoading(`reject_${txId}`);
         try {
-            const tx = transactions.find(t => t.id === txId || t.uuid === txId);
+            const tx = transactions.find(t => String(t.id) === String(txId) || t.uuid === String(txId));
             if (!tx) throw new Error("Transaction not found");
 
-            await mvp.update('transactions', txId, { status: 'Failed' });
-            setTransactions(prev => prev.map(t => (t.id === txId || t.uuid === txId) ? { ...t, status: 'Failed' } : t));
-            setRecentActions(prev => ({ ...prev, [txId]: 'declined' }));
+            const dbId = tx.id || txId;
+            const { error: txErr } = await supabaseAdmin.from('mvp_transactions').update({ status: 'Failed' }).eq('id', dbId);
+            if (txErr) throw new Error(txErr.message);
+            setTransactions(prev => prev.map(t => (String(t.id) === String(txId) || t.uuid === String(txId)) ? { ...t, status: 'Failed' } : t));
+            setRecentActions(prev => ({ ...prev, [String(txId)]: 'declined' }));
             setSuccessMsg("Request rejected.");
             fetchData(false);
             setTimeout(() => setSuccessMsg(null), 5000);
@@ -924,7 +974,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         try {
             const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(selectedUser.user_id);
             if (authError) throw authError;
-            await mvp.delete('profiles', selectedUser.id);
+            const { error: delProfErr } = await supabaseAdmin.from('mvp_profiles').delete().eq('id', selectedUser.id);
+            if (delProfErr) console.error('Failed to delete profile:', delProfErr.message);
             setSuccessMsg('User identity purged from all registries.');
             setTimeout(() => setSuccessMsg(null), 5000);
             setSelectedUser(null);
@@ -963,7 +1014,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 city: selectedUser.city,
                 country: selectedUser.country
             };
-            const res = await mvp.update('profiles', selectedUser.id, updatePayload);
+            const { error: profErr } = await supabaseAdmin.from('mvp_profiles').update(updatePayload).eq('id', selectedUser.id);
+            const res = !profErr;
             if (res) {
                 // --- Sync email change to Supabase Auth so login uses the new email ---
                 const emailChanged = originalUser?.email && originalUser.email !== selectedUser.email;
@@ -1091,7 +1143,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         if (!bankForm.name) return;
         setIsActionLoading('add_bank');
         try {
-            const res = await mvp.create('banks', bankForm);
+            const { error: bankErr } = await supabaseAdmin.from('mvp_banks').insert([bankForm]);
+            const res = bankErr ? { success: false, error: bankErr.message } : { success: true };
             if (res && res.success) {
                 setSuccessMsg('Bank registered successfully.');
                 setBankForm({ name: '', logo: '', color: 'bg-slate-500' });
@@ -1131,21 +1184,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
         try {
             if (type === 'bank') {
-                const res = await mvp.delete('banks', id as number);
-                if (res && res.success) {
+                const { error: delErr } = await supabaseAdmin.from('mvp_banks').delete().eq('id', id);
+                if (!delErr) {
                     setSuccessMsg('Bank deleted.');
                     await fetchData(false);
                 } else {
-                    throw new Error(res?.error || "Failed to delete bank");
+                    throw new Error(delErr.message || "Failed to delete bank");
                 }
             } else if (type === 'ticket') {
-                const res = await mvp.delete('support_tickets', id as number);
-                if (res && (res.success === true || res.id || !res.error)) {
+                const { error: delErr } = await supabaseAdmin.from('mvp_support_tickets').delete().eq('id', id);
+                if (!delErr) {
                     if (selectedTicketId === id) setSelectedTicketId(null);
                     await fetchData(false);
                     setSuccessMsg("Ticket purged from registry.");
                 } else {
-                    throw new Error(res?.error || "Unknown server refusal.");
+                    throw new Error(delErr.message || "Unknown server refusal.");
                 }
             } else if (type === 'conversation') {
                 const msgsToDelete = liveMessages.filter(m => m.user_id === id && (!m.ticket_id || m.ticket_id === 'null' || m.ticket_id === 0));
@@ -1153,39 +1206,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     setSuccessMsg("Conversation cleared.");
                     if (activeChatUser === id) setActiveChatUser(null);
                 } else {
-                    let deletedCount = 0;
-                    for (const m of msgsToDelete) {
-                        await mvp.delete('messages', m.id);
-                        deletedCount++;
-                    }
+                    const ids = msgsToDelete.map(m => m.id);
+                    const { error: delErr } = await supabaseAdmin.from('mvp_messages').delete().in('id', ids);
+                    if (delErr) throw new Error(delErr.message);
                     setLiveMessages(prev => prev.filter(m => m.user_id !== id || (m.ticket_id && m.ticket_id !== 'null' && m.ticket_id !== 0)));
                     if (activeChatUser === id) setActiveChatUser(null);
-                    setSuccessMsg(`Purged ${deletedCount} messages.`);
+                    setSuccessMsg(`Purged ${msgsToDelete.length} messages.`);
                 }
             } else if (type === 'transaction') {
-                const res = await mvp.delete('transactions', id as number);
-                if (res && (res.success === true || res.id || !res.error)) {
+                const { error: delErr } = await supabaseAdmin.from('mvp_transactions').delete().eq('id', id);
+                if (!delErr) {
                     setSuccessMsg("Transaction record deleted.");
                     if (selectedTxToEdit && (selectedTxToEdit.id === id || selectedTxToEdit.uuid === id)) {
                         setSelectedTxToEdit(null);
                     }
                     await fetchData(false);
                 } else {
-                    throw new Error(res?.error || "Failed to delete transaction.");
+                    throw new Error(delErr.message || "Failed to delete transaction.");
                 }
             } else if (type === 'card') {
-                const res = await mvp.delete('cards', id as number);
-                if (res && (res.success === true || res.id || !res.error)) {
+                const { error: delErr } = await supabaseAdmin.from('mvp_cards').delete().eq('id', id);
+                if (!delErr) {
                     setSelectedUserCards(prev => prev.filter(c => c.id !== id));
                     setSuccessMsg("Card asset deleted.");
                 } else {
-                    throw new Error(res?.error || "Failed to delete card");
+                    throw new Error(delErr.message || "Failed to delete card");
                 }
             } else if (type === 'account') {
-                const res = await mvp.delete('accounts', id as number);
-                if (res && (res.success === true || res.id || !res.error)) {
+                const { error: delErr } = await supabaseAdmin.from('mvp_accounts').delete().eq('id', id);
+                if (!delErr) {
                     setSelectedUserAccounts(prev => prev.filter(a => a.id !== id));
-                    // If we just deleted the currently selected account, pick a new one
                     if (selectedUserAccount?.id === id) {
                         setSelectedUserAccount(prev => {
                             const remaining = selectedUserAccounts.filter(a => a.id !== id);
@@ -1194,7 +1244,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     }
                     setSuccessMsg("Account deleted successfully.");
                 } else {
-                    throw new Error(res?.error || "Failed to delete account.");
+                    throw new Error(delErr.message || "Failed to delete account.");
                 }
             }
         } catch (err: any) {
@@ -1209,7 +1259,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     const handleUpdateTicket = async (ticketId: number, newStatus: string) => {
         setIsActionLoading(`ticket-${ticketId}`);
         try {
-            await mvp.update('support_tickets', ticketId, { status: newStatus });
+            const { error: tickErr } = await supabaseAdmin.from('mvp_support_tickets').update({ status: newStatus }).eq('id', ticketId);
+            if (tickErr) throw new Error(tickErr.message);
             await fetchData(false);
             setSuccessMsg(`Ticket status updated: ${newStatus}`);
             setTimeout(() => setSuccessMsg(null), 5000);
@@ -1247,7 +1298,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 kyc_level: newKycLevel,
                 kyc_documents: JSON.stringify(newKycDocs)
             };
-            await mvp.update('profiles', user.id, updatePayload);
+            const { error: kycErr } = await supabaseAdmin.from('mvp_profiles').update(updatePayload).eq('id', user.id);
+            if (kycErr) throw new Error(kycErr.message);
             await fetchData(false);
             setSuccessMsg(type === 'revert' ? 'Verification status reverted' : type === 'reject_all' ? 'User identity rejected' : type === 'batch' ? 'User Approved: Tier 2 Verified' : 'KYC Ledger Updated');
             setTimeout(() => setSuccessMsg(null), 5000);
@@ -1266,9 +1318,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             });
             if (error) throw error;
             const currentSettings = typeof selectedUser.settings === 'string' ? JSON.parse(selectedUser.settings || '{}') : (selectedUser.settings || {});
-            await mvp.update('profiles', selectedUser.id, {
+            const { error: pinErr } = await supabaseAdmin.from('mvp_profiles').update({
                 settings: JSON.stringify({ ...currentSettings, pinSet: true })
-            });
+            }).eq('id', selectedUser.id);
+            if (pinErr) throw new Error(pinErr.message);
             setSuccessMsg("Security PIN updated.");
             setSecurityAction(null);
         } catch (err: any) { setErrorMsg(err.message); }
@@ -1293,7 +1346,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         setIsActionLoading(`freeze_card_${card.id}`);
         try {
             const isCurrentlyFrozen = card.is_frozen == 1 || card.is_frozen === "1" || card.is_frozen === true;
-            await mvp.update('cards', card.id, { is_frozen: !isCurrentlyFrozen });
+            const { error: freezeErr } = await supabaseAdmin.from('mvp_cards').update({ is_frozen: !isCurrentlyFrozen }).eq('id', card.id);
+            if (freezeErr) throw new Error(freezeErr.message);
 
             setSelectedUserCards(prev => prev.map(c => c.id === card.id ? { ...c, is_frozen: !isCurrentlyFrozen } : c));
             setSuccessMsg(`Card ${!isCurrentlyFrozen ? 'Frozen' : 'Unfrozen'}`);
@@ -1311,13 +1365,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             const finalAmount = type === 'credit' ? rawAmount : -rawAmount;
             const newBalance = Number(selectedUserAccount.balance) + finalAmount;
             if (newBalance < 0) throw new Error("ACCOUNT ERROR: Negative balance prohibited.");
-            await mvp.update('accounts', selectedUserAccount.id, { balance: newBalance });
+            const { error: accErr } = await supabaseAdmin.from('mvp_accounts').update({ balance: newBalance }).eq('id', selectedUserAccount.id);
+            if (accErr) throw new Error(accErr.message);
             const txId = `MNA-${Math.floor(100000 + Math.random() * 900000)}`;
-            await mvp.create('transactions', {
+            const { error: txErr } = await supabaseAdmin.from('mvp_transactions').insert([{
                 uuid: txId, user_id: selectedUser.user_id, account_id: selectedUserAccount.id, amount: finalAmount, description: adjDescription || (type === 'credit' ? 'Manual Funding' : 'Manual Debit'),
                 type: type === 'credit' ? 'Deposit' : 'Withdrawal', category: 'Manual Correction', status: 'Success', date: new Date().toISOString()
-            });
-            await mvp.create('notifications', { user_id: selectedUser.user_id, title: type === 'credit' ? 'Ledger Credited' : 'Ledger Debited', message: `Administrator adjusted your wallet by $${rawAmount.toLocaleString()}.`, type: type === 'credit' ? 'money' : 'alert', is_read: false });
+            }]);
+            if (txErr) throw new Error(txErr.message);
+            await supabaseAdmin.from('mvp_notifications').insert([{ user_id: selectedUser.user_id, title: type === 'credit' ? 'Ledger Credited' : 'Ledger Debited', message: `Administrator adjusted your wallet by $${rawAmount.toLocaleString()}.`, type: type === 'credit' ? 'money' : 'alert', is_read: false }]);
             setSuccessMsg(`SYNC: Wallet updated.`); setTimeout(() => setSuccessMsg(null), 5000); setAdjAmount(''); await fetchUserDetails(selectedUser);
         } catch (err: any) { setErrorMsg(err.message || "Ledger sync failed."); } finally { setIsActionLoading(null); }
     };
@@ -1335,17 +1391,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             const currentBalance = Number(card.balance) || 0;
             const newBalance = currentBalance + finalAmount;
             if (newBalance < 0) throw new Error("Insufficient funds in card balance.");
-            await mvp.update('cards', card.id, { balance: newBalance });
+            const { error: cardErr } = await supabaseAdmin.from('mvp_cards').update({ balance: newBalance }).eq('id', card.id);
+            if (cardErr) throw new Error(cardErr.message);
             const txId = `CRD-${Math.floor(100000 + Math.random() * 900000)}`;
             const cardLast4 = card.number?.slice(-4) || '....';
             const description = `Admin ${type === 'credit' ? 'Credit' : 'Debit'}: Card ****${cardLast4}`;
 
-            await mvp.create('transactions', {
+            const { error: txErr } = await supabaseAdmin.from('mvp_transactions').insert([{
                 uuid: txId, user_id: selectedUser.user_id, account_id: selectedUserAccount?.id, amount: finalAmount, description: description,
                 type: type === 'credit' ? 'Deposit' : 'Withdrawal', category: 'Card Adjustment', status: 'Success', date: new Date().toISOString()
-            });
+            }]);
+            if (txErr) throw new Error(txErr.message);
 
-            await mvp.create('notifications', { user_id: selectedUser.user_id, title: type === 'credit' ? 'Card Funded' : 'Card Debited', message: `Your card ending in ${cardLast4} was ${type === 'credit' ? 'credited' : 'debited'} by $${rawAmount.toLocaleString()}.`, type: type === 'credit' ? 'money' : 'alert', is_read: false });
+            await supabaseAdmin.from('mvp_notifications').insert([{ user_id: selectedUser.user_id, title: type === 'credit' ? 'Card Funded' : 'Card Debited', message: `Your card ending in ${cardLast4} was ${type === 'credit' ? 'credited' : 'debited'} by $${rawAmount.toLocaleString()}.`, type: type === 'credit' ? 'money' : 'alert', is_read: false }]);
             setSuccessMsg(`Card ${type} successful.`);
             setTimeout(() => setSuccessMsg(null), 5000);
             setCardAction(null);
@@ -1364,7 +1422,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             const tempId = `admin-temp-${Date.now()}`;
             const newMsg = { id: tempId, user_id: targetUserId, ticket_id: tId, text: text, sender: 'admin', is_read: 0, created_at: new Date().toISOString() };
             setLiveMessages(prev => [...prev, newMsg]);
-            await mvp.create('messages', { user_id: targetUserId, ticket_id: tId, text: text, sender: 'admin', is_read: 0 });
+            await supabaseAdmin.from('mvp_messages').insert([{ user_id: targetUserId, ticket_id: tId, text: text, sender: 'admin', is_read: 0 }]);
             await fetchData(false);
         } catch (err) { console.error("Chat sync error", err); }
     };
@@ -1377,7 +1435,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             const resolutionMarker = "[SYSTEM]: SESSION_RESOLVED_AI_RESUMED - This support session has been resolved by an administrator. AI Assistant has resumed service.";
             const optimisticMsg = { id: `res-temp-${Date.now()}`, user_id: targetUserId, ticket_id: activeSection === 'support_tickets' ? selectedTicketId : null, text: resolutionMarker, sender: 'admin', is_read: 0, created_at: new Date().toISOString() };
             setLiveMessages(prev => [...prev, optimisticMsg]);
-            await mvp.create('messages', { user_id: targetUserId, ticket_id: activeSection === 'support_tickets' ? selectedTicketId : null, text: resolutionMarker, sender: 'admin', is_read: 0 });
+            await supabaseAdmin.from('mvp_messages').insert([{ user_id: targetUserId, ticket_id: activeSection === 'support_tickets' ? selectedTicketId : null, text: resolutionMarker, sender: 'admin', is_read: 0 }]);
             setSuccessMsg("Support session resolved. AI resumed.");
             setTimeout(() => setSuccessMsg(null), 5000);
             await fetchData(false);
@@ -1411,13 +1469,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
             let saveOk = false;
             try {
-                await mvp.update('app_settings', 1, corePayload);
-                saveOk = true;
+                const { error: updErr } = await supabase.from('mvp_app_settings').update(corePayload).eq('id', 1);
+                if (!updErr) saveOk = true;
             } catch (updateErr: any) {
                 // Row id=1 may not exist yet — try insert
                 try {
-                    await mvp.create('app_settings', { id: 1, ...corePayload });
-                    saveOk = true;
+                    const { error: insErr } = await supabase.from('mvp_app_settings').insert([{ id: 1, ...corePayload }]);
+                    if (!insErr) saveOk = true;
                 } catch (createErr: any) {
                     throw new Error(`Save failed: ${createErr.message}`);
                 }
@@ -1435,8 +1493,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     monthly_limit: globalConfig.monthlyLimit,
                 };
                 try {
-                    await mvp.update('app_settings', 1, extendedPayload);
-                    setSuccessMsg('Settings saved successfully.');
+                    const { error: extErr } = await supabase.from('mvp_app_settings').update(extendedPayload).eq('id', 1);
+                    if (!extErr) setSuccessMsg('Settings saved successfully.');
                 } catch (extErr: any) {
                     // Show error but don't fail entirely since core settings saved
                     console.error('[Settings] Extended save error:', extErr);
@@ -1532,7 +1590,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
     useEffect(() => {
         fetchData(true);
-        const interval = setInterval(() => fetchData(false), 10000);
+        const interval = setInterval(() => fetchData(false), 60000); // 60s to reduce egress
         return () => clearInterval(interval);
     }, [fetchData]);
 
@@ -2279,7 +2337,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                         try {
                                                             const isSuspended = selectedUser.is_suspended == "1" || selectedUser.is_suspended == 1 || selectedUser.is_suspended === true;
                                                             const newStatus = !isSuspended;
-                                                            await mvp.update('profiles', selectedUser.id, { is_suspended: newStatus ? 1 : 0 });
+                                                            const { error: suspErr } = await supabaseAdmin.from('mvp_profiles').update({ is_suspended: newStatus ? 1 : 0 }).eq('id', selectedUser.id);
+                                                            if (suspErr) throw new Error(suspErr.message);
 
                                                             setSelectedUser({ ...selectedUser, is_suspended: newStatus });
                                                             setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, is_suspended: newStatus ? 1 : 0 } : u));

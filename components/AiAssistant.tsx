@@ -95,14 +95,11 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ user, accounts, transa
         if (unread.length === 0) return;
 
         try {
-            const updatePromises = unread.map(m => {
-                if (m.id && !m.id.startsWith('temp')) {
-                    return mvp.update('messages', m.id, { is_read: 1 });
-                }
-                return Promise.resolve();
-            });
-
-            await Promise.all(updatePromises);
+            const ids = unread.filter(m => m.id && !m.id.startsWith('temp')).map(m => m.id);
+            if (ids.length > 0) {
+                const { error } = await supabase.from('mvp_messages').update({ is_read: 1 }).in('id', ids);
+                if (error) console.error('Mark read failed:', error.message);
+            }
 
             if (onRefreshCounts && isMounted.current) onRefreshCounts();
         } catch (err) {
@@ -117,10 +114,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ user, accounts, transa
                 ? 'id,text,sender,created_at,is_read,ticket_id,user_id,client_id'
                 : 'id,text,sender,created_at,is_read,user_id,client_id';
 
-            const data = await mvp.read('messages', true, {
-                columns,
-                limit: 200
-            });
+            const { data } = await supabase.from('mvp_messages').select(columns).limit(200);
 
             if (!isMounted.current) return;
 
@@ -208,19 +202,19 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ user, accounts, transa
         setMessages(prev => [...prev, aiMsg]);
 
         try {
-            await mvp.create('messages', {
+            await supabase.from('mvp_messages').insert([{
                 user_id: user.id,
                 text: aiHandoverText,
                 sender: 'ai',
                 ticket_id: null
-            });
+            }]);
 
-            await mvp.create('messages', {
+            await supabase.from('mvp_messages').insert([{
                 user_id: user.id,
                 text: adminSignalText,
                 sender: 'user',
                 ticket_id: null
-            });
+            }]);
 
             if (isMounted.current) setDiag(prev => ({ ...prev, lastWriteStatus: 'SUCCESS' }));
         } catch (e: any) {
@@ -266,10 +260,10 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ user, accounts, transa
             };
             if (hasTicketIdCol) payload.ticket_id = null;
 
-            const userRes = await mvp.create('messages', payload);
+            const { error: userMsgErr } = await supabase.from('mvp_messages').insert([payload]);
 
-            if (!userRes || (!userRes.success && !userRes.id)) {
-                throw new Error("Persistence node rejected user message write.");
+            if (userMsgErr) {
+                throw new Error("Persistence node rejected user message write: " + userMsgErr.message);
             }
 
             if (needsHandover) {
@@ -304,10 +298,10 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ user, accounts, transa
             };
             if (hasTicketIdCol) aiPayload.ticket_id = null;
 
-            const aiRes = await mvp.create('messages', aiPayload);
+            const { error: aiMsgErr } = await supabase.from('mvp_messages').insert([aiPayload]);
 
             if (isMounted.current) {
-                if (aiRes && (aiRes.success || aiRes.id)) {
+                if (!aiMsgErr) {
                     setDiag(prev => ({ ...prev, lastWriteStatus: 'SUCCESS' }));
                 } else {
                     setDiag(prev => ({ ...prev, lastWriteStatus: 'ERROR', lastWriteError: "AI response failed to persist." }));

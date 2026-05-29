@@ -669,7 +669,7 @@ function App() {
 
             refreshMessageCounts();
 
-        }, 15000);
+        }, 60000); // 60s to reduce egress (was 15000)
         return () => clearInterval(interval);
     }, [currentUser, refreshNotifications, fetchGlobalSettings, refreshMessageCounts]);
 
@@ -874,6 +874,9 @@ function App() {
                 const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
                 for (const id of unreadIds) { await mvp.update('notifications', id, { is_read: true }); }
                 setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+            }}
+            onClearNotifications={() => {
+                setNotifications([]);
             }}
             messageBadge={unreadAiMessages}
             supportBadge={unreadSupportMessages}

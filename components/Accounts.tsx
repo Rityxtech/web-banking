@@ -4,6 +4,7 @@ import { Account, Card } from '../types';
 import { Plus, CreditCard, Snowflake, RefreshCw, Shield, Globe, Wifi, Lock, Eye, EyeOff, Copy, Check, ArrowLeft, Loader2, CheckCircle, AlertCircle, X, KeyRound, Mail, Trash2, AlertTriangle, Clock, Wallet, Landmark, TrendingUp, PlusCircle, Unlock, ArrowRightLeft } from 'lucide-react';
 import { HighYieldEnrollmentModal } from './ui/HighYieldEnrollmentModal';
 import { HighYieldWithdrawalModal } from './ui/HighYieldWithdrawalModal';
+import { supabase, supabaseAdmin } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
 
@@ -102,12 +103,11 @@ export const Accounts: React.FC<AccountsProps> = ({
             try {
                 // 1. Credit interest directly INTO the locked investment account
                 //    This makes the locked balance grow visibly over time (compound effect)
-                await mvp.update('accounts', investmentAccount.id, {
-                    balance: principal + interest
-                });
+                const { error: intErr } = await supabase.from('mvp_accounts').update({ balance: principal + interest }).eq('id', investmentAccount.id);
+                if (intErr) throw new Error(intErr.message);
 
                 // 2. Record a transaction entry so it shows in history
-                await mvp.create('transactions', {
+                const { error: txErr } = await supabase.from('mvp_transactions').insert([{
                     user_id: user?.id || 'ME',
                     account_id: investmentAccount.id,
                     amount: interest,
@@ -115,14 +115,15 @@ export const Accounts: React.FC<AccountsProps> = ({
                     description: `Daily Interest @ 8% APY (+$${interest.toFixed(4)})`,
                     status: 'Success',
                     date: new Date().toISOString()
-                });
+                }]);
+                if (txErr) console.error('Interest tx failed:', txErr.message);
 
                 // 3. Mark paid for today so it won't run again until tomorrow
                 localStorage.setItem(`last_interest_${investmentAccount.id}`, today);
 
                 // 4. Refresh account balances in-place
                 try {
-                    const freshAccs = await mvp.read('accounts', true);
+                    const { data: freshAccs } = await supabase.from('mvp_accounts').select('*');
                     if (freshAccs && (window as any).__setAccounts) {
                         (window as any).__setAccounts(
                             freshAccs.map((a: any) => ({ ...a, accountNumber: a.account_number, balance: Number(a.balance) }))
@@ -185,18 +186,16 @@ export const Accounts: React.FC<AccountsProps> = ({
                 throw new Error("Balance calculation error");
             }
 
-            // Perform Updates
+            // Perform Updates — use Supabase directly (MVP API broken 404)
             // Debit Source
-            await mvp.update('accounts', selectedTransferAccount.id, {
-                balance: newSourceBalance
-            });
+            const { error: srcErr } = await supabase.from('mvp_accounts').update({ balance: newSourceBalance }).eq('id', selectedTransferAccount.id);
+            if (srcErr) throw new Error(srcErr.message);
             // Credit Target
-            await mvp.update('accounts', targetAccount.id, {
-                balance: newTargetBalance
-            });
+            const { error: tgtErr } = await supabase.from('mvp_accounts').update({ balance: newTargetBalance }).eq('id', targetAccount.id);
+            if (tgtErr) throw new Error(tgtErr.message);
 
             // Create Transaction Record (Source View)
-            await mvp.create('transactions', {
+            const { error: tx1Err } = await supabase.from('mvp_transactions').insert([{
                 user_id: user.id || 'ME',
                 account_id: selectedTransferAccount.id,
                 amount: -amount,
@@ -204,10 +203,11 @@ export const Accounts: React.FC<AccountsProps> = ({
                 description: `Transfer to ${targetAccount.name}`,
                 status: 'Success',
                 date: new Date().toISOString()
-            });
+            }]);
+            if (tx1Err) console.error('Transfer out tx failed:', tx1Err.message);
 
             // Create Transaction Record (Target View)
-            await mvp.create('transactions', {
+            const { error: tx2Err } = await supabase.from('mvp_transactions').insert([{
                 user_id: user.id || 'ME',
                 account_id: targetAccount.id,
                 amount: amount,
@@ -215,7 +215,8 @@ export const Accounts: React.FC<AccountsProps> = ({
                 description: `Transfer from ${selectedTransferAccount.name}`,
                 status: 'Success',
                 date: new Date().toISOString()
-            });
+            }]);
+            if (tx2Err) console.error('Transfer in tx failed:', tx2Err.message);
 
             // Send Email
             if (user?.email) {
@@ -239,75 +240,68 @@ export const Accounts: React.FC<AccountsProps> = ({
     };
 
     const handleEnrollment = async (amount: number, sourceAccountId: number) => {
+        console.log('[Enrollment] Starting with amount:', amount, 'sourceId:', sourceAccountId);
         try {
             if (amount > 0) {
                 const sourceAccount = accounts.find(a => a.id === sourceAccountId);
+                console.log('[Enrollment] Source account found:', sourceAccount?.name, 'balance:', sourceAccount?.balance);
 
                 if (!sourceAccount) {
-                    alert("Selected funding account not found.");
-                    return;
+                    throw new Error("Selected funding account not found.");
                 }
 
                 if ((Number(sourceAccount.balance) || 0) < amount) {
-                    alert("Insufficient funds in selected account.");
-                    return;
+                    throw new Error("Insufficient funds in selected account.");
                 }
 
                 // Deduct from Source Account
-                // Use safe floating point math if needed, but for now simple subtraction is okay as amount came from Number()
                 const newBalance = (Number(sourceAccount.balance) || 0) - amount;
-                await mvp.update('accounts', sourceAccount.id, { balance: newBalance });
+                console.log('[Enrollment] Deducting', amount, 'from source. New balance:', newBalance);
+                const { error: srcErr } = await supabase.from('mvp_accounts').update({ balance: newBalance }).eq('id', sourceAccount.id);
+                if (srcErr) throw new Error(srcErr.message);
+                console.log('[Enrollment] Source account updated');
 
                 // Create Transaction for the deduction
-                await mvp.create('transactions', {
-                    user_id: user.id || 'ME',
+                console.log('[Enrollment] Creating transaction record...');
+                const { error: txErr } = await supabase.from('mvp_transactions').insert([{
+                    user_id: user?.id || 'ME',
                     account_id: sourceAccount.id,
                     amount: -amount,
                     type: 'Transfer Out',
                     description: 'High Yield Investment Deposit',
                     status: 'Success',
                     date: new Date().toISOString()
-                });
+                }]);
+                if (txErr) console.error('Enrollment tx failed:', txErr.message);
             }
 
             // Credit Investment Account (Create or Update)
             const existingInvestmentAccount = accounts.find(a => (a.type || '').toLowerCase() === 'investment');
+            console.log('[Enrollment] Existing investment account:', existingInvestmentAccount?.id);
 
             if (existingInvestmentAccount) {
-                // Update existing
                 const newInvestmentBalance = (Number(existingInvestmentAccount.balance) || 0) + amount;
-                await mvp.update('accounts', existingInvestmentAccount.id, { balance: newInvestmentBalance });
+                console.log('[Enrollment] Updating investment balance to:', newInvestmentBalance);
+                const { error: invErr } = await supabase.from('mvp_accounts').update({ balance: newInvestmentBalance }).eq('id', existingInvestmentAccount.id);
+                if (invErr) throw new Error(invErr.message);
+                console.log('[Enrollment] Investment account updated');
             } else {
-                // Create new
-                await mvp.create('accounts', {
-                    user_id: user.id,
+                console.log('[Enrollment] Creating new investment account with balance:', amount);
+                const { error: insErr } = await supabase.from('mvp_accounts').insert([{
+                    user_id: user?.id,
                     name: 'High Yield Savings',
                     type: 'Investment',
                     balance: amount,
                     account_number: '8000' + Math.floor(Math.random() * 9000000000),
                     color: 'bg-indigo-900',
                     is_main: 0
-                });
+                }]);
+                if (insErr) throw new Error(insErr.message);
+                console.log('[Enrollment] New investment account created');
             }
 
-            // Send Welcome Email
-            const { subject, content } = getEmailTemplate('high_yield_enrollment', {
-                user_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member',
-                account_number: '****',
-                date: new Date().toLocaleDateString(),
-                amount: amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-            });
-            if (user?.email) {
-                await mvp.sendEmail(user.email, subject, content);
-            }
-
-            // Refresh accounts - assumption: parent component handles data refresh or we might need to trigger it. 
-            // In this specific component structure, we might not have a direct refresh function prop for accounts specifically, 
-            // but we can try to reload or just close the modal. Ideally we should have an onRefresh prop.
-            // Looking at props: no onRefresh. However, implementation plan said "Refresh accounts".
-            // Since we can't easily refresh from here without a prop, we'll just close and maybe the upstream data updates or we reload.
-            // For now, let's just close the modal. The App.tsx has an interval that will pick it up.
-
+            // Close modal immediately after DB ops succeed
+            console.log('[Enrollment] Closing modal...');
             setShowEnrollmentModal(false);
 
             // Store original principal for accurate "earned" display decoupled from admin edits
@@ -320,7 +314,7 @@ export const Accounts: React.FC<AccountsProps> = ({
 
             // Refresh accounts in-place instead of full page reload
             try {
-                const freshAccs = await mvp.read('accounts', true);
+                const { data: freshAccs } = await supabase.from('mvp_accounts').select('*');
                 if (freshAccs && (window as any).__setAccounts) {
                     (window as any).__setAccounts(freshAccs.map((a: any) => ({ ...a, accountNumber: a.account_number, balance: Number(a.balance) })));
                 } else {
@@ -329,9 +323,27 @@ export const Accounts: React.FC<AccountsProps> = ({
             } catch {
                 window.location.reload();
             }
-        } catch (error) {
-            console.error("Enrollment failed", error);
-            alert("Failed to create investment account. Please try again.");
+
+            // Send Welcome Email — non-blocking; MVP API is broken (404) so we must not await
+            try {
+                const { subject, content } = getEmailTemplate('high_yield_enrollment', {
+                    user_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member',
+                    account_number: '****',
+                    date: new Date().toLocaleDateString(),
+                    amount: amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+                });
+                if (user?.email) {
+                    mvp.sendEmail(user.email, subject, content).catch(() => {});
+                }
+            } catch {
+                // Ignore email failure entirely
+            }
+
+            console.log('[Enrollment] Complete');
+        } catch (error: any) {
+            console.error('[Enrollment] Failed:', error);
+            alert(error.message || "Failed to create investment account. Please try again.");
+            throw error; // Re-throw so the modal knows it failed and can reset isProcessing
         }
     };
 
@@ -342,6 +354,7 @@ export const Accounts: React.FC<AccountsProps> = ({
 
     const handleConfirmWithdrawal = async () => {
         if (!withdrawalAccount) return;
+        console.log('[Withdrawal] Starting for account:', withdrawalAccount.id, 'balance:', withdrawalAccount.balance);
 
         // Find destination account: Prefer 'Savings', else 'Main Wallet'
         const targetAccount = accounts.find(a => (a.type || '').toLowerCase() === 'savings') ||
@@ -353,6 +366,7 @@ export const Accounts: React.FC<AccountsProps> = ({
             setShowWithdrawalModal(false);
             return;
         }
+        console.log('[Withdrawal] Target account:', targetAccount.id, targetAccount.name);
 
         const amount = Number(withdrawalAccount.balance);
         if (amount <= 0) {
@@ -363,27 +377,48 @@ export const Accounts: React.FC<AccountsProps> = ({
 
         try {
             // 1. Credit Target Account
-            await mvp.update('accounts', targetAccount.id, { balance: (Number(targetAccount.balance) || 0) + amount });
+            const newTargetBalance = (Number(targetAccount.balance) || 0) + amount;
+            console.log('[Withdrawal] Crediting target', targetAccount.id, 'new balance:', newTargetBalance);
+            const { error: credErr } = await supabase.from('mvp_accounts').update({ balance: newTargetBalance }).eq('id', targetAccount.id);
+            if (credErr) throw new Error(credErr.message);
+            console.log('[Withdrawal] Target credited successfully');
 
-            // 2. Delete Investment Account to reset state
-            await mvp.delete('accounts', withdrawalAccount.id);
+            // 2. Delete Investment Account — use supabaseAdmin to bypass RLS
+            console.log('[Withdrawal] Deleting investment account', withdrawalAccount.id);
+            const { error: delErr } = await supabaseAdmin.from('mvp_accounts').delete().eq('id', withdrawalAccount.id);
+            if (delErr) throw new Error(delErr.message);
+            console.log('[Withdrawal] Delete command sent, verifying...');
+
+            // Verify deletion actually happened
+            const { data: verify } = await supabaseAdmin.from('mvp_accounts').select('id').eq('id', withdrawalAccount.id).single();
+            if (verify) {
+                console.error('[Withdrawal] CRITICAL: Account still exists after delete!', verify);
+                throw new Error('Account deletion failed — account still exists in database.');
+            }
+            console.log('[Withdrawal] Account deletion verified');
 
             // 3. Record Transaction
-            await mvp.create('transactions', {
-                user_id: user.id,
+            const { error: txErr } = await supabase.from('mvp_transactions').insert([{
+                user_id: user?.id,
                 account_id: targetAccount.id,
                 amount: amount,
                 type: 'Transfer In',
                 description: 'High Yield Savings Withdrawal',
                 status: 'Success',
                 date: new Date().toISOString()
-            });
+            }]);
+            if (txErr) console.error('Withdrawal tx failed:', txErr.message);
+
+            // Clear stored principal
+            localStorage.removeItem(`hyi_principal_${user?.id}`);
 
             setShowWithdrawalModal(false);
+            console.log('[Withdrawal] Modal closed');
 
             // Refresh accounts in-place
             try {
-                const freshAccs = await mvp.read('accounts', true);
+                const { data: freshAccs } = await supabaseAdmin.from('mvp_accounts').select('*');
+                console.log('[Withdrawal] Refreshed accounts count:', freshAccs?.length || 0);
                 if (freshAccs && (window as any).__setAccounts) {
                     (window as any).__setAccounts(freshAccs.map((a: any) => ({ ...a, accountNumber: a.account_number, balance: Number(a.balance) })));
                 } else {
@@ -392,9 +427,11 @@ export const Accounts: React.FC<AccountsProps> = ({
             } catch {
                 window.location.reload();
             }
-        } catch (e) {
-            console.error(e);
-            alert("Error processing withdrawal.");
+
+            console.log('[Withdrawal] Complete');
+        } catch (e: any) {
+            console.error('[Withdrawal] Failed:', e);
+            alert(e.message || "Error processing withdrawal.");
         }
     };
 

@@ -60,12 +60,12 @@ const MaintenanceScreen = ({ onAdminLogin, onLogout, isLoggedIn }: { onAdminLogi
         e.preventDefault();
         if (!email || !message) return;
         setIsSubmitting(true);
-        await mvp.create('support_tickets', {
+        await supabase.from('mvp_support_tickets').insert([{
             user_id: 'MAINTENANCE_USER',
             subject: 'Maintenance Query',
             message: `[MAINTENANCE MODE] From: ${email} - ${message}`,
             status: 'Open'
-        });
+        }]);
         setTicketSent(true);
         setIsSubmitting(false);
     };
@@ -185,7 +185,7 @@ const WaitlistScreen = ({ onAdminLogin }: { onAdminLogin: () => void }) => {
         if (!email) return;
         setIsSubmitting(true);
         try {
-            await mvp.create('waitlist', { email });
+            await supabase.from('mvp_waitlist').insert([{ email }]);
             setJoined(true);
         } catch (err) {
             console.error(err);
@@ -239,8 +239,8 @@ const SuspendedScreen = ({ user, onLogout }: { user: User, onLogout: () => void 
 
     useEffect(() => {
         const checkExisting = async () => {
-            const tickets = await mvp.read('support_tickets', true, { columns: 'id,subject,status', limit: 10 });
-            const appeal = tickets.find((t: any) => t.subject === 'Account Suspension Appeal' && t.status === 'Open');
+            const { data: tickets } = await supabase.from('mvp_support_tickets').select('id,subject,status').limit(10);
+            const appeal = (tickets || []).find((t: any) => t.subject === 'Account Suspension Appeal' && t.status === 'Open');
             if (appeal) setExistingTicket(appeal);
             setIsChecking(false);
         };
@@ -252,14 +252,14 @@ const SuspendedScreen = ({ user, onLogout }: { user: User, onLogout: () => void 
         if (!message.trim() || existingTicket) return;
         setIsSubmitting(true);
         try {
-            const res = await mvp.create('support_tickets', {
+            const { data: res, error: ticketErr } = await supabase.from('mvp_support_tickets').insert([{
                 user_id: user.id,
                 subject: 'Account Suspension Appeal',
                 message: `[LOCKOUT PROTOCOL APPEAL]: ${message}`,
                 status: 'Open'
-            });
-            if (res.success) {
-                setExistingTicket({ id: res.id, status: 'Open' });
+            }]).select('id');
+            if (!ticketErr && res) {
+                setExistingTicket({ id: res[0]?.id, status: 'Open' });
                 setMessage('');
             }
         } catch (err) { console.error(err); } finally { setIsSubmitting(false); }
@@ -326,19 +326,20 @@ const CompleteRegistration = ({ user, onComplete }: { user: any, onComplete: () 
             });
             if (updateError) throw updateError;
 
-            const profiles = await mvp.read('profiles', true);
-            const existing = profiles.find((p: any) => p.user_id === user.id);
+            const { data: profiles } = await supabase.from('mvp_profiles').select('id,user_id,settings');
+            const existing = (profiles || []).find((p: any) => p.user_id === user.id);
             if (existing) {
-                await mvp.update('profiles', existing.id, {
-                    settings: JSON.stringify({ pinSet: true })
-                });
+                const currentSettings = typeof existing.settings === 'string' ? JSON.parse(existing.settings || '{}') : (existing.settings || {});
+                await supabase.from('mvp_profiles').update({
+                    settings: JSON.stringify({ ...currentSettings, pinSet: true })
+                }).eq('id', existing.id);
             } else {
-                await mvp.create('profiles', {
+                await supabase.from('mvp_profiles').insert([{
                     user_id: user.id,
                     full_name: user.user_metadata?.full_name || APP_CONFIG.BANK_NAME,
                     email: user.email,
                     settings: JSON.stringify({ pinSet: true })
-                });
+                }]);
             }
 
             onComplete();
@@ -404,6 +405,7 @@ function App() {
     const [notificationsSynced, setNotificationsSynced] = useState(false); // Controls Badge Visibility
     const [isSuspended, setIsSuspended] = useState(false);
     const [forceMaintenance, setForceMaintenance] = useState(false);
+    const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
 
     const [currentView, setCurrentView] = useState<'home' | 'signin' | 'signup'>(() => {
         const hash = window.location.hash.substring(1);
@@ -626,7 +628,7 @@ function App() {
 
     const fetchGlobalSettings = useCallback(async () => {
         try {
-            const settings = await mvp.getSettings();
+            const { data: settings } = await supabase.from('mvp_app_settings').select('*').eq('id', 1).single();
             if (settings) {
                 const isMaintenance = settings.maintenance_mode == "1" || settings.maintenance_mode == 1 || settings.maintenance_mode === true;
                 const isRegAllowed = settings.allow_registration == "1" || settings.allow_registration == 1 || settings.allow_registration === true;
@@ -658,7 +660,7 @@ function App() {
     const refreshMessageCounts = useCallback(async () => {
         if (!currentUser) return;
         try {
-            const msgs = await mvp.read('messages', true, { columns: 'id,sender,is_read,ticket_id', limit: 100 });
+            const { data: msgs } = await supabase.from('mvp_messages').select('id,sender,is_read,ticket_id').limit(100);
             if (msgs) {
                 const aiCount = msgs.filter((m: any) => m.sender !== 'user' && (m.is_read == 0 || m.is_read === "0" || m.is_read === false) && (!m.ticket_id || m.ticket_id === "null" || m.ticket_id === 0)).length;
                 const supportCount = msgs.filter((m: any) => m.sender !== 'user' && (m.is_read == 0 || m.is_read === "0" || m.is_read === false) && (m.ticket_id && m.ticket_id !== "null" && m.ticket_id !== 0)).length;
@@ -678,36 +680,40 @@ function App() {
         setNotificationsSynced(false); // Hide badge until fetch complete
 
         try {
-            const profiles = await mvp.read('profiles', true, { columns: 'id,user_id,full_name,email,role,kyc_level,is_suspended,theme,avatar_url,settings' });
-            let profile = profiles.find((p: any) => p.user_id === userId);
+            // Use Supabase directly — MVP API is broken (404)
+            const { data: profiles } = await supabase
+                .from('mvp_profiles')
+                .select('id,user_id,full_name,email,role,kyc_level,is_suspended,theme,avatar_url,settings')
+                .eq('user_id', userId);
+            let profile = profiles?.find((p: any) => p.user_id === userId);
 
             // LOGIC: If profile doesn't exist, create it (self-healing).
             if (!profile) {
                 console.log("No profile found for authenticated user. Auto-creating profile...");
                 try {
-                    await mvp.create('profiles', {
+                    await supabase.from('mvp_profiles').insert([{
                         user_id: userId,
                         full_name: userMetadata?.full_name || `${APP_CONFIG.BRAND_NAME} Client`,
                         email: userMetadata?.email || '',
                         kyc_level: 0
-                    });
+                    }]);
                 } catch (createErr: any) {
-                    // Trigger or race may have already created it — re-read
                     if (createErr.message?.includes('23505') || createErr.message?.includes('duplicate') || createErr.message?.includes('unique constraint')) {
                         console.warn('Profile already exists (race with trigger), re-reading...');
                     } else {
                         throw createErr;
                     }
                 }
-                const updatedProfiles = await mvp.read('profiles', true, { columns: 'id,user_id,full_name,email,role,kyc_level,is_suspended,theme,avatar_url,settings' });
-                profile = updatedProfiles.find((p: any) => p.user_id === userId);
+                const { data: updatedProfiles } = await supabase
+                    .from('mvp_profiles')
+                    .select('id,user_id,full_name,email,role,kyc_level,is_suspended,theme,avatar_url,settings')
+                    .eq('user_id', userId);
+                profile = updatedProfiles?.find((p: any) => p.user_id === userId);
             }
 
             if (profile) {
                 setIsSuspended(profile.is_suspended == "1" || profile.is_suspended == 1 || profile.is_suspended === true);
                 if (profile.theme) setIsDarkMode(profile.theme === 'dark');
-
-                // Ensure KYC level defaults to 0 if null/undefined
                 setKycLevel(Number(profile.kyc_level) || 0);
 
                 const decodedSettings = typeof profile.settings === 'string' ? JSON.parse(profile.settings) : profile.settings;
@@ -726,26 +732,26 @@ function App() {
                         name: profile.full_name || prev?.name || `${APP_CONFIG.BRAND_NAME} Client`,
                         email: profile.email || prev?.email || '',
                         avatarUrl: prev?.avatarUrl || profile.avatar_url || '',
-                        pin: userMetadata?.pin // Include PIN in user object
+                        pin: userMetadata?.pin
                     };
                 });
             }
 
-            const [accRes, cardRes, txRes, assetRes, notifRes, msgs] = await Promise.all([
-                mvp.read('accounts', true),
-                mvp.read('cards', true),
-                mvp.read('transactions', true, { limit: 500 }),
-                mvp.read('assets', true),
-                mvp.read('notifications', true, { columns: 'id,title,message,type,is_read,created_at', limit: 20 }),
-                mvp.read('messages', true, { columns: 'id,sender,is_read,ticket_id', limit: 100 })
+            const [{ data: accRes }, { data: cardRes }, { data: txRes }, { data: assetRes }, { data: notifRes }, { data: msgs }] = await Promise.all([
+                supabase.from('mvp_accounts').select('*').eq('user_id', userId),
+                supabase.from('mvp_cards').select('*').eq('user_id', userId),
+                supabase.from('mvp_transactions').select('*').eq('user_id', userId).limit(500),
+                supabase.from('mvp_assets').select('*').eq('user_id', userId),
+                supabase.from('mvp_notifications').select('id,title,message,type,is_read,created_at').eq('user_id', userId).limit(20),
+                supabase.from('mvp_messages').select('id,sender,is_read,ticket_id').eq('user_id', userId).limit(100)
             ]);
 
-            const unread = msgs.filter((m: any) => m.sender !== 'user' && (m.is_read == "0" || m.is_read == 0 || m.is_read === false)).length;
+            const allMsgs = msgs || [];
+            const unread = allMsgs.filter((m: any) => m.sender !== 'user' && (m.is_read == "0" || m.is_read == 0 || m.is_read === false)).length;
             setUnreadMessages(unread);
 
-            // Separate Unread Counts for AI and Support
-            const aiCount = msgs.filter((m: any) => m.sender !== 'user' && (m.is_read == "0" || m.is_read == 0 || m.is_read === false) && (!m.ticket_id || m.ticket_id === "null" || m.ticket_id === 0)).length;
-            const supportCount = msgs.filter((m: any) => m.sender !== 'user' && (m.is_read == "0" || m.is_read == 0 || m.is_read === false) && (m.ticket_id && m.ticket_id !== "null" && m.ticket_id !== 0)).length;
+            const aiCount = allMsgs.filter((m: any) => m.sender !== 'user' && (m.is_read == "0" || m.is_read == 0 || m.is_read === false) && (!m.ticket_id || m.ticket_id === "null" || m.ticket_id === 0)).length;
+            const supportCount = allMsgs.filter((m: any) => m.sender !== 'user' && (m.is_read == "0" || m.is_read == 0 || m.is_read === false) && (m.ticket_id && m.ticket_id !== "null" && m.ticket_id !== 0)).length;
             setUnreadAiMessages(aiCount);
             setUnreadSupportMessages(supportCount);
 
@@ -754,7 +760,7 @@ function App() {
 
             // 1. Ensure Checking Account
             if (!finalAccounts.some((a: any) => (a.type || '').toLowerCase() === 'checking')) {
-                await mvp.create('accounts', {
+                await supabase.from('mvp_accounts').insert([{
                     user_id: userId,
                     name: 'Main Checking',
                     type: AccountType.CHECKING,
@@ -762,13 +768,13 @@ function App() {
                     account_number: '1000' + Math.floor(Math.random() * 9000000000),
                     color: 'bg-slate-900',
                     is_main: 1
-                });
+                }]);
                 accountsCreated = true;
             }
 
             // 2. Ensure Savings Account
             if (!finalAccounts.some((a: any) => (a.type || '').toLowerCase() === 'savings')) {
-                await mvp.create('accounts', {
+                await supabase.from('mvp_accounts').insert([{
                     user_id: userId,
                     name: 'Growth Savings',
                     type: AccountType.SAVINGS,
@@ -776,19 +782,20 @@ function App() {
                     account_number: '2000' + Math.floor(Math.random() * 9000000000),
                     color: 'bg-emerald-600',
                     is_main: 0
-                });
+                }]);
                 accountsCreated = true;
             }
 
             if (accountsCreated) {
-                finalAccounts = await mvp.read('accounts', true);
+                const { data: freshAccs } = await supabase.from('mvp_accounts').select('*').eq('user_id', userId);
+                finalAccounts = freshAccs || [];
             }
 
             setAccounts(finalAccounts.map((a: any) => ({
                 ...a,
                 accountNumber: a.account_number,
                 balance: Number(a.balance),
-                is_main: a.is_main == 1 || a.is_main === true || a.is_main === "1"
+                is_main: a.is_main == 1 || a.is_main === true || a.is_main == "1"
             })));
 
             if (cardRes) {
@@ -797,8 +804,6 @@ function App() {
                     id: Number(c.id),
                     isFrozen: c.is_frozen == "1" || c.is_frozen == 1 || c.is_frozen === true
                 }));
-
-                // SORT: Default cards first
                 formattedCards.sort((a: any, b: any) => {
                     const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === 'Lennox Black';
                     const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === 'Lennox Black';
@@ -806,7 +811,6 @@ function App() {
                     if (!defA && defB) return 1;
                     return 0;
                 });
-
                 setCards(formattedCards);
             }
 
@@ -820,7 +824,7 @@ function App() {
             })));
             if (notifRes) {
                 setNotifications(notifRes.map((n: any) => ({ ...n, is_read: n.is_read == "1" || n.is_read == 1 || n.is_read === true })));
-                setNotificationsSynced(true); // Notifications loaded and confirmed fresh
+                setNotificationsSynced(true);
             }
 
         } catch (error: any) {
@@ -849,7 +853,7 @@ function App() {
     const refreshNotifications = useCallback(async () => {
         if (!currentUser) return;
         try {
-            const data = await mvp.read('notifications', true, { columns: 'id,title,message,type,is_read,created_at', limit: 20 });
+            const { data } = await supabase.from('mvp_notifications').select('id,title,message,type,is_read,created_at').limit(20);
             if (data) {
                 setNotifications(data.map((n: any) => ({ ...n, is_read: n.is_read == "1" || n.is_read == 1 || n.is_read === true })));
                 setNotificationsSynced(true);
@@ -873,7 +877,7 @@ function App() {
             // Fetch fresh settings directly (don't rely on stale globalSettings state)
             let maintenanceMode = false;
             try {
-                const settings = await mvp.getSettings();
+                const { data: settings } = await supabase.from('mvp_app_settings').select('maintenance_mode').eq('id', 1).single();
                 maintenanceMode = settings?.maintenance_mode == "1" || settings?.maintenance_mode == 1 || settings?.maintenance_mode === true;
                 await fetchGlobalSettings(); // Update state too for UI
             } catch (e) {
@@ -886,8 +890,8 @@ function App() {
 
                 if (!isAdmin) {
                     try {
-                        const profiles = await mvp.read('profiles', false, { columns: 'id,user_id,role', limit: 1000 });
-                        const profile = profiles.find((p: any) => p.user_id === session.user.id);
+                        const { data: profiles } = await supabase.from('mvp_profiles').select('id,user_id,role').limit(1000);
+                        const profile = (profiles || []).find((p: any) => p.user_id === session.user.id);
                         if (profile?.role === 'admin') isAdmin = true;
                         console.log('[Maintenance] Profile check:', { userId: session.user.id, role: profile?.role, isAdmin });
                     } catch (err) {
@@ -895,13 +899,14 @@ function App() {
                     }
                 }
 
+                // During maintenance, non-admins should NOT be logged in
+                // Auth.tsx shows them a modal, but we must also block state update here
                 if (maintenanceMode && !isAdmin) {
-                    console.log('[Maintenance] Blocking non-admin user during maintenance:', session.user.email);
-                    await supabase.auth.signOut();
-                    setForceMaintenance(true);
-                    setCurrentView('home');
+                    console.log('[Maintenance] Blocking non-admin user state update:', session.user.email);
+                    setShowMaintenanceModal(true);
+                    setCurrentView('signin');
                     setLoadingAuth(false);
-                    return;
+                    return; // Don't set user state - they're not really logged in
                 }
 
                 if (maintenanceMode && isAdmin) {
@@ -946,6 +951,7 @@ function App() {
                 setLoadingAuth(false);
                 setIsPinVerified(false);
                 maintenanceVerifiedRef.current = null; // Reset on logout
+                // Don't reset showMaintenanceModal here - let it persist so user sees why they were logged out
                 window.location.hash = '';
                 return;
             }
@@ -961,41 +967,36 @@ function App() {
             refreshNotifications();
             fetchGlobalSettings();
 
-            mvp.read('transactions', true, { limit: 20 })
-                .then(txs => setTransactions(prev => {
+            // Use Supabase directly — MVP API is broken (404)
+            supabase.from('mvp_transactions').select('*').eq('user_id', currentUser.id).limit(20)
+                .then(({ data: txs }) => {
+                    if (!txs) return;
                     const newTxs = txs.map((t: any) => ({ ...t, amount: Number(t.amount) }));
-
-                    // Filter out any previous transactions that are now present in the new fetch (by ID or UUID)
-                    const uniquePrev = prev.filter(p => {
-                        // If p has a real ID that matches a new tx ID, it's a duplicate
-                        const idMatch = newTxs.some(n => n.id === p.id);
-                        if (idMatch) return false;
-
-                        // If p is an optimistic tx (p.id is UUID string) and matches a new tx's UUID
-                        const uuidMatch = newTxs.some(n => n.uuid && (n.uuid === p.id || n.uuid === p.uuid));
-                        if (uuidMatch) return false;
-
-                        return true;
+                    setTransactions(prev => {
+                        const uniquePrev = prev.filter(p => {
+                            const idMatch = newTxs.some(n => n.id === p.id);
+                            if (idMatch) return false;
+                            const uuidMatch = newTxs.some(n => n.uuid && (n.uuid === p.id || n.uuid === p.uuid));
+                            if (uuidMatch) return false;
+                            return true;
+                        });
+                        return [...newTxs, ...uniquePrev].slice(0, 100);
                     });
+                });
 
-                    return [...newTxs, ...uniquePrev].slice(0, 100);
-                }))
-                .catch(() => { });
-
-            mvp.read('accounts', true, { columns: 'id,balance,account_number,is_main,type,name' })
-                .then(accs => {
-                    if (accs.length > 0) setAccounts(accs.map((a: any) => ({
+            supabase.from('mvp_accounts').select('id,balance,account_number,is_main,type,name').eq('user_id', currentUser.id)
+                .then(({ data: accs }) => {
+                    if (accs && accs.length > 0) setAccounts(accs.map((a: any) => ({
                         ...a,
                         accountNumber: a.account_number,
                         balance: Number(a.balance),
                         is_main: a.is_main == 1 || a.is_main === true || a.is_main === "1"
                     })));
-                })
-                .catch(() => { });
+                });
 
             refreshMessageCounts();
 
-        }, 15000);
+        }, 60000); // 60s to reduce egress (was 15000)
         return () => clearInterval(interval);
     }, [currentUser, refreshNotifications, fetchGlobalSettings, refreshMessageCounts]);
 
@@ -1009,9 +1010,9 @@ function App() {
         const newMode = !isDarkMode;
         setIsDarkMode(newMode);
         if (currentUser) {
-            const profiles = await mvp.read('profiles', true, { columns: 'id,user_id' });
-            const profile = profiles.find((p: any) => p.user_id === currentUser.id);
-            if (profile) await mvp.update('profiles', profile.id, { theme: newMode ? 'dark' : 'light' });
+            const { data: profiles } = await supabase.from('mvp_profiles').select('id,user_id').eq('user_id', currentUser.id);
+            const profile = (profiles || [])[0];
+            if (profile) await supabase.from('mvp_profiles').update({ theme: newMode ? 'dark' : 'light' }).eq('id', profile.id);
         }
     };
 
@@ -1047,13 +1048,18 @@ function App() {
         }, 1000);
     };
 
-    function updateBalanceInStateAndDb(amount: number) {
+    async function updateBalanceInStateAndDb(amount: number) {
         if (globalSettings.disableTransactions) return; // Prevent balance change on forced failure
         const activeAccount = accounts.find(a => a.is_main) || accounts[0]; // Use Main Wallet
         if (!activeAccount) return;
         const newBalance = activeAccount.balance + amount;
         setAccounts(prev => prev.map(acc => acc.id === activeAccount.id ? { ...acc, balance: newBalance } : acc));
-        mvp.update('accounts', activeAccount.id, { balance: newBalance }).then();
+        // Use Supabase directly — MVP API is broken (404)
+        const { error } = await supabase
+            .from('mvp_accounts')
+            .update({ balance: newBalance })
+            .eq('id', activeAccount.id);
+        if (error) console.error('[TopUp] Balance update failed:', error.message);
     }
 
     function addTransactionToStateAndDb(amount: number, description: string, type: TransactionType, category: string, status: TransactionStatus = 'Success') {
@@ -1096,13 +1102,14 @@ function App() {
         if (isDuplicate) return;
 
         if (finalStatus === 'Success' || finalStatus === 'Pending') {
-            mvp.create('notifications', {
-                user_id: currentUser.id,
-                title: amount > 0 ? 'Money Received' : 'Transaction Alert',
-                message: amount > 0 ? `You received $${Math.abs(amount).toLocaleString()} from ${finalDescription}.` : `You paid $${Math.abs(amount).toLocaleString()} to ${finalDescription}.`,
-                type: 'money',
-                is_read: false
-            }).then(() => refreshNotifications());
+            // Use Supabase directly — MVP API is broken (404)
+        supabase.from('mvp_notifications').insert([{
+            user_id: currentUser.id,
+            title: amount > 0 ? 'Money Received' : 'Transaction Alert',
+            message: amount > 0 ? `You received $${Math.abs(amount).toLocaleString()} from ${finalDescription}.` : `You paid $${Math.abs(amount).toLocaleString()} to ${finalDescription}.`,
+            type: 'money',
+            is_read: false
+        }]).then(() => refreshNotifications());
 
             // Trigger Transaction Email
             if (globalSettings.emailNotifications && currentUser.email) {
@@ -1117,16 +1124,17 @@ function App() {
             }
 
         } else if (finalStatus === 'Failed' && globalSettings.disableTransactions) {
-            mvp.create('notifications', {
+            supabase.from('mvp_notifications').insert([{
                 user_id: currentUser.id,
                 title: 'Transaction Failed',
                 message: `Your payment to ${description} failed due to a network connection timeout. Please try again.`,
                 type: 'alert',
                 is_read: false
-            }).then(() => refreshNotifications());
+            }]).then(() => refreshNotifications());
         }
 
-        mvp.create('transactions', {
+        // Use Supabase directly — MVP API is broken (404)
+        supabase.from('mvp_transactions').insert([{
             uuid: txId,
             user_id: currentUser.id,
             account_id: activeAccount.id,
@@ -1136,8 +1144,8 @@ function App() {
             category,
             status: finalStatus,
             date
-        }).then((res) => {
-            if (!res.success) console.error("Failed to persist transaction:", res);
+        }]).then(({ error }) => {
+            if (error) console.error("[TopUp] Failed to persist transaction:", error.message);
         });
     }
 
@@ -1209,7 +1217,7 @@ function App() {
             if (e) setPrefilledEmail(e);
         }} />;
         // Pass authErrorMessage to Auth component so it can display "Account not found..."
-        return <Auth logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => window.location.hash = view} onShowMaintenance={() => { setForceMaintenance(true); setCurrentView('home'); }} />;
+        return <Auth logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} showMaintenanceModal={showMaintenanceModal} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => { setShowMaintenanceModal(false); window.location.hash = view; }} onShowMaintenance={() => { setShowMaintenanceModal(true); }} />;
     }
 
     if (isAdminMode) return (
@@ -1239,12 +1247,12 @@ function App() {
     return (
         <Layout
             currentPath={route} onNavigate={navigate} onLogout={handleLogout} user={currentUser} isDarkMode={isDarkMode} toggleTheme={toggleTheme} isModalOpen={isModalOpen} notifications={notifications}
-            onMarkRead={(id) => mvp.update('notifications', id, { is_read: true }).then(() => setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n)))}
+            onMarkRead={(id) => supabase.from('mvp_notifications').update({ is_read: true }).eq('id', id).then(() => setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n)))}
             onClearNotifications={async () => {
                 const ids = notifications.map(n => n.id);
                 setNotifications([]); // Optimistic clear
-                for (const id of ids) {
-                    try { await mvp.delete('notifications', id); } catch (e) { console.error("Failed to delete notification", id); }
+                if (ids.length > 0) {
+                    try { await supabase.from('mvp_notifications').delete().in('id', ids); } catch (e) { console.error("Failed to delete notifications", e); }
                 }
             }}
             messageBadge={unreadAiMessages}
@@ -1291,7 +1299,7 @@ function App() {
                             assets={assets}
                             onToggleBalance={toggleBalanceVisibility}
                             isBalanceHidden={isBalanceHidden}
-                            onCancelTransaction={(id) => mvp.update('transactions', id, { status: 'Cancelled' }).then(() => setTransactions(prev => prev.map(t => t.id === id ? { ...t, status: 'Cancelled' } : t)))}
+                            onCancelTransaction={(id) => supabase.from('mvp_transactions').update({ status: 'Cancelled' }).eq('id', id).then(() => setTransactions(prev => prev.map(t => t.id === id ? { ...t, status: 'Cancelled' } : t)))}
                             onQuickAction={(a) => {
                                 const map: any = { wallet: 'wallet', transfer: 'transfers', topup: 'topup', request: 'request', billpay: 'billpay', more: 'more' };
                                 navigate(map[a] || a);
@@ -1307,28 +1315,42 @@ function App() {
                             cards={cards}
                             onAddCard={async (t, n, h, e, p, c) => {
                                 const gradient = 'from-blue-600 to-indigo-600';
-                                const res = await mvp.create('cards', {
-                                    user_id: currentUser.id,
-                                    type: t,
-                                    number: n,
-                                    holder: h.toUpperCase(),
-                                    expiry: e,
-                                    pin: p || 'RESET',
-                                    cvv: c || '', // Ensure c is passed
-                                    is_frozen: !p,
-                                    gradient,
-                                    shadow: 'shadow-blue-500/30'
-                                });
+                                // Bypass broken MVP API - use Supabase directly (RLS allows user_id matching)
+                                const { data: newCard, error } = await supabase
+                                    .from('mvp_cards')
+                                    .insert([{
+                                        user_id: currentUser.id,
+                                        type: t,
+                                        number: n,
+                                        holder: h.toUpperCase(),
+                                        expiry: e,
+                                        pin: p || 'RESET',
+                                        cvv: c || '',
+                                        is_frozen: !p,
+                                        gradient,
+                                        shadow: 'shadow-blue-500/30'
+                                    }])
+                                    .select()
+                                    .single();
 
-                                if (res.success) {
-                                    const freshCards = await mvp.read('cards', true);
+                                if (error) {
+                                    console.error('[Card] Direct insert failed:', error.message);
+                                    return { success: false, message: error.message };
+                                }
+
+                                if (newCard) {
+                                    // Refresh cards from Supabase directly
+                                    const { data: freshCards } = await supabase
+                                        .from('mvp_cards')
+                                        .select('*')
+                                        .eq('user_id', currentUser.id);
+
                                     if (freshCards) {
                                         const formatted = freshCards.map((c: any) => ({
                                             ...c,
                                             id: Number(c.id),
                                             isFrozen: c.is_frozen == "1" || c.is_frozen == 1 || c.is_frozen === true
                                         }));
-                                        // SORT
                                         formatted.sort((a: any, b: any) => {
                                             const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === 'Lennox Black';
                                             const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === 'Lennox Black';
@@ -1349,53 +1371,67 @@ function App() {
                                         mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
                                     }
                                 }
-                                return { success: res.success };
+                                return { success: true };
                             }}
-                            onFreezeCard={(id) => {
+                            onFreezeCard={async (id) => {
                                 const card = cards.find(c => c.id === id);
                                 if (card) {
                                     const newStatus = !card.isFrozen;
-                                    mvp.update('cards', id, { is_frozen: newStatus }).then(() => {
-                                        setCards(prev => prev.map(c => c.id === id ? { ...c, isFrozen: newStatus } : c));
+                                    // Use Supabase directly — MVP API is broken (404)
+                                    const { error } = await supabase.from('mvp_cards').update({ is_frozen: newStatus }).eq('id', id);
+                                    if (error) {
+                                        console.error('[FreezeCard] Failed:', error.message);
+                                        return;
+                                    }
+                                    setCards(prev => prev.map(c => c.id === id ? { ...c, isFrozen: newStatus } : c));
 
-                                        // Send Card Activity Email
-                                        if (globalSettings.emailNotifications && currentUser.email) {
-                                            const action = newStatus ? 'Frozen' : 'Unfrozen';
-                                            const { subject, content } = getEmailTemplate('card', {
-                                                user_name: currentUser.name,
-                                                card_last4: card.number.slice(-4),
-                                                action: `${action} Card`
-                                            });
-                                            mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
-                                        }
-                                    });
+                                    // Send Card Activity Email
+                                    if (globalSettings.emailNotifications && currentUser.email) {
+                                        const action = newStatus ? 'Frozen' : 'Unfrozen';
+                                        const { subject, content } = getEmailTemplate('card', {
+                                            user_name: currentUser.name,
+                                            card_last4: card.number.slice(-4),
+                                            action: `${action} Card`
+                                        });
+                                        mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
+                                    }
                                 }
                             }}
                             onDeleteCard={async (id) => {
-                                const res = await mvp.delete('cards', id);
-                                if (res.success) {
+                                // Use Supabase directly — MVP API is broken (404)
+                                const { error } = await supabase.from('mvp_cards').delete().eq('id', id);
+                                if (!error) {
                                     setCards(prev => prev.filter(c => c.id !== id));
+                                    return { success: true };
                                 }
-                                return res;
+                                console.error('[DeleteCard] Failed:', error.message);
+                                return { success: false, message: error.message };
                             }}
                             onChangePin={async (id, newPin) => {
-                                await mvp.update('cards', id, { pin: newPin });
-                                setCards(prev => prev.map(c => c.id === id ? { ...c, pin: newPin } : c));
+                                // Use Supabase directly — MVP API is broken (404)
+                                const { error } = await supabase.from('mvp_cards').update({ pin: newPin }).eq('id', id);
+                                if (!error) {
+                                    setCards(prev => prev.map(c => c.id === id ? { ...c, pin: newPin } : c));
+                                } else {
+                                    console.error('[ChangePin] Failed:', error.message);
+                                }
                             }}
                             onReplaceCard={async (id) => {
                                 if (globalSettings.disableTransactions) {
                                     addTransactionToStateAndDb(-5, 'Card Replacement Fee', TransactionType.PAYMENT, 'Service Fee');
-                                    return 'ERROR'; // Will show generic error or handle failure
+                                    return 'ERROR';
                                 }
                                 const activeAccount = accounts.find(a => a.is_main) || accounts[0];
                                 if (!activeAccount || activeAccount.balance < 5) return 'INSUFFICIENT_FUNDS';
 
                                 try {
-                                    updateBalanceInStateAndDb(-5);
-                                    addTransactionToStateAndDb(-5, 'Card Replacement Fee', TransactionType.PAYMENT, 'Service Fee');
+                                    await updateBalanceInStateAndDb(-5);
+                                    await addTransactionToStateAndDb(-5, 'Card Replacement Fee', TransactionType.PAYMENT, 'Service Fee');
 
                                     const newNum = Math.floor(1000 + Math.random() * 9000).toString();
-                                    await mvp.update('cards', id, { number: newNum, is_frozen: true, pin: 'RESET' });
+                                    // Use Supabase directly — MVP API is broken (404)
+                                    const { error } = await supabase.from('mvp_cards').update({ number: newNum, is_frozen: true, pin: 'RESET' }).eq('id', id);
+                                    if (error) throw new Error(error.message);
 
                                     setCards(prev => prev.map(c => c.id === id ? { ...c, number: newNum, isFrozen: true, pin: 'RESET' } : c));
                                     return 'SUCCESS';
@@ -1410,17 +1446,16 @@ function App() {
                                     setShowLimitModal(true);
                                     return false;
                                 }
-                                if (status === 'Success') updateBalanceInStateAndDb(amt);
-                                addTransactionToStateAndDb(amt, 'Wallet Top Up', TransactionType.DEPOSIT, 'Deposit', status);
+                                if (status === 'Success') await updateBalanceInStateAndDb(amt);
+                                await addTransactionToStateAndDb(amt, 'Wallet Top Up', TransactionType.DEPOSIT, 'Deposit', status);
                                 return true;
                             }}
                             cardControls={cardControls}
                             onUpdateControls={(c) => {
                                 const updated = { ...cardControls, ...c };
                                 setCardControls(updated);
-                                mvp.read('profiles', true, { columns: 'id,user_id' }).then(ps => {
-                                    const p = ps.find((x: any) => x.user_id === currentUser.id);
-                                    if (p) mvp.update('profiles', p.id, { settings: JSON.stringify({ ...updated, cardControls: updated }) }).then();
+                                supabase.from('mvp_profiles').select('id').eq('user_id', currentUser.id).single().then(({ data: p }) => {
+                                    if (p) supabase.from('mvp_profiles').update({ settings: JSON.stringify({ ...updated, cardControls: updated }) }).eq('id', p.id).then();
                                 });
                             }}
                             kycLevel={kycLevel}
@@ -1450,10 +1485,10 @@ function App() {
                                         shadow: 'shadow-gray-900/50'
                                     };
 
-                                    const res = await mvp.create('cards', payload);
+                                    const { error: cardErr } = await supabase.from('mvp_cards').insert([payload]);
 
-                                    if (res && res.success) {
-                                        const freshCards = await mvp.read('cards', true);
+                                    if (!cardErr) {
+                                        const { data: freshCards } = await supabase.from('mvp_cards').select('*');
                                         if (freshCards) {
                                             const formatted = freshCards.map((c: any) => ({
                                                 ...c,
@@ -1512,7 +1547,7 @@ function App() {
                             cards={cards}
                             transactions={transactions}
                             onChangePin={async (id, newPin) => {
-                                await mvp.update('cards', id, { pin: newPin });
+                                await supabase.from('mvp_cards').update({ pin: newPin }).eq('id', id);
                                 setCards(prev => prev.map(c => c.id === id ? { ...c, pin: newPin } : c));
                             }}
                             onTopUp={async (amt, status) => {
@@ -1522,8 +1557,8 @@ function App() {
                                     setShowLimitModal(true);
                                     return false;
                                 }
-                                if (status === 'Success') updateBalanceInStateAndDb(amt);
-                                addTransactionToStateAndDb(amt, 'Wallet Top Up', TransactionType.DEPOSIT, 'Deposit', status);
+                                if (status === 'Success') await updateBalanceInStateAndDb(amt);
+                                await addTransactionToStateAndDb(amt, 'Wallet Top Up', TransactionType.DEPOSIT, 'Deposit', status);
                                 return true;
                             }} onBack={() => navigate('dashboard')} />;
                         case 'request': return <RequestMoney
@@ -1629,7 +1664,7 @@ function App() {
                                         const newShares = (existing.shares || 0) + shareDelta;
                                         const newAmount = (existing.amount || 0) + numAmount;
 
-                                        await mvp.update('assets', existing.id, { shares: newShares, amount: newAmount });
+                                        await supabase.from('mvp_assets').update({ shares: newShares, amount: newAmount }).eq('id', existing.id);
                                         setAssets(prev => prev.map(a => a.id === existing.id ? { ...a, shares: newShares, amount: newAmount } : a));
                                     } else if (numAmount > 0) {
                                         const payload = {
@@ -1641,9 +1676,9 @@ function App() {
                                             growth: 0,
                                             is_positive: 1
                                         };
-                                        const res = await mvp.create('assets', payload);
-                                        if (res.success) {
-                                            setAssets(prev => [...prev, { ...payload, id: res.id, isPositive: true } as Asset]);
+                                        const { data: res, error } = await supabase.from('mvp_assets').insert([payload]).select('id');
+                                        if (!error && res) {
+                                            setAssets(prev => [...prev, { ...payload, id: res[0]?.id, isPositive: true } as Asset]);
                                         }
                                     }
                                     return true;
@@ -1656,9 +1691,8 @@ function App() {
                             const updated = { ...userSettings, ...s };
                             setUserSettings(updated);
                             // Fix: Added missing quote for columns property in mvp.read
-                            mvp.read('profiles', true, { columns: 'id,user_id' }).then(ps => {
-                                const p = ps.find((x: any) => x.user_id === currentUser.id);
-                                if (p) mvp.update('profiles', p.id, { settings: JSON.stringify({ ...updated, cardControls }) }).then();
+                            supabase.from('mvp_profiles').select('id').eq('user_id', currentUser.id).single().then(({ data: p }) => {
+                                if (p) supabase.from('mvp_profiles').update({ settings: JSON.stringify({ ...updated, cardControls }) }).eq('id', p.id).then();
                             });
                         }} onLogout={handleLogout} />;
                         case 'profile': return <Profile user={currentUser} onProfileUpdate={(data) => setCurrentUser(prev => prev ? ({ ...prev, ...data }) : null)} />;

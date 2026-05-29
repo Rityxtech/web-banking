@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ShieldCheck, Upload, Camera, FileText, CheckCircle, AlertCircle, Clock, ChevronRight, Smartphone, Loader2, X, RefreshCw, AlertTriangle, Lock, TrendingUp, BarChart3 } from 'lucide-react';
+import { supabase } from '../services/supabase';
 import { mvp, fileToBase64 } from '../services/mvpService';
 
 const CameraCapture = ({ onCapture, onClose }: { onCapture: (file: File) => void, onClose: () => void }) => {
@@ -187,8 +188,12 @@ export const KycVerification = ({
     useEffect(() => {
         if (!userId) return;
         const fetchStatus = async () => {
-            const profiles = await mvp.read('profiles');
-            const profile = profiles.find((p: any) => p.user_id === userId || p.id === userId);
+            // Use Supabase directly — MVP API is broken (404)
+            const { data: profiles } = await supabase
+                .from('mvp_profiles')
+                .select('user_id, settings')
+                .eq('user_id', userId);
+            const profile = profiles?.[0];
             if (profile && profile.settings) {
                 const settings = typeof profile.settings === 'string' ? JSON.parse(profile.settings) : profile.settings;
                 if (settings.kycStatus) setStatuses(prev => ({ ...prev, ...settings.kycStatus }));
@@ -202,8 +207,12 @@ export const KycVerification = ({
         setUploadingType(type); setErrorMsg(null);
         try {
             const base64Data = await fileToBase64(file);
-            const profiles = await mvp.read('profiles');
-            const profile = profiles.find((p: any) => p.user_id === userId || p.id === userId);
+            // Use Supabase directly — MVP API is broken (404)
+            const { data: profiles } = await supabase
+                .from('mvp_profiles')
+                .select('id, user_id, settings, kyc_documents')
+                .eq('user_id', userId);
+            const profile = profiles?.[0];
             if (!profile) throw new Error("Profile node not found.");
 
             const currentSettings = typeof profile.settings === 'string' ? JSON.parse(profile.settings) : (profile.settings || {});
@@ -212,10 +221,14 @@ export const KycVerification = ({
             const newDocs = { ...currentDocs, [type]: base64Data };
             const newSettings = { ...currentSettings, kycStatus: { ...(currentSettings.kycStatus || {}), [type]: 'pending' } };
 
-            await mvp.update('profiles', profile.id, {
-                settings: JSON.stringify(newSettings),
-                kyc_documents: JSON.stringify(newDocs)
-            });
+            const { error: updateErr } = await supabase
+                .from('mvp_profiles')
+                .update({
+                    settings: JSON.stringify(newSettings),
+                    kyc_documents: JSON.stringify(newDocs)
+                })
+                .eq('id', profile.id);
+            if (updateErr) throw new Error(updateErr.message);
 
             setStatuses(prev => ({ ...prev, [type]: 'pending' }));
         } catch (error: any) {

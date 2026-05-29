@@ -86,9 +86,8 @@ const EditProfilePage = ({ user, settings, onUpdateSettings, onBack }: any) => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const profiles = await mvp.read('profiles');
-                // Correctly find profile by user_id matching Supabase user.id (UUID)
-                const profile = profiles.find((p: any) => p.user_id === user.id);
+                const { data: profiles } = await supabase.from('mvp_profiles').select('*');
+                const profile = (profiles || []).find((p: any) => p.user_id === user.id);
 
                 if (profile) {
                     setProfileId(profile.id); // Save the database primary key for updates
@@ -132,22 +131,24 @@ const EditProfilePage = ({ user, settings, onUpdateSettings, onBack }: any) => {
             const newSettings = { ...settings, language: profileData.language };
 
             // Use profileId (database primary key) instead of user.id (UUID)
-            const res = await mvp.update('profiles', profileId, {
+            const { error: profErr } = await supabase.from('mvp_profiles').update({
                 full_name: fullName,
                 phone: profileData.phone,
                 country: profileData.country,
                 settings: JSON.stringify(newSettings)
-            });
+            }).eq('id', profileId);
 
-            if (!res.success && !res.id) throw new Error("Update failed on server.");
+            if (profErr) throw new Error(profErr.message || "Update failed on server.");
 
             onUpdateSettings({ language: profileData.language });
 
-            await mvp.create('notifications', {
+            await supabase.from('mvp_notifications').insert([{
+                user_id: user.id,
                 title: 'Profile Updated',
                 message: 'Your personal information has been updated successfully.',
-                type: 'info'
-            });
+                type: 'info',
+                is_read: false
+            }]);
 
             // Send Account Update Email
             if (profileData.email) {
@@ -188,11 +189,13 @@ const EditProfilePage = ({ user, settings, onUpdateSettings, onBack }: any) => {
             const { error } = await supabase.auth.updateUser({ password: passwordData.newPassword });
             if (error) throw error;
 
-            await mvp.create('notifications', {
+            await supabase.from('mvp_notifications').insert([{
+                user_id: user.id,
                 title: 'Password Changed',
                 message: 'Your account password has been updated securely.',
-                type: 'security'
-            });
+                type: 'security',
+                is_read: false
+            }]);
 
             // Send Password Changed Email
             const email = profileData.email || user.email;
@@ -245,11 +248,13 @@ const EditProfilePage = ({ user, settings, onUpdateSettings, onBack }: any) => {
 
             if (error) throw error;
 
-            await mvp.create('notifications', {
+            await supabase.from('mvp_notifications').insert([{
+                user_id: user.id,
                 title: 'Security PIN Updated',
                 message: 'Your transaction PIN has been updated.',
-                type: 'security'
-            });
+                type: 'security',
+                is_read: false
+            }]);
 
             setPinSuccess('PIN updated successfully.');
             setPinData({ oldPin: '', newPin: '', confirmPin: '' });
@@ -292,11 +297,13 @@ const EditProfilePage = ({ user, settings, onUpdateSettings, onBack }: any) => {
             if (verifyError) throw verifyError;
             const { error: updateError } = await supabase.auth.updateUser({ password: passwordData.newPassword });
             if (updateError) throw updateError;
-            await mvp.create('notifications', {
+            await supabase.from('mvp_notifications').insert([{
+                user_id: user.id,
                 title: 'Password Reset',
                 message: 'Your password was reset successfully.',
-                type: 'security'
-            });
+                type: 'security',
+                is_read: false
+            }]);
             setPasswordSuccess('Password successfully reset!');
             setForgotStep('none');
         } catch (err: any) {
@@ -398,16 +405,14 @@ export const Settings: React.FC<SettingsProps> = ({ user, settings, onUpdateSett
         const updated = { [key]: !((settings as any)[key]) };
         onUpdateSettings(updated);
         // Find profile ID to update settings
-        mvp.read('profiles').then(profiles => {
-            const profile = profiles.find((p: any) => p.user_id === user.id);
+        supabase.from('mvp_profiles').select('id,settings').then(({ data: profiles }) => {
+            const profile = (profiles || []).find((p: any) => p.user_id === user.id);
             if (profile) {
-                // Need to merge with existing settings
                 let existingSettings = {};
                 try {
                     existingSettings = typeof profile.settings === 'string' ? JSON.parse(profile.settings) : profile.settings || {};
                 } catch (e) { }
-
-                mvp.update('profiles', profile.id, { settings: JSON.stringify({ ...existingSettings, ...updated }) });
+                supabase.from('mvp_profiles').update({ settings: JSON.stringify({ ...existingSettings, ...updated }) }).eq('id', profile.id);
             }
         });
     };

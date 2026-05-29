@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Account, Card, Transaction, TransactionType, TransactionStatus } from '../types';
 import { ArrowLeft, Wallet, CheckCircle, ChevronRight, DollarSign, CreditCard, ShieldCheck, History, Snowflake, AlertCircle, Lock, Loader2, X, Mail, KeyRound, Clock, Share2 } from 'lucide-react';
 import { shareReceipt } from '../utils/receipt';
+import { supabase } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { PinVerificationModal } from './ui/PinVerificationModal';
 
@@ -102,8 +103,12 @@ export const TopUp: React.FC<TopUpProps> = ({ user, onSendOtp, onUpdatePin, acco
 
 
         try {
-            // Deduct from card balance
-            await mvp.update('cards', card.id, { balance: cardBalance - rawAmount });
+            // Deduct from card balance — use Supabase directly (MVP API is broken 404)
+            const { error: cardUpdateErr } = await supabase
+                .from('mvp_cards')
+                .update({ balance: cardBalance - rawAmount })
+                .eq('id', card.id);
+            if (cardUpdateErr) throw new Error(cardUpdateErr.message);
 
             const status: TransactionStatus = 'Pending';
             setTxnStatus(status);

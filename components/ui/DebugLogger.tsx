@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { supabase } from '../../services/supabase';
 import { mvp } from '../../services/mvpService';
 import { X, RefreshCw, Activity, CreditCard, Terminal, MousePointer2 } from 'lucide-react';
 
@@ -62,7 +63,7 @@ export const DebugLogger = ({ user }: { user: any }) => {
     const fetchCards = async () => {
         if (!user) return;
         try {
-            const res = await mvp.read('cards', true);
+            const { data: res } = await supabase.from('mvp_cards').select('*');
             if (Array.isArray(res)) {
                 setCards(res);
                 addLog(`Card Sync: Found ${res.length} cards.`, 'info');
@@ -90,7 +91,7 @@ export const DebugLogger = ({ user }: { user: any }) => {
             addLog(`   API Online (${Date.now() - start}ms)`, 'success');
 
             addLog("2️⃣ Checking 'mvp_cards' Read Access...", 'info');
-            const readRes = await mvp.read('cards', true, { limit: 1 });
+            const { data: readRes } = await supabase.from('mvp_cards').select('*').limit(1);
             if (!Array.isArray(readRes)) throw new Error("API returned non-array for read op.");
             addLog(`   Read OK. Current count: ${readRes.length}`, 'success');
             addLog("🎉 SYSTEM OPERATIONAL.", 'success');
@@ -114,12 +115,12 @@ export const DebugLogger = ({ user }: { user: any }) => {
                 holder: holderName, expiry: exp, pin: '0000', cvv: Math.floor(Math.random() * 900 + 100).toString(),
                 is_frozen: 0, is_default: 1, gradient: 'from-gray-900 to-gray-800', shadow: 'shadow-gray-900/50'
             };
-            const res = await mvp.create('cards', payload);
-            if (res && res.success) {
-                addLog(`✅ SUCCESS: Lennox Black Created (ID: ${res.id})`, 'success');
+            const { data: res, error } = await supabase.from('mvp_cards').insert([payload]).select('id');
+            if (!error && res) {
+                addLog(`✅ SUCCESS: Lennox Black Created (ID: ${res[0]?.id})`, 'success');
                 await fetchCards();
             } else {
-                addLog(`❌ FAILED: ${res?.error || JSON.stringify(res)}`, 'error');
+                addLog(`❌ FAILED: ${error?.message || JSON.stringify(res)}`, 'error');
             }
         } catch (e: any) { addLog(`❌ EXCEPTION: ${e.message}`, 'error'); }
         finally { setLoading(false); }
