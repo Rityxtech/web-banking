@@ -1154,12 +1154,7 @@ function App() {
 
     if (loadingAuth || loadingSettings) return <GlobalLoader />;
 
-    if (globalSettings.maintenanceMode || forceMaintenance) {
-        if (!isAdminMode) {
-            const isGuestOnSignIn = !currentUser && currentView === 'signin';
-            if (!isGuestOnSignIn || forceMaintenance) return <MaintenanceScreen onAdminLogin={() => { setForceMaintenance(false); setCurrentView('signin'); }} onLogout={handleLogout} isLoggedIn={!!currentUser} />;
-        }
-    }
+    // Maintenance mode no longer blocks the login page - check happens at login attempt in Auth.tsx
 
     if (isSuspended && currentUser && !isAdminMode) return <SuspendedScreen user={currentUser} onLogout={handleLogout} />;
 

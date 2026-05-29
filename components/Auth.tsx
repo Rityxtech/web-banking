@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Lock, Loader2, CheckCircle, AlertCircle, ArrowLeft, User, Phone, MapPin, ChevronDown, Eye, EyeOff, RefreshCw, ShieldAlert, UserX, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Loader2, CheckCircle, AlertCircle, ArrowLeft, User, Phone, MapPin, ChevronDown, Eye, EyeOff, RefreshCw, ShieldAlert, UserX, ArrowRight, AlertTriangle } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
@@ -39,6 +39,9 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
   const [debugInfo, setDebugInfo] = useState<Record<string, any> | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [signupStep, setSignupStep] = useState(1);
+
+  // Maintenance modal state
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
 
   // Waitlist State
   const [waitlistEmail, setWaitlistEmail] = useState('');
@@ -142,6 +145,17 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Check maintenance mode before attempting login
+    if (maintenanceMode) {
+      // Check if email is admin email (contains 'admin' or specific domain)
+      const isAdminEmail = signInEmail.toLowerCase().includes('admin');
+      if (!isAdminEmail) {
+        setShowMaintenanceModal(true);
+        return;
+      }
+    }
+
     setIsLoading(true);
     setError('');
     setSuccessMsg('');
@@ -561,6 +575,36 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         <div className="mt-6 text-center opacity-90"><p className="text-[9px] font-bold text-white/70 uppercase tracking-widest text-shadow-sm drop-shadow-md">Secured by {displayName} ID</p></div>
         <div className="mt-2 text-center opacity-70"><p className="text-[9px] font-medium text-white/50">Need help? <a href={`mailto:admin@${displayName.toLowerCase()}mh.com`} className="text-white hover:text-blue-300 underline transition-colors">admin@{displayName.toLowerCase()}mh.com</a></p></div>
       </div>
+
+      {/* Maintenance Mode Modal */}
+      {showMaintenanceModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111a22] rounded-2xl border border-amber-500/50 p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-center mb-6">
+              <div className="p-4 bg-amber-500/20 rounded-full">
+                <AlertTriangle className="text-amber-500" size={40} />
+              </div>
+            </div>
+            <h2 className="text-xl font-black text-center text-slate-900 dark:text-white uppercase tracking-tight mb-2">System Maintenance</h2>
+            <p className="text-sm text-center text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+              {displayName} is currently undergoing scheduled maintenance. Normal user access is temporarily restricted.
+            </p>
+            <div className="space-y-3">
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+                <p className="text-xs text-amber-800 dark:text-amber-400 font-medium">
+                  <strong>Administrators:</strong> You can still log in using your admin credentials to manage the system during maintenance.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowMaintenanceModal(false)}
+                className="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
+              >
+                I Understand
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
