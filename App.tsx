@@ -861,7 +861,16 @@ function App() {
         const handleSession = async (session: any, error: any = null) => {
             if (isLoggingOut.current) return;
 
-            await fetchGlobalSettings();
+            // Fetch fresh settings directly (don't rely on stale globalSettings state)
+            let maintenanceMode = false;
+            try {
+                const settings = await mvp.getSettings();
+                maintenanceMode = settings?.maintenance_mode == "1" || settings?.maintenance_mode == 1 || settings?.maintenance_mode === true;
+                await fetchGlobalSettings(); // Update state too for UI
+            } catch (e) {
+                console.warn('[Maintenance] Failed to fetch settings:', e);
+            }
+
             if (session?.user) {
                 const email = session.user.email?.toLowerCase();
                 let isAdmin = email === 'admin@lennox.bank' || email === 'akugbof@gmail.com';
@@ -877,7 +886,7 @@ function App() {
                     }
                 }
 
-                if (globalSettings.maintenanceMode && !isAdmin) {
+                if (maintenanceMode && !isAdmin) {
                     console.log('[Maintenance] Blocking non-admin user during maintenance:', session.user.email);
                     await supabase.auth.signOut();
                     setForceMaintenance(true);
@@ -886,7 +895,7 @@ function App() {
                     return;
                 }
 
-                if (globalSettings.maintenanceMode && isAdmin) {
+                if (maintenanceMode && isAdmin) {
                     console.log('[Maintenance] Allowing admin login:', session.user.email);
                 }
 
