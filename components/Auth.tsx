@@ -146,16 +146,6 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check maintenance mode before attempting login
-    if (maintenanceMode) {
-      // Check if email is admin email (contains 'admin' or specific domain)
-      const isAdminEmail = signInEmail.toLowerCase().includes('admin');
-      if (!isAdminEmail) {
-        setShowMaintenanceModal(true);
-        return;
-      }
-    }
-
     setIsLoading(true);
     setError('');
     setSuccessMsg('');
@@ -176,6 +166,30 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         setCurrentView('verify_otp');
         setSuccessMsg(`Please verify ${signInEmail}`);
         return;
+      }
+
+      // Check maintenance mode - verify admin status from database
+      if (maintenanceMode && data.user) {
+        try {
+          const profiles = await mvp.read('profiles', true, { columns: 'id,role', limit: 1 });
+          const profile = profiles.find((p: any) => p.user_id === data.user!.id);
+          const isAdmin = profile?.role === 'admin' || data.user!.email?.toLowerCase().includes('admin');
+
+          if (!isAdmin) {
+            // Not admin during maintenance - sign out and show modal
+            await supabase.auth.signOut();
+            setShowMaintenanceModal(true);
+            setIsLoading(false);
+            return;
+          }
+          // Admin can proceed - continue with login
+        } catch (err) {
+          // If profile check fails, block login during maintenance for safety
+          await supabase.auth.signOut();
+          setShowMaintenanceModal(true);
+          setIsLoading(false);
+          return;
+        }
       }
 
       // Send Login Notification if New Device
