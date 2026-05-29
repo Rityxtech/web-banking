@@ -940,7 +940,7 @@ function App() {
             handleSession(session);
         });
         return () => subscription.unsubscribe();
-    }, [fetchAllUserData, fetchGlobalSettings, globalSettings.maintenanceMode]);
+    }, [fetchAllUserData, fetchGlobalSettings]);
 
     useEffect(() => {
         if (!currentUser) return;
