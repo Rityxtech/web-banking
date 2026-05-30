@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { APP_CONFIG } from '../../config';
 import { supabase } from '../../services/supabase';
 import { mvp } from '../../services/mvpService';
 import { X, RefreshCw, Activity, CreditCard, Terminal, MousePointer2 } from 'lucide-react';
@@ -104,20 +105,20 @@ export const DebugLogger = ({ user }: { user: any }) => {
     const forceProvision = async () => {
         if (!user) return;
         setLoading(true);
-        addLog("🔧 FORCING LENNOX SYSTEM CARD...", 'info');
+        addLog(`🔧 FORCING ${APP_CONFIG.BRAND_NAME.toUpperCase()} SYSTEM CARD...`, 'info');
         try {
-            const holderName = (user.name || 'LENNOX MEMBER').toUpperCase();
+            const holderName = (user.name || APP_CONFIG.BANK_NAME + ' MEMBER').toUpperCase();
             const futureDate = new Date();
             futureDate.setFullYear(futureDate.getFullYear() + 3);
             const exp = `${String(futureDate.getMonth() + 1).padStart(2, '0')}/${String(futureDate.getFullYear()).slice(-2)}`;
             const payload = {
-                user_id: user.id, type: 'Lennox Black', number: '4' + Math.floor(Math.random() * 1000000000000000).toString().slice(0, 15),
+                user_id: user.id, type: APP_CONFIG.PREMIUM_CARD_NAME, number: '4' + Math.floor(Math.random() * 1000000000000000).toString().slice(0, 15),
                 holder: holderName, expiry: exp, pin: '0000', cvv: Math.floor(Math.random() * 900 + 100).toString(),
                 is_frozen: 0, is_default: 1, gradient: 'from-gray-900 to-gray-800', shadow: 'shadow-gray-900/50'
             };
             const { data: res, error } = await supabase.from('mvp_cards').insert([payload]).select('id');
             if (!error && res) {
-                addLog(`✅ SUCCESS: Lennox Black Created (ID: ${res[0]?.id})`, 'success');
+                addLog(`✅ SUCCESS: ${APP_CONFIG.PREMIUM_CARD_NAME} Created (ID: ${res[0]?.id})`, 'success');
                 await fetchCards();
             } else {
                 addLog(`❌ FAILED: ${error?.message || JSON.stringify(res)}`, 'error');

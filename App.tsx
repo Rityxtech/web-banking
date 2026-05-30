@@ -4,7 +4,7 @@ import { supabase } from './services/supabase';
 import { mvp } from './services/mvpService';
 import { Loader2, ShieldCheck, Save, AlertCircle, ShieldAlert, LogOut, Send, CheckCircle, Ticket, Lock, Clock, ChevronRight, MessageSquare, Mail, Key, UserX, AlertTriangle, Ban } from 'lucide-react';
 import { getEmailTemplate } from './utils/emailTemplates';
-import { APP_CONFIG } from './config';
+import { APP_CONFIG, setSiteConfig } from './config';
 
 // Components
 import { Layout } from './components/ui/Layout';
@@ -200,7 +200,7 @@ const WaitlistScreen = ({ onAdminLogin }: { onAdminLogin: () => void }) => {
             <div className="max-w-lg w-full text-center space-y-8 animate-in slide-in-from-bottom-8 duration-700">
                 <img
                     src="https://image2url.com/r2/default/images/1769428285590-d43b30ba-a0ba-499f-a066-6411c1619f75.webp"
-                    alt="Lennox"
+                    alt={APP_CONFIG.BANK_NAME}
                     className="w-24 h-24 mx-auto object-contain drop-shadow-2xl"
                 />
                 <div className="space-y-4">
@@ -410,7 +410,7 @@ function App() {
     const [currentView, setCurrentView] = useState<'home' | 'signin' | 'signup'>(() => {
         const hash = window.location.hash.substring(1);
         if (hash === 'signin' || hash === 'signup') return hash;
-        const saved = localStorage.getItem('lennox_view');
+        const saved = localStorage.getItem(APP_CONFIG.STORAGE_PREFIX + 'view');
         return (saved === 'signin' || saved === 'signup') ? saved : 'home';
     });
 
@@ -426,15 +426,15 @@ function App() {
 
     // Global PIN Verification State with Session Persistence
     const [isPinVerified, setIsPinVerifiedState] = useState(() => {
-        return sessionStorage.getItem('lennox_pin_verified') === 'true';
+        return sessionStorage.getItem(APP_CONFIG.STORAGE_PREFIX + 'pin_verified') === 'true';
     });
 
     const setIsPinVerified = (verified: boolean) => {
         setIsPinVerifiedState(verified);
         if (verified) {
-            sessionStorage.setItem('lennox_pin_verified', 'true');
+            sessionStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'pin_verified', 'true');
         } else {
-            sessionStorage.removeItem('lennox_pin_verified');
+            sessionStorage.removeItem(APP_CONFIG.STORAGE_PREFIX + 'pin_verified');
         }
     };
 
@@ -463,13 +463,13 @@ function App() {
 
     // Global Balance Visibility
     const [isBalanceHidden, setIsBalanceHidden] = useState(() => {
-        return localStorage.getItem('lennox_hide_balance') === 'true';
+        return localStorage.getItem(APP_CONFIG.STORAGE_PREFIX + 'hide_balance') === 'true';
     });
 
     const toggleBalanceVisibility = useCallback(() => {
         setIsBalanceHidden(prev => {
             const newValue = !prev;
-            localStorage.setItem('lennox_hide_balance', String(newValue));
+            localStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'hide_balance', String(newValue));
             return newValue;
         });
     }, []);
@@ -489,14 +489,14 @@ function App() {
             // AUTH NAVIGATION (Checking !currentUser inside effect creates closure issues, rely on currentView logic)
             if (hash === 'signin' || hash === 'signup') {
                 setCurrentView(hash);
-                localStorage.setItem('lennox_view', hash);
+                localStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'view', hash);
             } else {
                 // For any other hash (including empty, 'home', 'banking', or dashboard routes like 'transactions')
                 // We default the view state to 'home'.
                 // If logged in: Layout renders based on 'route' (synced below).
                 // If logged out: HomePage renders (handling anchors like #banking).
                 setCurrentView('home');
-                localStorage.setItem('lennox_view', 'home');
+                localStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'view', 'home');
                 setRoute(hash || 'dashboard');
             }
         };
@@ -634,14 +634,17 @@ function App() {
                 const isRegAllowed = settings.allow_registration == "1" || settings.allow_registration == 1 || settings.allow_registration === true;
                 const isTxDisabled = settings.disable_transactions == "1" || settings.disable_transactions == 1 || settings.disable_transactions === true;
 
+                const newSiteName = settings.site_name || 'Lennox Bank';
+                const newSiteLogo = settings.site_logo || '';
+                setSiteConfig(newSiteName, newSiteLogo);
                 setGlobalSettings({
                     maintenanceMode: isMaintenance,
                     allowRegistration: isRegAllowed,
                     maxTxLimit: Number(settings.max_transaction_limit) || 50000,
                     emailNotifications: settings.email_notifications == "1" || settings.email_notifications == 1 || settings.email_notifications === true,
                     disableTransactions: isTxDisabled,
-                    siteName: settings.site_name || 'Lennox Bank',
-                    siteLogo: settings.site_logo || '',
+                    siteName: newSiteName,
+                    siteLogo: newSiteLogo,
                     enableDailyLimit: settings.enable_daily_limit == "1" || settings.enable_daily_limit === 1 || settings.enable_daily_limit === true,
                     enableWeeklyLimit: settings.enable_weekly_limit == "1" || settings.enable_weekly_limit === 1 || settings.enable_weekly_limit === true,
                     enableMonthlyLimit: settings.enable_monthly_limit == "1" || settings.enable_monthly_limit === 1 || settings.enable_monthly_limit === true,
@@ -805,8 +808,8 @@ function App() {
                     isFrozen: c.is_frozen == "1" || c.is_frozen == 1 || c.is_frozen === true
                 }));
                 formattedCards.sort((a: any, b: any) => {
-                    const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === 'Lennox Black';
-                    const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === 'Lennox Black';
+                    const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === APP_CONFIG.PREMIUM_CARD_NAME;
+                    const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === APP_CONFIG.PREMIUM_CARD_NAME;
                     if (defA && !defB) return -1;
                     if (!defA && defB) return 1;
                     return 0;
@@ -886,7 +889,7 @@ function App() {
 
             if (session?.user) {
                 const email = session.user.email?.toLowerCase();
-                let isAdmin = email === 'admin@lennox.bank' || email === 'akugbof@gmail.com';
+                let isAdmin = email === APP_CONFIG.ADMIN_EMAILS[0] || email === 'akugbof@gmail.com';
 
                 if (!isAdmin) {
                     try {
@@ -929,7 +932,7 @@ function App() {
                     }
                     return {
                         id: session.user.id,
-                        name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Lennox Client',
+                        name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || APP_CONFIG.BANK_NAME + ' Client',
                         email: session.user.email || '',
                         avatarUrl: prev?.avatarUrl || session.user.user_metadata?.avatar_url || '',
                         pin: session.user.user_metadata?.pin // Include PIN here
@@ -1201,7 +1204,7 @@ function App() {
                 if (session) {
                     setIsAccountIncomplete(false);
                     setRawSessionUser(null);
-                    setCurrentUser({ id: session.user.id, name: session.user.user_metadata?.full_name || 'Lennox Bank', email: session.user.email || '', avatarUrl: '' });
+                    setCurrentUser({ id: session.user.id, name: session.user.user_metadata?.full_name || APP_CONFIG.BANK_NAME, email: session.user.email || '', avatarUrl: '' });
                     initRef.current = null;
                     fetchAllUserData(session.user.id, session.user.user_metadata);
                 }
@@ -1352,8 +1355,8 @@ function App() {
                                             isFrozen: c.is_frozen == "1" || c.is_frozen == 1 || c.is_frozen === true
                                         }));
                                         formatted.sort((a: any, b: any) => {
-                                            const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === 'Lennox Black';
-                                            const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === 'Lennox Black';
+                                            const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === APP_CONFIG.PREMIUM_CARD_NAME;
+                                            const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === APP_CONFIG.PREMIUM_CARD_NAME;
                                             if (defA && !defB) return -1;
                                             if (!defA && defB) return 1;
                                             return 0;
@@ -1464,7 +1467,7 @@ function App() {
                                 if (!currentUser) return { success: false, error: 'User not initialized' };
 
                                 try {
-                                    const holderName = (currentUser.name || 'LENNOX MEMBER').toUpperCase();
+                                    const holderName = (currentUser.name || APP_CONFIG.BANK_NAME + ' MEMBER').toUpperCase();
                                     const futureDate = new Date();
                                     futureDate.setFullYear(futureDate.getFullYear() + 3);
                                     const exp = `${String(futureDate.getMonth() + 1).padStart(2, '0')}/${String(futureDate.getFullYear()).slice(-2)}`;
@@ -1473,7 +1476,7 @@ function App() {
 
                                     const payload = {
                                         user_id: currentUser.id,
-                                        type: 'Lennox Black',
+                                        type: APP_CONFIG.PREMIUM_CARD_NAME,
                                         number: '4' + Math.floor(Math.random() * 1000000000000000).toString().slice(0, 15),
                                         holder: holderName,
                                         expiry: exp,
@@ -1497,8 +1500,8 @@ function App() {
                                             }));
                                             // SORT
                                             formatted.sort((a: any, b: any) => {
-                                                const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === 'Lennox Black';
-                                                const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === 'Lennox Black';
+                                                const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === APP_CONFIG.PREMIUM_CARD_NAME;
+                                                const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === APP_CONFIG.PREMIUM_CARD_NAME;
                                                 if (defA && !defB) return -1;
                                                 if (!defA && defB) return 1;
                                                 return 0;

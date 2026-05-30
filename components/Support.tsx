@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { APP_CONFIG } from '../config';
 import { ArrowLeft, Search, ChevronDown, Mail, Phone, MessageSquare, Send, Ticket, Clock, CheckCircle, AlertCircle, Loader2, Inbox, ExternalLink, ShieldCheck, ChevronRight, X, Headphones, User, Fingerprint, Paperclip } from 'lucide-react';
 import { mvp, fileToBase64 } from '../services/mvpService';
 import { User as UserType } from '../types';
@@ -39,7 +40,7 @@ export const HelpCenter = ({ onBack }: { onBack: () => void }) => {
                         </div>
                         <div>
                             <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Direct Support</h4>
-                            <p className="text-xs text-slate-500 mt-1">For urgent inquiries, email us directly at <a href="mailto:admin@lennoxmh.com" className="text-blue-600 dark:text-blue-400 hover:underline">admin@lennoxmh.com</a>.</p>
+                            <p className="text-xs text-slate-500 mt-1">For urgent inquiries, email us directly at <a href={`mailto:${APP_CONFIG.SUPPORT_EMAIL}`} className="text-blue-600 dark:text-blue-400 hover:underline">{APP_CONFIG.SUPPORT_EMAIL}</a>.</p>
                         </div>
                     </div>
                 </div>
@@ -211,7 +212,7 @@ const TicketTerminal = ({ ticket, user, onBack, onAuthError, onRefreshCounts }: 
                         Session Initialized • {new Date(ticket.created_at).toLocaleDateString()}
                     </div>
                     <div className="opacity-50 hover:opacity-100 transition-opacity">
-                        <a href="mailto:admin@lennoxmh.com" className="text-[9px] text-slate-400 hover:text-blue-500 font-bold underline">Official correspondence: admin@lennoxmh.com</a>
+                        <a href={`mailto:${APP_CONFIG.SUPPORT_EMAIL}`} className="text-[9px] text-slate-400 hover:text-blue-500 font-bold underline">Official correspondence: {APP_CONFIG.SUPPORT_EMAIL}</a>
                     </div>
                 </div>
 
@@ -518,7 +519,7 @@ export const ContactUs = ({ user, unreadCount = 0, onBack, onNavigate, onAuthErr
                     <div className="mt-6 p-4 bg-slate-100 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Direct Correspondence</p>
                         <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                            Prefer email? Reach us at <a href="mailto:admin@lennoxmh.com" className="text-blue-600 dark:text-blue-400 font-bold hover:underline">admin@lennoxmh.com</a>
+                            Prefer email? Reach us at <a href={`mailto:${APP_CONFIG.SUPPORT_EMAIL}`} className="text-blue-600 dark:text-blue-400 font-bold hover:underline">{APP_CONFIG.SUPPORT_EMAIL}</a>
                         </p>
                     </div>
                 </div>

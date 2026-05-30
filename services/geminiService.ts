@@ -1,5 +1,6 @@
 
 import { GoogleGenAI, Chat, GenerateContentResponse } from "@google/genai";
+import { APP_CONFIG } from '../config';
 import { Account, Transaction } from "../types";
 
 export const createFinancialChat = (accounts: Account[], transactions: Transaction[]): Chat => {
@@ -14,7 +15,7 @@ export const createFinancialChat = (accounts: Account[], transactions: Transacti
   ).join('\n');
 
   const systemInstruction = `
-    You are Lennox, the advanced AI Financial Strategist for Lennox Bank. 
+    You are {APP_CONFIG.BRAND_NAME}, the advanced AI Financial Strategist for {APP_CONFIG.BANK_NAME}. 
     You have full access to the user's account context and the bank's operational rules.
 
     APP CORE RULES:
@@ -61,7 +62,7 @@ export const createFinancialChat = (accounts: Account[], transactions: Transacti
 export const sendMessageToAssistant = async (chat: Chat, message: string): Promise<string> => {
   try {
     const response: GenerateContentResponse = await chat.sendMessage({ message });
-    return response.text || "I'm experiencing a temporary disconnect from the Lennox mainframe. Please try again.";
+    return response.text || "I'm experiencing a temporary disconnect from the {APP_CONFIG.BRAND_NAME} mainframe. Please try again.";
   } catch (error) {
     console.error("Gemini API Error:", error);
     return "The AI core is currently under maintenance. Please contact human support if your request is urgent.";

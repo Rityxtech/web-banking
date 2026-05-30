@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { APP_CONFIG } from '../config';
 import { Transaction, TransactionType } from '../types';
 import { ArrowLeft, User, DollarSign, FileText, CheckCircle, Share2, Copy, Link as LinkIcon, ChevronRight, History } from 'lucide-react';
 
@@ -50,7 +51,7 @@ export const RequestMoney: React.FC<RequestMoneyProps> = ({ transactions, onRequ
                 setIsLoading(false);
                 setStep('failed');
             } else {
-                setShareLink(`https://lennox.bank/pay/req_${Math.floor(Math.random() * 100000)}`);
+                setShareLink(`https://yourdomain.com/pay/req_${Math.floor(Math.random() * 100000)}`);
                 setIsLoading(false);
                 setStep('success');
             }

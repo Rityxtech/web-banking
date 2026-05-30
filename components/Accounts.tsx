@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { APP_CONFIG } from '../config';
 import { Account, Card } from '../types';
 import { Plus, CreditCard, Snowflake, RefreshCw, Shield, Globe, Wifi, Lock, Eye, EyeOff, Copy, Check, ArrowLeft, Loader2, CheckCircle, AlertCircle, X, KeyRound, Mail, Trash2, AlertTriangle, Clock, Wallet, Landmark, TrendingUp, PlusCircle, Unlock, ArrowRightLeft } from 'lucide-react';
 import { HighYieldEnrollmentModal } from './ui/HighYieldEnrollmentModal';
@@ -472,7 +473,7 @@ export const Accounts: React.FC<AccountsProps> = ({
         }
     }, [cards.length, activeCardIndex]);
 
-    const isDefaultCard = mainCard ? (mainCard.isDefault === true || mainCard.is_default === true || mainCard.type === 'Lennox Black') : false;
+    const isDefaultCard = mainCard ? (mainCard.isDefault === true || mainCard.is_default === true || mainCard.type === '{APP_CONFIG.PREMIUM_CARD_NAME}') : false;
 
     const settings = cardControls;
     const spendPercentage = Math.min((monthlySpend / (monthlyLimit || 5000)) * 100, 100);
@@ -707,7 +708,7 @@ export const Accounts: React.FC<AccountsProps> = ({
                         {asset && <div className="absolute -bottom-10 -right-10 opacity-[0.07] rotate-[-15deg] pointer-events-none"><img src={asset.url} alt="" className="w-64 h-auto grayscale invert" /></div>}
                         <div className="relative z-10 h-full flex flex-col justify-between">
                             <div className="flex justify-between items-start">
-                                <span className="font-bold tracking-wider opacity-80 text-xs md:text-base">Lennox</span>
+                                <span className="font-bold tracking-wider opacity-80 text-xs md:text-base">{APP_CONFIG.BRAND_NAME}</span>
                                 {asset ? <img src={asset.url} alt={formData.type || 'Card'} className={`h-6 md:h-8 w-auto object-contain ${asset.className}`} /> : <span className="font-bold italic text-xs md:text-base">{formData.type}</span>}
                             </div>
                             <div className="space-y-2 md:space-y-4">
@@ -1065,7 +1066,7 @@ export const Accounts: React.FC<AccountsProps> = ({
                                 <div ref={scrollRef} onScroll={handleScroll} className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide w-full gap-0 pb-2" style={{ scrollBehavior: 'smooth' }}>
                                     {cards.map((card, idx) => {
                                         const asset = getCardAsset(card.type);
-                                        const isLennoxBlack = card.type === 'Lennox Black';
+                                        const isLennoxBlack = card.type === APP_CONFIG.PREMIUM_CARD_NAME;
                                         const cardIsDefault = card.isDefault === true || card.is_default === true || isLennoxBlack;
                                         let displayGradient = card.gradient;
                                         if (isLennoxBlack) displayGradient = 'from-gray-900 to-gray-800';
@@ -1080,7 +1081,7 @@ export const Accounts: React.FC<AccountsProps> = ({
                                                     <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-black/10 rounded-full blur-3xl"></div>
                                                     {asset && <div className="absolute -bottom-8 -right-8 opacity-[0.07] rotate-[-15deg] pointer-events-none"><img src={asset.url} alt="" className="w-56 h-auto grayscale invert" /></div>}
                                                     <div className="absolute inset-0 p-4 md:p-8 flex flex-col justify-between text-white z-10">
-                                                        <div className="flex justify-between items-start"><div><span className="font-bold text-lg md:text-xl tracking-wider block">Lennox</span><span className="text-[8px] md:text-[10px] opacity-80 uppercase tracking-widest">{cardIsDefault ? 'System Default' : 'Virtual Card'}</span></div>{asset ? <img src={asset.url} alt={card.type || 'Card'} className={`h-6 md:h-8 w-auto object-contain ${asset.className}`} /> : <span className="font-bold italic text-xs md:text-base">{formData.type}</span>}</div>
+                                                        <div className="flex justify-between items-start"><div><span className="font-bold text-lg md:text-xl tracking-wider block">{APP_CONFIG.BRAND_NAME}</span><span className="text-[8px] md:text-[10px] opacity-80 uppercase tracking-widest">{cardIsDefault ? 'System Default' : 'Virtual Card'}</span></div>{asset ? <img src={asset.url} alt={card.type || 'Card'} className={`h-6 md:h-8 w-auto object-contain ${asset.className}`} /> : <span className="font-bold italic text-xs md:text-base">{formData.type}</span>}</div>
                                                         <div className="flex items-center gap-3 md:gap-4 my-auto"><div className="w-10 h-7 md:w-12 md:h-9 bg-yellow-200/90 rounded md:rounded-md relative overflow-hidden shadow-sm"><div className="absolute inset-0 bg-yellow-500/20 mix-blend-overlay"></div><div className="absolute top-1/2 left-0 w-full h-[1px] bg-yellow-600/40"></div><div className="absolute top-0 left-1/2 h-full w-[1px] bg-yellow-600/40"></div></div><div className="flex flex-col gap-1"><Wifi size={20} className="rotate-90 opacity-80 md:w-6 md:h-6" /></div></div>
                                                         <div><div className="flex items-center justify-between mb-3 md:mb-4"><p className="font-mono text-xl md:text-3xl tracking-widest font-bold text-shadow-sm truncate">{showDetails && idx === activeCardIndex ? formatCardNumber(card.number) : `**** **** **** ${(card.number || '....').slice(-4)}`}</p>{idx === activeCardIndex && <button onClick={toggleDetailView} className="p-1.5 md:p-2 hover:bg-white/10 rounded-full transition-colors">{showDetails ? <EyeOff size={16} className="md:w-[18px]" /> : <Eye size={16} className="md:w-[18px]" />}</button>}</div><div className="flex justify-between items-end"><div><p className="text-[8px] md:text-[9px] uppercase tracking-widest opacity-70 mb-0.5 md:mb-1">Card Holder</p><p className="font-medium tracking-wide uppercase text-xs md:text-base">{card.holder}</p></div><div className="text-right"><p className="text-[8px] md:text-[9px] uppercase tracking-widest opacity-70 mb-0.5 md:mb-1">Valid Thru</p><p className="font-medium tracking-wide text-xs md:text-base">{card.expiry}</p></div></div></div>
                                                     </div>

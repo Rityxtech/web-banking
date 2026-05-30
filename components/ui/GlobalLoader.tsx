@@ -1,4 +1,5 @@
 import React from 'react';
+import { APP_CONFIG } from '../../config';
 
 export const GlobalLoader = () => {
     return (
@@ -17,7 +18,7 @@ export const GlobalLoader = () => {
             </div>
 
             <div className="text-center space-y-2">
-                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">LENNOX</h3>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">{APP_CONFIG.BRAND_NAME.toUpperCase()}</h3>
                 <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest animate-pulse">Processing Securely</p>
             </div>
         </div>

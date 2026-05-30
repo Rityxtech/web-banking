@@ -1,4 +1,6 @@
 
+import { APP_CONFIG } from '../config';
+
 export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment', data: any) => {
    let subject = '';
    let content = '';
@@ -9,7 +11,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
     <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lennox Bank Notification</title>
+    <title>${APP_CONFIG.BANK_NAME} Notification</title>
     <style>
       body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #334155; -webkit-font-smoothing: antialiased; }
       .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
@@ -45,16 +47,16 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
     <body>
       <div class="container">
         <div class="header">
-           <a href="https://lennoxmh.com" class="brand">LENNOX BANK</a>
+           <a href="${APP_CONFIG.SITE_URL}" class="brand">${APP_CONFIG.BANK_NAME.toUpperCase()}</a>
         </div>
   `;
 
    const footer = `
         <div class="footer">
-           <p style="margin: 0 0 8px;">&copy; ${new Date().getFullYear()} Lennox Bank. All rights reserved.</p>
+           <p style="margin: 0 0 8px;">&copy; ${new Date().getFullYear()} ${APP_CONFIG.BANK_NAME}. All rights reserved.</p>
            <p style="margin: 0;">
-             <a href="https://lennoxmh.com/#privacy">Privacy</a> &bull; 
-             <a href="https://lennoxmh.com/#support">Support</a>
+             <a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; 
+             <a href="${APP_CONFIG.SITE_URL}/#support">Support</a>
            </p>
         </div>
       </div>
@@ -86,13 +88,13 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
          break;
 
       case 'welcome':
-         subject = 'Welcome to Lennox Bank';
+         subject = 'Welcome to ${APP_CONFIG.BANK_NAME}';
          content = `
         ${header}
         <div class="content">
            <h2 class="headline">Welcome to the Future of Banking 🚀</h2>
            <p class="text-center text-muted" style="margin-bottom: 20px;">
-             Hello <strong>${data.user_name}</strong>, we're thrilled to have you join Lennox Bank.
+             Hello <strong>${data.user_name}</strong>, we're thrilled to have you join ${APP_CONFIG.BANK_NAME}.
            </p>
            
            <div class="highlight-box">
@@ -110,7 +112,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
            </ul>
            
            <div class="text-center" style="margin-top: 30px;">
-              <a href="https://lennoxmh.com" class="btn">Go to My Dashboard</a>
+              <a href="${APP_CONFIG.SITE_URL}" class="btn">Go to My Dashboard</a>
            </div>
         </div>
         ${footer}`;
@@ -123,7 +125,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         <div class="content">
            <h2 class="headline">New Sign-in Detected 🔐</h2>
            <p class="text-center text-muted" style="margin-bottom: 10px;">
-             We noticed a new login to your Lennox Bank account.
+             We noticed a new login to your ${APP_CONFIG.BANK_NAME} account.
            </p>
            
            <table class="info-table">
@@ -156,7 +158,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
            </div>
            
            <div class="text-center">
-              <a href="https://lennoxmh.com/#settings" class="btn">Secure My Account</a>
+              <a href="${APP_CONFIG.SITE_URL}/#settings" class="btn">Secure My Account</a>
            </div>
         </div>
         ${footer}`;
@@ -204,7 +206,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
              If you have questions, please quote the reference ID.
            </p>
            <div class="text-center">
-              <a href="https://lennoxmh.com/#transactions" style="color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; display: inline-block; margin-top: 10px;">View details &rarr;</a>
+              <a href="${APP_CONFIG.SITE_URL}/#transactions" style="color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; display: inline-block; margin-top: 10px;">View details &rarr;</a>
            </div>
         </div>
         ${footer}`;
@@ -227,7 +229,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
            <p class="text-muted" style="font-size: 14px;">If you did not make these changes, please contact support immediately.</p>
            
            <div class="text-center">
-              <a href="https://lennoxmh.com/#contact-us" class="btn">Contact Support</a>
+              <a href="${APP_CONFIG.SITE_URL}/#contact-us" class="btn">Contact Support</a>
            </div>
         </div>
         ${footer}`;
@@ -250,7 +252,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
            <p class="text-muted" style="font-size: 14px;">Manage your card settings at any time from your wallet dashboard.</p>
            
            <div class="text-center">
-              <a href="https://lennoxmh.com/#wallet" class="btn">Go to Wallet</a>
+              <a href="${APP_CONFIG.SITE_URL}/#wallet" class="btn">Go to Wallet</a>
            </div>
         </div>
         ${footer}`;
@@ -286,7 +288,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
              
              <p class="text-center text-muted" style="font-size: 13px; margin-top: 10px;">Track your portfolio performance in real-time.</p>
              <div class="text-center">
-                <a href="https://lennoxmh.com/#investments" class="btn">View Portfolio</a>
+                <a href="${APP_CONFIG.SITE_URL}/#investments" class="btn">View Portfolio</a>
              </div>
           </div>
           ${footer}`;
@@ -319,7 +321,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
              </p>
              
              <div class="text-center" style="margin-top: 30px;">
-                <a href="https://lennoxmh.com" class="btn" style="background-color: #4f46e5;">Go to Dashboard</a>
+                <a href="${APP_CONFIG.SITE_URL}" class="btn" style="background-color: #4f46e5;">Go to Dashboard</a>
              </div>
           </div>
           ${footer}`;

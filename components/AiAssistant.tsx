@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { APP_CONFIG } from '../config';
 import { Account, Transaction, User as UserType } from '../types';
 import { createFinancialChat, sendMessageToAssistant } from '../services/geminiService';
 import { Chat } from '@google/genai';
@@ -155,7 +156,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ user, accounts, transa
                         return [{
                             id: 'init',
                             sender: 'ai',
-                            text: "Hello! I'm Lennox, your AI strategist. How can I help you manage your accounts today?",
+                            text: "Hello! I'm {APP_CONFIG.BRAND_NAME}, your AI strategist. How can I help you manage your accounts today?",
                             created_at: new Date().toISOString(),
                             isRead: 1
                         }];
@@ -430,7 +431,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ user, accounts, transa
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-inner"><Bot size={16} /></div>
                     <div>
-                        <h2 className="font-bold text-slate-900 dark:text-white text-xs md:text-sm">Lennox Assistant</h2>
+                        <h2 className="font-bold text-slate-900 dark:text-white text-xs md:text-sm">{APP_CONFIG.BRAND_NAME} Assistant</h2>
                         <div className="flex items-center gap-1">
                             <span className={`w-1 h-1 rounded-full ${isHumanSupportActive ? 'bg-amber-500' : 'bg-emerald-500'} animate-pulse`}></span>
                             <p className="text-[7px] md:text-[8px] text-slate-500 font-black uppercase tracking-widest">
@@ -480,7 +481,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ user, accounts, transa
                                 {msg.sender === 'user' ? <User size={10} /> : msg.sender === 'admin' ? <Headphones size={10} /> : <Sparkles size={10} />}
                             </div>
                             <div className={`w-fit max-w-[85%] p-1.5 md:p-2 rounded-xl text-[12px] leading-relaxed shadow-sm ${msg.sender === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : msg.sender === 'admin' ? 'bg-purple-600 text-white rounded-tl-none' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-slate-700 rounded-tl-none'}`}>
-                                {msg.sender === 'admin' && <p className="text-[7px] font-black uppercase opacity-60 mb-0.5">Lennox Support</p>}
+                                {msg.sender === 'admin' && <p className="text-[7px] font-black uppercase opacity-60 mb-0.5">{APP_CONFIG.BRAND_NAME} Support</p>}
                                 {renderMessageContent(msg.text)}
                                 <div className="flex justify-end items-center gap-1 mt-0.5">
                                     <p className="text-[7px] opacity-40 font-medium">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
@@ -520,7 +521,7 @@ export const AiAssistant: React.FC<AiAssistantProps> = ({ user, accounts, transa
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && !isTyping && handleSend()}
-                        placeholder={isHumanSupportActive ? "Talking with Lennox Support..." : "Ask Lennox AI..."}
+                        placeholder={isHumanSupportActive ? "Talking with {APP_CONFIG.BRAND_NAME} Support..." : "Ask {APP_CONFIG.BRAND_NAME} AI..."}
                         className="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500/20 dark:text-white text-[12px] shadow-inner transition-all"
                         disabled={isTyping}
                     />

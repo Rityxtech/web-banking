@@ -1,5 +1,6 @@
 
 import React, { useState, useRef } from 'react';
+import { APP_CONFIG } from '../config';
 import { ArrowLeft, Camera, Upload, CheckCircle, FileText, Download, Search, MapPin, Navigation, ScanLine, X, Image as ImageIcon, DollarSign } from 'lucide-react';
 
 // Common Header for sub-pages
@@ -268,7 +269,7 @@ export const AtmLocator = ({ onBack }: { onBack: () => void }) => {
                         </div>
                         <div className="flex-1">
                             <div className="flex justify-between">
-                                <h4 className="font-bold text-slate-900 dark:text-white text-sm">Lennox Branch {i}</h4>
+                                <h4 className="font-bold text-slate-900 dark:text-white text-sm">{APP_CONFIG.BRAND_NAME} Branch {i}</h4>
                                 <span className="text-xs font-bold text-emerald-600">Open</span>
                             </div>
                             <p className="text-xs text-slate-500 mt-0.5">123 Market St, San Francisco, CA</p>

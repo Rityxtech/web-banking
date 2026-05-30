@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { APP_CONFIG } from '../config';
 import { Shield, Smartphone, Globe, ArrowRight, CheckCircle, CreditCard, ChevronRight, Play, Star, Search, Zap, Server, Lock, Cpu, BarChart3, RefreshCw, ChevronDown, Check, ArrowLeft, Mail, Phone, MapPin, FileText, Briefcase, Users, HelpCircle, Download, Award, TrendingUp, Calendar, Image as ImageIcon, HeartPulse, Activity, AlertCircle, Wifi, Database, Mic, Video, Layers } from 'lucide-react';
 import { Fingerprint, EyeOff } from 'lucide-react';
 import { CheckingContent, SavingsContent, CreditCardsContent, InvestmentsContent } from './ProductPages';
@@ -191,7 +192,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl, siteNam
 
    const defaultLogo = "https://image2url.com/r2/default/images/1769428285590-d43b30ba-a0ba-499f-a066-6411c1619f75.webp";
    const displayLogo = logoUrl && logoUrl.trim() !== '' ? logoUrl : defaultLogo;
-   const displayName = siteName && siteName.trim() !== '' ? siteName.split(' ')[0] : 'Lennox';
+   const displayName = siteName && siteName.trim() !== '' ? siteName.split(' ')[0] : APP_CONFIG.BRAND_NAME;
 
    if (activePage !== 'home') {
       return <FooterPage page={activePage} onBack={() => setActivePage('home')} onNavigate={onNavigate} />;
@@ -250,7 +251,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl, siteNam
                   <Reveal direction="zoom" delay={100}>
                      <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white border border-blue-100 text-blue-600 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-4 md:mb-6 shadow-sm">
                         <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                        Lennox Meridian Holdings
+                        {APP_CONFIG.COMPANY_NAME}
                      </div>
                   </Reveal>
 
@@ -458,7 +459,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl, siteNam
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                <div className="text-center max-w-3xl mx-auto mb-12 md:mb-20">
                   <Reveal direction="up">
-                     <h2 className="text-3xl md:text-5xl font-extrabold mb-6">Why Lennox is Different.</h2>
+                     <h2 className="text-3xl md:text-5xl font-extrabold mb-6">Why {APP_CONFIG.BRAND_NAME} is Different.</h2>
                      <p className="text-slate-400 text-sm md:text-lg">We benchmarked our core system against traditional banking infrastructure. The results speak for themselves.</p>
                   </Reveal>
                </div>
@@ -473,7 +474,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl, siteNam
                      <div className="space-y-2">
                         <ComparisonBar label="Traditional" speed="3-5 Days" width="20%" />
                         <ComparisonBar label="Neo Banks" speed="12-24 Hours" width="50%" />
-                        <ComparisonBar label="Lennox Cloud" speed="0.8 Seconds" width="100%" isWinner={true} />
+                        <ComparisonBar label={`${APP_CONFIG.BRAND_NAME} Cloud`} speed="0.8 Seconds" width="100%" isWinner={true} />
                      </div>
                   </Reveal>
 
@@ -534,8 +535,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl, siteNam
                   <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-10 md:mb-16 text-center">Frequently Asked Questions</h2>
                </Reveal>
                <Reveal direction="up" delay={200}>
-                  <FaqItem q="Is my money safe with Lennox?" a="Yes. Lennox employs military-grade AES-256 encryption for all data at rest and in transit. Your assets are stored in redundant, secure cloud vaults with 24/7 AI-driven monitoring." />
-                  <FaqItem q="What are the transfer fees?" a="Lennox offers zero-fee transfers between internal accounts. For international transfers, we offer industry-leading competitive rates with transparent, real-time calculations." />
+                  <FaqItem q={`Is my money safe with ${APP_CONFIG.BRAND_NAME}?`} a={`Yes. ${APP_CONFIG.BRAND_NAME} employs military-grade AES-256 encryption for all data at rest and in transit. Your assets are stored in redundant, secure cloud vaults with 24/7 AI-driven monitoring.`} />
+                  <FaqItem q="What are the transfer fees?" a={`${APP_CONFIG.BRAND_NAME} offers zero-fee transfers between internal accounts. For international transfers, we offer industry-leading competitive rates with transparent, real-time calculations.`} />
                   <FaqItem q="How do virtual cards work?" a="Virtual cards can be created instantly within the app. They function like physical cards for online and contactless payments but provide enhanced security through instant freezing and rotating CVV options." />
                   <FaqItem q="Can I invest through the app?" a="Absolutely. Our integrated investment module allows you to link your banking balance directly to stock and crypto markets, managing your entire portfolio from a single interface." />
                   <FaqItem q="What is the support turnaround time?" a="Our premium support team is available 24/7. We guarantee a response time of under 2 minutes for all critical account inquiries." />
@@ -646,8 +647,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl, siteNam
 
                <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
                   <div className="text-slate-400 text-[10px] md:text-xs text-center md:text-left">
-                     <p>© 2024 Lennox Meridian Holdings. All rights reserved.</p>
-                     <p className="mt-1">Banking services provided by Lennox Partner Bank, Member FDIC.</p>
+                     <p>© 2024 {APP_CONFIG.COMPANY_NAME}. All rights reserved.</p>
+                     <p className="mt-1">Banking services provided by {APP_CONFIG.BRAND_NAME} Partner Bank, Member FDIC.</p>
                   </div>
                   <div className="flex flex-wrap justify-center gap-4 md:gap-8 text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">
                      <span className="flex items-center gap-1.5"><Shield size={12} className="text-blue-500" /> SSL Secured</span>

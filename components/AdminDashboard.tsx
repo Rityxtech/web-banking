@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { mvp } from '../services/mvpService';
 import { supabase, supabaseAdmin } from '../services/supabase';
+import { APP_CONFIG } from '../config';
 import {
     AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
     BarChart, Bar, CartesianGrid, Cell
@@ -24,7 +25,7 @@ const EMAIL_TEMPLATES = [
         content: `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div style="background: #111827; padding: 24px; text-align: center;">
-           <h2 style="color: white; margin: 0; font-size: 20px; letter-spacing: 1px;">Lennox Bank</h2>
+           <h2 style="color: white; margin: 0; font-size: 20px; letter-spacing: 1px;">${APP_CONFIG.BANK_NAME}</h2>
         </div>
         <div style="padding: 40px 30px;">
            <h2 style="color: #111827; margin-top: 0; font-size: 22px;">New Sign-in Detected</h2>
@@ -44,7 +45,7 @@ const EMAIL_TEMPLATES = [
            </div>
         </div>
         <div style="background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb;">
-           &copy; 2024 Lennox Bank. All rights reserved.
+           &copy; 2024 ${APP_CONFIG.BANK_NAME}. All rights reserved.
         </div>
       </div>
     `
@@ -57,7 +58,7 @@ const EMAIL_TEMPLATES = [
         content: `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <div style="background: #111827; padding: 24px; text-align: center;">
-           <h2 style="color: white; margin: 0; font-size: 20px; letter-spacing: 1px;">Lennox Bank</h2>
+           <h2 style="color: white; margin: 0; font-size: 20px; letter-spacing: 1px;">${APP_CONFIG.BANK_NAME}</h2>
         </div>
         <div style="padding: 40px 30px;">
            <div style="text-align: center; margin-bottom: 25px;">
@@ -88,10 +89,10 @@ const EMAIL_TEMPLATES = [
               </div>
            </div>
            
-           <p style="color: #9ca3af; font-size: 13px; text-align: center; margin-top: 25px;">This transaction will appear on your statement as "Lennox Transfer".</p>
+           <p style="color: #9ca3af; font-size: 13px; text-align: center; margin-top: 25px;">This transaction will appear on your statement as "${APP_CONFIG.BRAND_NAME} Transfer".</p>
         </div>
         <div style="background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb;">
-           &copy; 2024 Lennox Bank. All rights reserved.
+           &copy; 2024 ${APP_CONFIG.BANK_NAME}. All rights reserved.
         </div>
       </div>
     `
@@ -158,7 +159,7 @@ const AdminCardReplica: React.FC<{ card: any, isDefault: boolean }> = ({ card, i
             <div className="absolute inset-0 p-3 md:p-4 flex flex-col justify-between text-white z-10">
                 <div className="flex justify-between items-start">
                     <div>
-                        <span className="font-bold text-[10px] md:text-xs tracking-tight block">Lennox</span>
+                        <span className="font-bold text-[10px] md:text-xs tracking-tight block">{APP_CONFIG.BRAND_NAME}</span>
                         <span className="text-[6px] text-xs opacity-70 uppercase tracking-widest">{isDefault ? 'System Root' : 'Node Asset'}</span>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -336,7 +337,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         maintenanceMode: false,
         forceTransactionFailure: false,
         allowRegistration: true,
-        siteName: 'Lennox Bank',
+        siteName: APP_CONFIG.BANK_NAME,
         siteLogo: '',
         enableDailyLimit: true,
         enableWeeklyLimit: true,
@@ -356,7 +357,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
     // Restore active section from localStorage on mount
     useEffect(() => {
-        const savedSection = localStorage.getItem('lennox_admin_section') as AdminSection | null;
+        const savedSection = localStorage.getItem(APP_CONFIG.STORAGE_PREFIX + 'admin_section') as AdminSection | null;
         if (savedSection && ['overview', 'users', 'transactions', 'requests', 'kyc', 'support_live', 'support_tickets', 'bank_management', 'email_templates', 'settings'].includes(savedSection)) {
             setActiveSection(savedSection);
         }
@@ -364,7 +365,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
     // Save active section to localStorage when it changes
     useEffect(() => {
-        localStorage.setItem('lennox_admin_section', activeSection);
+        localStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'admin_section', activeSection);
     }, [activeSection]);
 
     useEffect(() => {
@@ -404,8 +405,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             const formattedCards = Array.isArray(userCards) ? userCards : [];
             // Sort default cards first
             formattedCards.sort((a: any, b: any) => {
-                const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === 'Lennox Black';
-                const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === 'Lennox Black';
+                const defA = a.is_default == 1 || a.is_default === true || a.is_default == "1" || a.type === APP_CONFIG.PREMIUM_CARD_NAME;
+                const defB = b.is_default == 1 || b.is_default === true || b.is_default == "1" || b.type === APP_CONFIG.PREMIUM_CARD_NAME;
                 if (defA && !defB) return -1;
                 if (!defA && defB) return 1;
                 return 0;
@@ -479,7 +480,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     maintenanceMode: settings.maintenance_mode == "1" || settings.maintenance_mode == 1 || settings.maintenance_mode === true,
                     forceTransactionFailure: settings.disable_transactions == "1" || settings.disable_transactions == 1 || settings.disable_transactions === true,
                     allowRegistration: settings.allow_registration == "1" || settings.allow_registration == 1 || settings.allow_registration === true,
-                    siteName: settings.site_name || 'Lennox Bank',
+                    siteName: settings.site_name || APP_CONFIG.BANK_NAME,
                     siteLogo: settings.site_logo || '',
                     enableDailyLimit: settings.enable_daily_limit == "1" || settings.enable_daily_limit === 1 || settings.enable_daily_limit === true,
                     enableWeeklyLimit: settings.enable_weekly_limit == "1" || settings.enable_weekly_limit === 1 || settings.enable_weekly_limit === true,
@@ -1623,7 +1624,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-slate-500 uppercase">Card Type</label>
                                     <select value={adminAddCardForm.type} onChange={e => setAdminAddCardForm({ ...adminAddCardForm, type: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-xs text-white outline-none">
-                                        <option>VISA</option><option>Mastercard</option><option>Amex</option><option>Lennox Black</option>
+                                        <option>VISA</option><option>Mastercard</option><option>Amex</option><option>{APP_CONFIG.PREMIUM_CARD_NAME}</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1">
@@ -1956,10 +1957,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     <div className="flex items-center gap-2.5" onClick={() => handleSidebarClick('overview')}>
                         <img
                             src={globalConfig.siteLogo && globalConfig.siteLogo.trim() !== '' ? globalConfig.siteLogo : "https://image2url.com/r2/default/images/1769428285590-d43b30ba-a0ba-499f-a066-6411c1619f75.webp"}
-                            alt="Lennox"
+                            alt={APP_CONFIG.BRAND_NAME}
                             className="w-8 h-8 object-contain cursor-pointer"
                         />
-                        <h1 className="text-sm md:text-lg font-bold tracking-tight text-slate-900 dark:text-white uppercase cursor-pointer">Lennox Admin</h1>
+                        <h1 className="text-sm md:text-lg font-bold tracking-tight text-slate-900 dark:text-white uppercase cursor-pointer">{APP_CONFIG.BRAND_NAME} Admin</h1>
                     </div>
                     <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden p-1 text-slate-400"><span className="material-symbols-outlined">close</span></button>
                 </div>
@@ -2158,7 +2159,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                 <div className="flex overflow-x-auto gap-3 md:gap-6 pb-4 md:pb-8 custom-scrollbar snap-x px-1">
                                                     {selectedUserCards.map((card, idx) => (
                                                         <div key={card.id || idx} className="min-w-[220px] md:min-w-[280px] snap-start flex flex-col gap-2">
-                                                            <AdminCardReplica card={card} isDefault={card.is_default == "1" || card.is_default == 1 || card.is_default === true || card.type === 'Lennox Black'} />
+                                                            <AdminCardReplica card={card} isDefault={card.is_default == "1" || card.is_default == 1 || card.is_default === true || card.type === APP_CONFIG.PREMIUM_CARD_NAME} />
                                                             <div className="grid grid-cols-2 gap-2">
                                                                 <button onClick={() => setCardAction({ card, type: 'credit' })} className="py-2 bg-slate-200 dark:bg-slate-800 text-emerald-600 font-black uppercase text-[9px] rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors flex items-center justify-center gap-1"><Plus size={10} /> Fund</button>
                                                                 <button onClick={() => setCardAction({ card, type: 'debit' })} className="py-2 bg-slate-200 dark:bg-slate-800 text-red-600 font-black uppercase text-[9px] rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center justify-center gap-1"><Minus size={10} /> Debit</button>
@@ -3264,7 +3265,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                         </>
                     )}
                 </div>
-                <footer className="h-10 border-t border-slate-200 dark:border-[#233648] bg-white dark:bg-[#111a22] flex items-center justify-between px-2.5 md:px-8 text-[8px] md:text-[10px] font-black text-slate-400 dark:text-[#5c7288] uppercase tracking-[0.2em] shrink-0"><span>LENNOX SYSTEM MANAGEMENT</span><span className="hidden md:inline">CORE KERNEL V12.1.0</span></footer>
+                <footer className="h-10 border-t border-slate-200 dark:border-[#233648] bg-white dark:bg-[#111a22] flex items-center justify-between px-2.5 md:px-8 text-[8px] md:text-[10px] font-black text-slate-400 dark:text-[#5c7288] uppercase tracking-[0.2em] shrink-0"><span>{APP_CONFIG.BRAND_NAME.toUpperCase()} SYSTEM MANAGEMENT</span><span className="hidden md:inline">CORE KERNEL V12.1.0</span></footer>
             </main >
         </div >
     );

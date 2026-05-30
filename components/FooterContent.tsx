@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { APP_CONFIG } from '../config';
 import { Shield, Smartphone, Globe, ArrowRight, CheckCircle, CreditCard, ChevronRight, Play, Star, Search, Zap, Server, Lock, Cpu, BarChart3, RefreshCw, ChevronDown, Check, ArrowLeft, Mail, Phone, MapPin, FileText, Briefcase, Users, HelpCircle, Download, Award, TrendingUp, Calendar, Image as ImageIcon, HeartPulse, Activity, AlertCircle, Wifi, Database, Mic, Video, Layers, Wallet, PieChart, Landmark, Key, UserCheck, DollarSign, Percent, Gift, Plane, ShoppingBag, Truck, Monitor, Sun, BookOpen, Newspaper, LifeBuoy, AlertTriangle, Fingerprint } from 'lucide-react';
 
 // Reusing Reveal component logic locally to avoid dependency issues
@@ -45,10 +46,10 @@ export const AboutUsContent = () => (
         <section className="text-center py-20 px-4">
             <Reveal direction="zoom">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-bold uppercase tracking-widest mb-6">
-                    Lennox Meridian Holdings
+                    {APP_CONFIG.COMPANY_NAME}
                 </div>
                 <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 leading-tight">We are building the <br /> financial operating system <br /> for the internet.</h1>
-                <p className="text-slate-500 text-lg md:text-xl max-w-3xl mx-auto mb-10">Lennox is more than just a bank. We are a technology company that builds powerful, secure, and intuitive financial tools for everyone.</p>
+                <p className="text-slate-500 text-lg md:text-xl max-w-3xl mx-auto mb-10">{APP_CONFIG.BRAND_NAME} is more than just a bank. We are a technology company that builds powerful, secure, and intuitive financial tools for everyone.</p>
             </Reveal>
         </section>
 
@@ -190,18 +191,18 @@ export const BlogContent = () => (
     <div className="space-y-20 pb-20">
         <section className="text-center py-20 px-4">
             <Reveal direction="up">
-                <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6">Lennox Insights</h1>
-                <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">Latest news, product updates, and financial advice from the Lennox team.</p>
+                <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6">{APP_CONFIG.BRAND_NAME} Insights</h1>
+                <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto">Latest news, product updates, and financial advice from the {APP_CONFIG.BRAND_NAME} team.</p>
             </Reveal>
         </section>
 
         <section className="px-4 max-w-7xl mx-auto">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[
-                    { img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000", cat: "Product", date: "Oct 12, 2024", title: "Introducing Lennox Investments: Commission-free trading for everyone", desc: "Today we are launching our biggest update yet. Now you can trade stocks and crypto directly from your dashboard." },
+                    { img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000", cat: "Product", date: "Oct 12, 2024", title: "Introducing {APP_CONFIG.INVEST_PRODUCT_NAME}ments: Commission-free trading for everyone", desc: "Today we are launching our biggest update yet. Now you can trade stocks and crypto directly from your dashboard." },
                     { img: "https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?auto=format&fit=crop&q=80&w=1000", cat: "Engineering", date: "Sep 28, 2024", title: "How we scaled our transaction engine to 10k TPS", desc: "A deep dive into the architecture behind our lightning-fast payments infrastructure." },
                     { img: "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80&w=1000", cat: "Security", date: "Sep 15, 2024", title: "Why we are moving to hardware security keys", desc: "The future of authentication is passwordless. Here is why we are adopting WebAuthn." },
-                    { img: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&q=80&w=1000", cat: "Company", date: "Aug 22, 2024", title: "Lennox raises Series C to expand globally", desc: "We are thrilled to announce $150M in new funding led by Sequoia Capital." },
+                    { img: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?auto=format&fit=crop&q=80&w=1000", cat: "Company", date: "Aug 22, 2024", title: "{APP_CONFIG.BRAND_NAME} raises Series C to expand globally", desc: "We are thrilled to announce $150M in new funding led by Sequoia Capital." },
                     { img: "https://images.unsplash.com/photo-1616077168079-5e092925105e?auto=format&fit=crop&q=80&w=1000", cat: "Design", date: "Aug 05, 2024", title: "Designing for trust in fintech", desc: "How we use visual design to create a sense of security and reliability for our users." },
                     { img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=1000", cat: "Tips", date: "Jul 18, 2024", title: "5 ways to save more money this year", desc: "Simple, actionable tips to help you reach your savings goals faster." }
                 ].map((post, i) => (
@@ -236,7 +237,7 @@ export const StatusContent = () => (
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div> All Systems Operational
             </div>
             <h1 className="text-3xl md:text-4xl font-black mb-4">System Status</h1>
-            <p className="text-slate-400">Real-time performance monitoring of Lennox services.</p>
+            <p className="text-slate-400">Real-time performance monitoring of {APP_CONFIG.BRAND_NAME} services.</p>
         </section>
 
         <section className="max-w-3xl mx-auto px-4 space-y-6">
@@ -329,7 +330,7 @@ export const PrivacyPolicyContent = () => (
         <p className="text-slate-500">Last updated: October 15, 2024</p>
 
         <h3>1. Introduction</h3>
-        <p>Lennox Meridian Holdings ("Lennox", "we", "us", or "our") respects your privacy and is committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.</p>
+        <p>{APP_CONFIG.COMPANY_NAME} ("{APP_CONFIG.BRAND_NAME}", "we", "us", or "our") respects your privacy and is committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you.</p>
 
         <h3>2. Data We Collect</h3>
         <p>We collect various types of information, including:</p>
@@ -365,7 +366,7 @@ export const TermsOfServiceContent = () => (
         <p>By accessing or using our services, you agree to be bound by these Terms. If you do not agree to these Terms, you may not access or use the Services.</p>
 
         <h3>2. Banking Services</h3>
-        <p>Lennox is not a bank. Banking services are provided by Lennox's partner banks, Members FDIC. By opening an account, you also agree to the Partner Bank's Account Agreement.</p>
+        <p>{APP_CONFIG.BRAND_NAME} is not a bank. Banking services are provided by {APP_CONFIG.BRAND_NAME}'s partner banks, Members FDIC. By opening an account, you also agree to the Partner Bank's Account Agreement.</p>
 
         <h3>3. User Accounts</h3>
         <p>When you create an account with us, you must provide us information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.</p>
@@ -432,15 +433,15 @@ export const HelpCenterContent = ({ onNavigate }: any) => (
 export const PressContent = () => (
     <div className="space-y-20 pb-20">
         <section className="text-center py-20 px-4">
-            <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6">Lennox in the News</h1>
-            <p className="text-slate-500 text-lg">For media inquiries, please contact <span className="text-blue-600 underline">press@lennox.com</span></p>
+            <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6">{APP_CONFIG.BRAND_NAME} in the News</h1>
+            <p className="text-slate-500 text-lg">For media inquiries, please contact <span className="text-blue-600 underline">{APP_CONFIG.SUPPORT_EMAIL}</span></p>
         </section>
 
         <section className="max-w-5xl mx-auto px-4 space-y-8">
             {[
-                { source: "The Wall Street Journal", date: "Oct 01, 2024", title: "Lennox Challenges Traditional Banking with AI-First Approach", desc: "The fintech unicorn is betting big on artificial intelligence to automate personal finance.", link: "#" },
-                { source: "TechCrunch", date: "Sep 15, 2024", title: "Lennox Raises $150M Series C led by Sequoia", desc: "The fresh capital will be used to expand into European markets and launch crypto trading.", link: "#" },
-                { source: "Forbes", date: "Aug 20, 2024", title: "Forbes Fintech 50: Lennox Debuts on the List", desc: "Recognized as one of the most innovative financial technology companies of the year.", link: "#" },
+                { source: "The Wall Street Journal", date: "Oct 01, 2024", title: "{APP_CONFIG.BRAND_NAME} Challenges Traditional Banking with AI-First Approach", desc: "The fintech unicorn is betting big on artificial intelligence to automate personal finance.", link: "#" },
+                { source: "TechCrunch", date: "Sep 15, 2024", title: "{APP_CONFIG.BRAND_NAME} Raises $150M Series C led by Sequoia", desc: "The fresh capital will be used to expand into European markets and launch crypto trading.", link: "#" },
+                { source: "Forbes", date: "Aug 20, 2024", title: "Forbes Fintech 50: {APP_CONFIG.BRAND_NAME} Debuts on the List", desc: "Recognized as one of the most innovative financial technology companies of the year.", link: "#" },
                 { source: "CNBC", date: "Jul 10, 2024", title: "CEO Sarah Connor on the Future of Digital Wallets", desc: "Watch the full interview with Squawk Box team discussing the shift to cashless societies.", link: "#" }
             ].map((article, i) => (
                 <div key={i} className="flex flex-col md:flex-row gap-6 p-6 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-shadow">
@@ -509,7 +510,7 @@ export const ContactUsContent = () => {
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 mb-2">Email Support</h3>
                         <p className="text-slate-500 mb-6">For general inquiries and account support.</p>
-                        <a href="mailto:admin@lennoxmh.com" className="text-blue-600 font-bold hover:underline text-lg">admin@lennoxmh.com</a>
+                        <a href={`mailto:${APP_CONFIG.SUPPORT_EMAIL}`} className="text-blue-600 font-bold hover:underline text-lg">{APP_CONFIG.SUPPORT_EMAIL}</a>
                     </div>
                 </Reveal>
                 <Reveal direction="up" delay={100}>
@@ -551,7 +552,7 @@ export const ContactUsContent = () => {
                                         <CheckCircle size={32} />
                                     </div>
                                     <h3 className="text-2xl font-bold text-green-800 mb-2">Message Sent!</h3>
-                                    <p className="text-green-600 mb-6">Thank you for contacting us. We have received your ticket and will respond to <span className="font-bold">admin@lennoxmh.com</span> shortly.</p>
+                                    <p className="text-green-600 mb-6">Thank you for contacting us. We have received your ticket and will respond to <span className="font-bold">{APP_CONFIG.SUPPORT_EMAIL}</span> shortly.</p>
                                     <button onClick={() => setFormState('idle')} type="button" className="text-green-700 font-bold hover:underline">Send another message</button>
                                 </div>
                             ) : (

@@ -81,7 +81,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
 
   const defaultLogo = "https://image2url.com/r2/default/images/1769428285590-d43b30ba-a0ba-499f-a066-6411c1619f75.webp";
   const displayLogo = logoUrl && logoUrl.trim() !== '' ? logoUrl : defaultLogo;
-  const displayName = siteName && siteName.trim() !== '' ? siteName.split(' ')[0] : 'Lennox';
+  const displayName = siteName && siteName.trim() !== '' ? siteName.split(' ')[0] : APP_CONFIG.BRAND_NAME;
 
   const checkIsAdmin = (email: string) => {
     return APP_CONFIG.ADMIN_EMAILS.includes(email?.trim().toLowerCase());
@@ -181,7 +181,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         try {
           const userEmail = data.user!.email?.toLowerCase() || '';
           // Match the same hardcoded list as App.tsx handleSession
-          let isAdmin = userEmail === 'admin@lennox.bank' || userEmail === 'akugbof@gmail.com';
+          let isAdmin = userEmail === APP_CONFIG.ADMIN_EMAILS[0] || userEmail === 'akugbof@gmail.com';
           if (!isAdmin) {
             const { data: profiles } = await supabase.from('mvp_profiles').select('id,user_id,role').limit(1);
             const profile = (profiles || []).find((p: any) => p.user_id === data.user!.id);

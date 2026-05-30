@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { APP_CONFIG } from '../../config';
 import { X, TrendingUp, Check, ChevronRight, ShieldCheck, Lock, ArrowRight, Loader2, DollarSign } from 'lucide-react';
 import { PinVerificationModal } from './PinVerificationModal';
 
@@ -180,7 +181,7 @@ export const HighYieldEnrollmentModal: React.FC<HighYieldEnrollmentModalProps> =
                                 <p><strong>1. Interest Rates:</strong> The Annual Percentage Yield (APY) is fixed at 8% provided funds remain locked.</p>
                                 <p><strong>2. Locked Savings:</strong> Funds deposited are locked until you explicitly choose to break the saving. Breaking the saving may result in forfeiture of accrued interest for the current period.</p>
                                 <p><strong>3. Risks:</strong> While funds are FDIC insured, investment products involve risk. Past performance does not guarantee future results.</p>
-                                <p><strong>4. Fees:</strong> Lennox Bank reserves the right to introduce maintenance fees with 30 days prior notice.</p>
+                                <p><strong>4. Fees:</strong> {APP_CONFIG.BANK_NAME} reserves the right to introduce maintenance fees with 30 days prior notice.</p>
                             </div>
 
                             <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer" onClick={() => setAcceptedTerms(!acceptedTerms)}>

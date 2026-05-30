@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { APP_CONFIG } from '../config';
 import { Shield, Smartphone, Globe, ArrowRight, CheckCircle, CreditCard, ChevronRight, Play, Star, Search, Zap, Server, Lock, Cpu, BarChart3, RefreshCw, ChevronDown, Check, ArrowLeft, Mail, Phone, MapPin, FileText, Briefcase, Users, HelpCircle, Download, Award, TrendingUp, Calendar, Image as ImageIcon, HeartPulse, Activity, AlertCircle, Wifi, Database, Mic, Video, Layers, Wallet, PieChart, Landmark, Key, UserCheck, DollarSign, Percent, Gift, Plane, ShoppingBag, Truck, Monitor, Sun, EyeOff } from 'lucide-react';
 
 // Reusing Reveal component logic locally to avoid dependency issues
@@ -69,7 +70,7 @@ export const CheckingContent = ({ onNavigate }: { onNavigate: (path: string) => 
         <section className="relative bg-slate-900 text-white py-20 md:py-32 rounded-3xl overflow-hidden px-6 md:px-12 text-center">
             <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
             <Reveal direction="up">
-                <span className="inline-block py-1 px-3 rounded-full bg-blue-500/20 text-blue-300 text-xs font-bold uppercase tracking-widest mb-6 border border-blue-500/30">Lennox Checking</span>
+                <span className="inline-block py-1 px-3 rounded-full bg-blue-500/20 text-blue-300 text-xs font-bold uppercase tracking-widest mb-6 border border-blue-500/30">{APP_CONFIG.CHECKING_PRODUCT_NAME}</span>
                 <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">Banking built for <br /> the modern world.</h1>
                 <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">Zero fees. Instant transfers. Global access. Experience checking reinvented.</p>
                 <button onClick={() => onNavigate('signup')} className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-blue-500/25">Open Free Account</button>
@@ -92,7 +93,7 @@ export const CheckingContent = ({ onNavigate }: { onNavigate: (path: string) => 
                 <Reveal direction="right">
                     <span className="text-blue-600 font-bold uppercase tracking-widest text-xs mb-2 block">Available Early</span>
                     <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-6">Get paid up to 2 days faster.</h2>
-                    <p className="text-slate-600 mb-8 leading-relaxed">Stop waiting for your paycheck. With Lennox Early Direct Deposit, we release your funds as soon as we receive the notification from the Federal Reserve.</p>
+                    <p className="text-slate-600 mb-8 leading-relaxed">Stop waiting for your paycheck. With {APP_CONFIG.BRAND_NAME} Early Direct Deposit, we release your funds as soon as we receive the notification from the Federal Reserve.</p>
                     <ul className="space-y-3">
                         {['No hidden fees', 'Automatic enrollment', 'Same security standards'].map(item => (
                             <li key={item} className="flex items-center gap-3 text-slate-700 font-medium"><CheckCircle size={18} className="text-emerald-500" /> {item}</li>
@@ -110,7 +111,7 @@ export const CheckingContent = ({ onNavigate }: { onNavigate: (path: string) => 
                                 <p className="font-bold text-slate-900 text-lg">+$3,450.00</p>
                             </div>
                         </div>
-                        <p className="text-xs text-slate-500 font-medium">Deposited 2 days early via Lennox Early Access.</p>
+                        <p className="text-xs text-slate-500 font-medium">Deposited 2 days early via {APP_CONFIG.BRAND_NAME} Early Access.</p>
                     </div>
                 </Reveal>
             </div>
@@ -148,7 +149,7 @@ export const CheckingContent = ({ onNavigate }: { onNavigate: (path: string) => 
         {/* 5. Comparison Table */}
         <section className="bg-slate-900 text-white rounded-3xl p-8 md:p-16">
             <div className="text-center mb-12">
-                <h2 className="text-3xl font-black mb-4">Lennox vs The Old Banks</h2>
+                <h2 className="text-3xl font-black mb-4">{APP_CONFIG.BRAND_NAME} vs The Old Banks</h2>
                 <p className="text-slate-400">See why thousands make the switch every day.</p>
             </div>
             <div className="overflow-x-auto">
@@ -156,7 +157,7 @@ export const CheckingContent = ({ onNavigate }: { onNavigate: (path: string) => 
                     <thead>
                         <tr className="border-b border-slate-700 text-slate-400 text-xs uppercase tracking-widest">
                             <th className="py-4 px-4">Feature</th>
-                            <th className="py-4 px-4 text-white font-bold">Lennox Checking</th>
+                            <th className="py-4 px-4 text-white font-bold">{APP_CONFIG.CHECKING_PRODUCT_NAME}</th>
                             <th className="py-4 px-4 opacity-50">Traditional Banks</th>
                         </tr>
                     </thead>
@@ -185,7 +186,7 @@ export const CheckingContent = ({ onNavigate }: { onNavigate: (path: string) => 
                 <Shield size={48} className="mx-auto text-emerald-500 mb-6" />
                 <h2 className="text-2xl font-bold text-slate-900 mb-4">Your money is safe here.</h2>
                 <p className="text-slate-500 leading-relaxed">
-                    Lennox is a financial technology company, not a bank. Banking services provided by Lennox's bank partners, Members FDIC. Your funds are FDIC insured up to $250,000 through our partner banks.
+                    {APP_CONFIG.BRAND_NAME} is a financial technology company, not a bank. Banking services provided by {APP_CONFIG.BRAND_NAME}'s bank partners, Members FDIC. Your funds are FDIC insured up to $250,000 through our partner banks.
                 </p>
             </Reveal>
         </section>
@@ -253,7 +254,7 @@ export const SavingsContent = ({ onNavigate }: { onNavigate: (path: string) => v
                             </div>
                         </div>
                     </div>
-                    <p className="text-center text-sm text-slate-500 font-medium">Lennox Savings vs Traditional Savings</p>
+                    <p className="text-center text-sm text-slate-500 font-medium">{APP_CONFIG.BRAND_NAME} Savings vs Traditional Savings</p>
                 </div>
             </div>
         </section>
@@ -286,7 +287,7 @@ export const CreditCardsContent = ({ onNavigate }: { onNavigate: (path: string) 
         <section className="relative bg-black text-white py-20 md:py-32 rounded-3xl overflow-hidden px-6 md:px-12 text-center">
             <div className="absolute inset-0 bg-gradient-to-tr from-purple-900/50 to-blue-900/50"></div>
             <Reveal direction="up">
-                <span className="inline-block py-1 px-3 rounded-full bg-slate-800 text-slate-300 text-xs font-bold uppercase tracking-widest mb-6 border border-slate-700">Lennox Elite</span>
+                <span className="inline-block py-1 px-3 rounded-full bg-slate-800 text-slate-300 text-xs font-bold uppercase tracking-widest mb-6 border border-slate-700">{APP_CONFIG.SAVINGS_PRODUCT_NAME}</span>
                 <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">The card that pays <br /> you back.</h1>
                 <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">Unlimited 2% cash back on everything. Premium travel rewards. No annual fees.</p>
                 <button onClick={() => onNavigate('signup')} className="bg-white hover:bg-slate-100 text-black px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-white/10">Apply Now</button>
@@ -298,7 +299,7 @@ export const CreditCardsContent = ({ onNavigate }: { onNavigate: (path: string) 
             <FeatureGrid items={[
                 { icon: Percent, title: "Unlimited 2% Cash Back", desc: "Earn 2% cash back on every single purchase, every single day. No categories to track." },
                 { icon: Plane, title: "No Foreign Transaction Fees", desc: "Travel freely. We never charge swift fees or foreign exchange markups when you spend abroad." },
-                { icon: Shield, title: "Purchase Protection", desc: "Items bought with your Lennox card are automatically insured against theft and accidental damage for 120 days." }
+                { icon: Shield, title: "Purchase Protection", desc: "Items bought with your {APP_CONFIG.BRAND_NAME} card are automatically insured against theft and accidental damage for 120 days." }
             ]} />
         </section>
 
@@ -307,7 +308,7 @@ export const CreditCardsContent = ({ onNavigate }: { onNavigate: (path: string) 
                 <div className="flex-1">
                     <Reveal direction="right">
                         <h2 className="text-3xl md:text-4xl font-black mb-6">Metal by design.</h2>
-                        <p className="text-slate-400 mb-8 leading-relaxed">Crafted from a single sheet of reinforced stainless steel, the Lennox Elite card feels as powerful as it performs. Weighing in at 18g, it makes a statement every time you use it.</p>
+                        <p className="text-slate-400 mb-8 leading-relaxed">Crafted from a single sheet of reinforced stainless steel, the {APP_CONFIG.SAVINGS_PRODUCT_NAME} card feels as powerful as it performs. Weighing in at 18g, it makes a statement every time you use it.</p>
                         <ul className="space-y-4">
                             <li className="flex items-center gap-3 font-bold text-slate-300"><CheckCircle className="text-purple-500" /> Laser engraved details</li>
                             <li className="flex items-center gap-3 font-bold text-slate-300"><CheckCircle className="text-purple-500" /> Minimalist front design</li>
@@ -370,7 +371,7 @@ export const InvestmentsContent = ({ onNavigate }: { onNavigate: (path: string) 
     <div className="space-y-20 pb-20">
         <section className="relative bg-slate-50 py-20 md:py-32 rounded-3xl overflow-hidden px-6 md:px-12 text-center border border-slate-200">
             <Reveal direction="up">
-                <span className="inline-block py-1 px-3 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold uppercase tracking-widest mb-6">Lennox Invest</span>
+                <span className="inline-block py-1 px-3 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold uppercase tracking-widest mb-6">{APP_CONFIG.INVEST_PRODUCT_NAME}</span>
                 <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 leading-tight">Investing made <br /> accessible.</h1>
                 <p className="text-slate-500 text-lg md:text-xl max-w-2xl mx-auto mb-10">Stocks, Crypto, and ETFs. Commission-free and all in one place.</p>
                 <button onClick={() => onNavigate('signup')} className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all shadow-lg shadow-indigo-600/25">Start Investing</button>
@@ -439,7 +440,7 @@ export const InvestmentsContent = ({ onNavigate }: { onNavigate: (path: string) 
 
         <section className="bg-gray-900 text-white rounded-3xl p-8 md:p-20 text-center">
             <h2 className="text-3xl md:text-5xl font-black mb-8">Start your journey.</h2>
-            <p className="text-gray-400 text-sm max-w-xl mx-auto mb-8">Investing involves risk, including possible loss of principal. Lennox Invest LLC is a member of SIPC, which protects securities customers of its members up to $500,000.</p>
+            <p className="text-gray-400 text-sm max-w-xl mx-auto mb-8">Investing involves risk, including possible loss of principal. {APP_CONFIG.LEGAL_ENTITY} is a member of SIPC, which protects securities customers of its members up to $500,000.</p>
             <button onClick={() => onNavigate('signup')} className="bg-indigo-600 text-white px-10 py-4 rounded-xl font-bold text-lg shadow-xl hover:bg-indigo-700 transition-all">Open Investment Account</button>
         </section>
     </div>

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { APP_CONFIG } from '../config';
 import { ArrowLeft, Shield, Lock, FileText, CheckCircle } from 'lucide-react';
 
 const PolicySection = ({ title, children }: { title: string, children?: React.ReactNode }) => (
@@ -34,7 +35,7 @@ export const PrivacyPolicy = ({ onBack }: { onBack: () => void }) => {
                     <div>
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">We value your privacy</h3>
                         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Lennox Bank is committed to maintaining the confidentiality, integrity, and security of your personal information. This Privacy Policy describes how we collect, use, and share your personal data.
+                            {APP_CONFIG.BANK_NAME} is committed to maintaining the confidentiality, integrity, and security of your personal information. This Privacy Policy describes how we collect, use, and share your personal data.
                         </p>
                     </div>
                 </div>

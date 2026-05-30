@@ -1,5 +1,6 @@
 
 import html2canvas from 'html2canvas';
+import { APP_CONFIG } from '../config';
 
 export const shareReceipt = async (elementId: string, fileName: string = 'receipt.png') => {
   try {
@@ -30,7 +31,7 @@ export const shareReceipt = async (elementId: string, fileName: string = 'receip
         await nav.share({
           files: [file],
           title: 'Transaction Receipt',
-          text: 'Here is the transaction receipt from Lennox Bank.'
+          text: 'Here is the transaction receipt from {APP_CONFIG.BANK_NAME}.'
         });
     } else {
         // Force error to trigger fallback for browsers without share API support

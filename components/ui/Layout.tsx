@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { APP_CONFIG } from '../config';
 import {
   LayoutDashboard, Wallet, CreditCard, PieChart, MessageSquare,
   User, Settings, LogOut, Bell, Search, Command, TrendingUp, X, Check, Clock,
@@ -92,7 +93,7 @@ const getTimeAgo = (dateStr: string | number | Date | undefined) => {
 export const Layout: React.FC<LayoutProps> = ({
   children, currentPath, onNavigate, onLogout, user, isDarkMode, toggleTheme, isModalOpen,
   notifications = [], onMarkRead, onClearNotifications, messageBadge = 0, supportBadge = 0,
-  notificationsSynced = true, logoUrl, siteName = 'Lennox Bank'
+  notificationsSynced = true, logoUrl, siteName = '{APP_CONFIG.BANK_NAME}'
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
