@@ -2681,37 +2681,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                     <ShieldX size={16} /> Danger Zone
                                                 </h4>
                                                 <p className="text-xs text-red-800 dark:text-red-300 mt-2 max-w-md leading-relaxed">
-                                                    Purging this identity will remove all ledger entries, KYC documents, and authentication credentials. This action cannot be undone.
+                                                    Critical actions that restrict or permanently remove this identity from the system.
                                                 </p>
                                             </div>
-                                            {deleteConfirmStep === 0 ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setDeleteConfirmStep(1)}
-                                                    className="px-6 py-3 bg-white dark:bg-red-950 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 font-black uppercase text-[10px] rounded-xl hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors shadow-sm whitespace-nowrap"
-                                                >
-                                                    Delete Identity
-                                                </button>
-                                            ) : (
-                                                <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-wrap justify-end">
+                                                {deleteConfirmStep === 0 && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => setDeleteConfirmStep(0)}
-                                                        className="px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold uppercase text-[10px] rounded-xl hover:bg-slate-200 transition-colors"
+                                                        onClick={async () => {
+                                                            if (!selectedUser) return;
+                                                            const actionKey = 'toggle_suspension_danger';
+                                                            setIsActionLoading(actionKey);
+                                                            try {
+                                                                const isSuspended = selectedUser.is_suspended == "1" || selectedUser.is_suspended == 1 || selectedUser.is_suspended === true;
+                                                                const newStatus = !isSuspended;
+                                                                const { error: suspErr } = await supabaseAdmin.from('mvp_profiles').update({ is_suspended: newStatus ? 1 : 0 }).eq('id', selectedUser.id);
+                                                                if (suspErr) throw new Error(suspErr.message);
+                                                                setSelectedUser({ ...selectedUser, is_suspended: newStatus });
+                                                                setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, is_suspended: newStatus ? 1 : 0 } : u));
+                                                                setSuccessMsg(newStatus ? "Identity Suspended" : "Identity Restored");
+                                                                setTimeout(() => setSuccessMsg(null), 3000);
+                                                            } catch (err: any) { setErrorMsg(err.message); }
+                                                            finally { setIsActionLoading(null); }
+                                                        }}
+                                                        disabled={isActionLoading === 'toggle_suspension_danger'}
+                                                        className={`px-6 py-3 font-black uppercase text-[10px] rounded-xl transition-colors shadow-sm whitespace-nowrap flex items-center justify-center gap-2 disabled:opacity-50 ${selectedUser.is_suspended == "1" || selectedUser.is_suspended == 1 || selectedUser.is_suspended === true ? 'bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40' : 'bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40'}`}
                                                     >
-                                                        Cancel
+                                                        {isActionLoading === 'toggle_suspension_danger' ? <Loader2 size={14} className="animate-spin" /> : <ShieldAlert size={14} />}
+                                                        {selectedUser.is_suspended == "1" || selectedUser.is_suspended == 1 || selectedUser.is_suspended === true ? 'Unsuspend Identity' : 'Suspend Identity'}
                                                     </button>
+                                                )}
+                                                {deleteConfirmStep === 0 ? (
                                                     <button
                                                         type="button"
-                                                        onClick={handleDeleteUser}
-                                                        disabled={isActionLoading === 'delete_user'}
-                                                        className="px-6 py-3 bg-red-600 text-white font-black uppercase text-[10px] rounded-xl hover:bg-red-700 transition-colors shadow-lg flex items-center justify-center gap-2"
+                                                        onClick={() => setDeleteConfirmStep(1)}
+                                                        className="px-6 py-3 bg-white dark:bg-red-950 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 font-black uppercase text-[10px] rounded-xl hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors shadow-sm whitespace-nowrap"
                                                     >
-                                                        {isActionLoading === 'delete_user' ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                                                        Confirm Purge
+                                                        Delete Identity
                                                     </button>
-                                                </div>
-                                            )}
+                                                ) : (
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setDeleteConfirmStep(0)}
+                                                            className="px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold uppercase text-[10px] rounded-xl hover:bg-slate-200 transition-colors"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleDeleteUser}
+                                                            disabled={isActionLoading === 'delete_user'}
+                                                            className="px-6 py-3 bg-red-600 text-white font-black uppercase text-[10px] rounded-xl hover:bg-red-700 transition-colors shadow-lg flex items-center justify-center gap-2"
+                                                        >
+                                                            {isActionLoading === 'delete_user' ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                                            Confirm Purge
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

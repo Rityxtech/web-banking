@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Lock, Loader2, CheckCircle, AlertCircle, ArrowLeft, User, Phone, MapPin, ChevronDown, Eye, EyeOff, RefreshCw, ShieldAlert, UserX, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Mail, Lock, Loader2, CheckCircle, AlertCircle, ArrowLeft, User, Phone, MapPin, ChevronDown, Eye, EyeOff, RefreshCw, ShieldAlert, UserX, ArrowRight, AlertTriangle, MessageSquare } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
@@ -13,6 +13,7 @@ interface AuthProps {
   allowSignup?: boolean;
   maintenanceMode?: boolean;
   showMaintenanceModal?: boolean;
+  showSuspendedModal?: boolean;
   logoUrl?: string;
   siteName?: string;
   onAuthSuccess: () => void;
@@ -32,7 +33,7 @@ const GoogleLogo = () => (
 
 type AuthView = 'signin' | 'signup' | 'verify_otp' | 'forgot_password' | 'reset_password';
 
-export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '', allowSignup = true, maintenanceMode = false, showMaintenanceModal: propShowModal = false, logoUrl, siteName, onAuthSuccess, onAdminBypass, onSwitch, onShowMaintenance }) => {
+export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '', allowSignup = true, maintenanceMode = false, showMaintenanceModal: propShowModal = false, showSuspendedModal: propShowSuspendedModal = false, logoUrl, siteName, onAuthSuccess, onAdminBypass, onSwitch, onShowMaintenance }) => {
   const [currentView, setCurrentView] = useState<AuthView>(type);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(authFeedback || '');
@@ -44,12 +45,22 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
   // Maintenance modal state - controlled by parent prop or local state
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(propShowModal);
 
+  // Suspended modal state - controlled by parent prop or local state
+  const [showSuspendedModal, setShowSuspendedModal] = useState(propShowSuspendedModal);
+
   // Sync with parent prop when it changes
   useEffect(() => {
     if (propShowModal) {
       setShowMaintenanceModal(true);
     }
   }, [propShowModal]);
+
+  // Sync suspended modal with parent prop
+  useEffect(() => {
+    if (propShowSuspendedModal) {
+      setShowSuspendedModal(true);
+    }
+  }, [propShowSuspendedModal]);
 
   // Waitlist State
   const [waitlistEmail, setWaitlistEmail] = useState('');
@@ -660,6 +671,37 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
               </div>
               <button
                 onClick={() => setShowMaintenanceModal(false)}
+                className="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
+              >
+                I Understand
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Account Suspended Modal */}
+      {showSuspendedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111a22] rounded-2xl border border-red-500/50 p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-center mb-6">
+              <div className="p-4 bg-red-500/20 rounded-full">
+                <ShieldAlert className="text-red-500" size={40} />
+              </div>
+            </div>
+            <h2 className="text-xl font-black text-center text-slate-900 dark:text-white uppercase tracking-tight mb-2">Account Suspended</h2>
+            <p className="text-sm text-center text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+              We&apos;re unable to sign you in. Your account has been suspended. Please contact support for assistance.
+            </p>
+            <div className="space-y-3">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                <p className="text-xs text-red-800 dark:text-red-400 font-medium flex items-center gap-2">
+                  <MessageSquare size={14} />
+                  <span>Reach out to our support team to resolve this issue.</span>
+                </p>
+              </div>
+              <button
+                onClick={() => setShowSuspendedModal(false)}
                 className="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
               >
                 I Understand

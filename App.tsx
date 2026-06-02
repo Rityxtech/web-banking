@@ -494,6 +494,7 @@ function App() {
     const [isSuspended, setIsSuspended] = useState(false);
     const [forceMaintenance, setForceMaintenance] = useState(false);
     const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+    const [showSuspendedModal, setShowSuspendedModal] = useState(false);
 
     const [currentView, setCurrentView] = useState<'home' | 'signin' | 'signup' | 'admin_login'>(() => {
         const hash = window.location.hash.substring(1);
@@ -1030,6 +1031,26 @@ function App() {
                 }
                 localStorage.removeItem('lennox_auth_intent');
 
+                // Check if user is suspended - block login immediately
+                try {
+                    const { data: suspProfiles } = await supabase
+                        .from('mvp_profiles')
+                        .select('is_suspended')
+                        .eq('user_id', session.user.id)
+                        .limit(1);
+                    const suspProfile = suspProfiles?.[0];
+                    const isUserSuspended = suspProfile?.is_suspended == "1" || suspProfile?.is_suspended == 1 || suspProfile?.is_suspended === true;
+                    if (isUserSuspended) {
+                        await supabase.auth.signOut();
+                        setShowSuspendedModal(true);
+                        setCurrentView('signin');
+                        setLoadingAuth(false);
+                        return;
+                    }
+                } catch (err) {
+                    console.error('[Auth] Suspension check error:', err);
+                }
+
                 const hasPin = session.user.user_metadata?.pin;
                 if (!hasPin) {
                     setIsAccountIncomplete(true);
@@ -1364,7 +1385,7 @@ function App() {
             if (e) setPrefilledEmail(e);
         }} />;
         // Pass authErrorMessage to Auth component so it can display "Account not found..."
-        return <Auth logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} showMaintenanceModal={showMaintenanceModal} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => { setShowMaintenanceModal(false); window.location.hash = view; }} onShowMaintenance={() => { setShowMaintenanceModal(true); }} />;
+        return <Auth logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} showMaintenanceModal={showMaintenanceModal} showSuspendedModal={showSuspendedModal} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => { setShowMaintenanceModal(false); setShowSuspendedModal(false); window.location.hash = view; }} onShowMaintenance={() => { setShowMaintenanceModal(true); }} />;
     }
 
     if (isAdminMode) return (
