@@ -2188,7 +2188,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                         <img
                             src={globalConfig.siteLogo && globalConfig.siteLogo.trim() !== '' ? globalConfig.siteLogo : "https://image2url.com/r2/default/images/1769428285590-d43b30ba-a0ba-499f-a066-6411c1619f75.webp"}
                             alt={globalConfig.siteName}
-                            className="w-8 h-8 object-contain cursor-pointer"
+                            className="w-8 h-8 object-contain cursor-pointer rounded-full"
                         />
                         <h1 className="text-sm md:text-lg font-bold tracking-tight text-slate-900 dark:text-white uppercase cursor-pointer">{globalConfig.siteName || APP_CONFIG.BRAND_NAME} Admin</h1>
                     </div>
@@ -3352,7 +3352,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                         <div className="flex items-center gap-4">
                                                             <div className="size-16 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0">
                                                                 {globalConfig.siteLogo ? (
-                                                                    <img src={globalConfig.siteLogo} alt="Site Logo" className="max-w-full max-h-full object-contain" />
+                                                                    <img src={globalConfig.siteLogo} alt="Site Logo" className="max-w-full max-h-full object-contain rounded-full" />
                                                                 ) : (
                                                                     <ImageIcon size={24} className="text-slate-400" />
                                                                 )}

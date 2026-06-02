@@ -445,7 +445,7 @@ const AdminLoginScreen = ({ logoUrl, siteName, onBack }: { logoUrl?: string, sit
                         <img
                             src={displayLogo}
                             alt={displayName}
-                            className="w-12 h-12 mx-auto mb-3 object-contain drop-shadow-lg"
+                            className="w-12 h-12 mx-auto mb-3 object-contain drop-shadow-lg rounded-full"
                             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                         />
                         <h1 className="text-lg font-bold text-white tracking-tight drop-shadow-md">Staff Access</h1>

@@ -180,7 +180,7 @@ export const Layout: React.FC<LayoutProps> = ({
             <img
               src={displayLogo}
               alt={siteName}
-              className="w-8 h-8 object-contain"
+              className="w-8 h-8 object-contain rounded-full"
               onError={(e) => { (e.target as HTMLImageElement).src = defaultLogo; }}
             />
             <span className="text-xl font-bold text-blue-900 dark:text-white md:text-slate-900 md:dark:text-white tracking-tight">{siteName}</span>

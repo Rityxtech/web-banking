@@ -532,7 +532,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
             <img
               src={displayLogo}
               alt={displayName}
-              className="w-12 h-12 mx-auto mb-3 object-contain drop-shadow-lg"
+              className="w-12 h-12 mx-auto mb-3 object-contain drop-shadow-lg rounded-full"
               onError={(e) => { (e.target as HTMLImageElement).src = defaultLogo; }}
             />
             <h1 className="text-lg font-bold text-white tracking-tight drop-shadow-md">{currentView === 'signin' ? 'Welcome Back' : currentView === 'signup' ? 'Create Account' : currentView === 'forgot_password' ? 'Reset Password' : 'Check Your Email'}</h1>

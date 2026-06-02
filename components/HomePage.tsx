@@ -209,7 +209,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl, siteNam
                      <img
                         src={displayLogo}
                         alt={displayName}
-                        className="w-8 h-8 object-contain"
+                        className="w-8 h-8 object-contain rounded-full"
                         onError={(e) => { (e.target as HTMLImageElement).src = defaultLogo; }}
                      />
                      <span className="text-lg md:text-xl font-bold tracking-tight uppercase">{displayName}</span>
@@ -589,7 +589,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, logoUrl, siteNam
                         <img
                            src={displayLogo}
                            alt={displayName}
-                           className="w-8 h-8 object-contain"
+                           className="w-8 h-8 object-contain rounded-full"
                            onError={(e) => { (e.target as HTMLImageElement).src = defaultLogo; }}
                         />
                         <span className="text-xl font-bold tracking-tight uppercase">{displayName}</span>
