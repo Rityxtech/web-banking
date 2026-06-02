@@ -491,7 +491,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         fromDate: '',
         toDate: '',
         count: '',
-        type: 'Deposit'
+        type: ['Top up']
     });
 
     // Transaction Edit State
@@ -1009,6 +1009,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             setErrorMsg("Please select both from and to dates.");
             return;
         }
+        if (!txGenerator.type || txGenerator.type.length === 0) {
+            setErrorMsg("Please select at least one transaction type.");
+            return;
+        }
 
         setIsActionLoading('generate_tx');
         try {
@@ -1024,7 +1028,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 'Shopping': { type: 'Purchase', category: 'Shopping', isExpense: true },
                 'Groceries': { type: 'Purchase', category: 'Groceries', isExpense: true }
             };
-            const config = typeMap[txGenerator.type] || typeMap['Top up'];
+            const selectedTypes = txGenerator.type;
+            const pickType = () => selectedTypes[Math.floor(Math.random() * selectedTypes.length)];
             const fromTime = new Date(txGenerator.fromDate).getTime();
             const toTime = new Date(txGenerator.toDate).getTime();
 
@@ -1032,6 +1037,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             let totalDelta = 0;
 
             for (let i = 0; i < count; i++) {
+                const picked = pickType();
+                const config = typeMap[picked] || typeMap['Top up'];
                 const rawAmt = Math.random() * (max - min) + min;
                 const amount = config.isExpense ? -rawAmt : rawAmt;
                 const randomDate = new Date(fromTime + Math.random() * (toTime - fromTime));
@@ -1041,7 +1048,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     user_id: selectedUser.user_id,
                     account_id: selectedUserAccount?.id || null,
                     amount: Number(amount.toFixed(2)),
-                    description: `${txGenerator.type} - Auto Generated`,
+                    description: `${picked} - Auto Generated`,
                     merchant: null,
                     type: config.type,
                     category: config.category,
@@ -2487,20 +2494,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                         <label className="text-[9px] font-bold text-slate-500 uppercase">Count</label>
                                                         <input type="number" min="1" max="100" value={txGenerator.count} onChange={e => setTxGenerator({ ...txGenerator, count: e.target.value })} placeholder="1-100" className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-[11px] text-white focus:ring-1 focus:ring-blue-500 outline-none" />
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">Type</label>
-                                                        <select value={txGenerator.type} onChange={e => setTxGenerator({ ...txGenerator, type: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-[11px] text-white focus:ring-1 focus:ring-blue-500 outline-none">
-                                                            <option>Top up</option>
-                                                            <option>Bills</option>
-                                                            <option>Investments</option>
-                                                            <option>Transfers</option>
-                                                            <option>Request</option>
-                                                            <option>Stocks</option>
-                                                            <option>Withdrawal</option>
-                                                            <option>Salary</option>
-                                                            <option>Shopping</option>
-                                                            <option>Groceries</option>
-                                                        </select>
+                                                    <div className="space-y-1 col-span-2 lg:col-span-2">
+                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">Types (Multi-Select)</label>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {['Top up','Bills','Investments','Transfers','Request','Stocks','Withdrawal','Salary','Shopping','Groceries'].map(t => {
+                                                                const isSelected = txGenerator.type.includes(t);
+                                                                return (
+                                                                    <button
+                                                                        key={t}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const next = isSelected
+                                                                                ? txGenerator.type.filter(x => x !== t)
+                                                                                : [...txGenerator.type, t];
+                                                                            setTxGenerator({ ...txGenerator, type: next.length ? next : ['Top up'] });
+                                                                        }}
+                                                                        className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase transition-colors border ${isSelected ? 'bg-blue-600/30 border-blue-500/50 text-blue-300' : 'bg-slate-800 border-slate-700 text-slate-500 hover:bg-slate-700'}`}
+                                                                    >
+                                                                        {isSelected ? <CheckCircle size={10} className="inline mr-1" /> : null}{t}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <div className="mt-3 flex justify-end">
