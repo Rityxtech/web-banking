@@ -17,6 +17,9 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const DEFAULT_SENDER = process.env.RESEND_SENDER || 'onboarding@resend.dev';
 
 async function sendEmailWithResend(to: string, subject: string, html: string, fromName?: string) {
+  const resolvedName = fromName || 'Lennox Bank';
+  const fromField = { name: resolvedName, email: DEFAULT_SENDER };
+  console.log(`[Resend] Sending email to ${to} with fromName="${resolvedName}"`, JSON.stringify(fromField));
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -24,7 +27,7 @@ async function sendEmailWithResend(to: string, subject: string, html: string, fr
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: `"${fromName || 'Lennox Bank'}" <${DEFAULT_SENDER}>`,
+      from: fromField,
       to,
       subject,
       html,
