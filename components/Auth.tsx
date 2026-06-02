@@ -274,7 +274,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
           const code = Math.floor(100000 + Math.random() * 900000).toString();
           await mvp.storeOtp(signInEmail, code, 'signup');
           const { subject, content } = getEmailTemplate('otp', { otp: code });
-          await mvp.sendEmail(signInEmail, subject, content, APP_CONFIG.BANK_NAME);
+          const emailResult = await mvp.sendEmail(signInEmail, subject, content, APP_CONFIG.BANK_NAME);
+          if (!emailResult.success) throw new Error(emailResult.error || 'Failed to send verification email');
           setOtpPurpose('confirm_email');
           setSignInEmail(signInEmail);
           setCurrentView('verify_otp');
@@ -317,7 +318,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       await mvp.storeOtp(formData.email, code, 'signup');
       const { subject, content } = getEmailTemplate('otp', { otp: code });
-      await mvp.sendEmail(formData.email, subject, content, APP_CONFIG.BANK_NAME);
+      const emailResult = await mvp.sendEmail(formData.email, subject, content, APP_CONFIG.BANK_NAME);
+      if (!emailResult.success) throw new Error(emailResult.error || 'Failed to send OTP email');
 
       setOtpPurpose('signup');
       setSignInEmail(formData.email);
@@ -339,7 +341,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       await mvp.storeOtp(signInEmail, code, 'recovery');
       const { subject, content } = getEmailTemplate('otp', { otp: code });
-      await mvp.sendEmail(signInEmail, subject, content, APP_CONFIG.BANK_NAME);
+      const emailResult = await mvp.sendEmail(signInEmail, subject, content, APP_CONFIG.BANK_NAME);
+      if (!emailResult.success) throw new Error(emailResult.error || 'Failed to send reset email');
       setCurrentView('reset_password'); setSuccessMsg(`Code sent to ${signInEmail}`); setResendTimer(60);
     } catch (err: any) { setError(err.message); } finally { setIsLoading(false); }
   };
@@ -354,7 +357,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       await mvp.storeOtp(emailToResend, code, otpType as any);
       const { subject, content } = getEmailTemplate('otp', { otp: code });
-      await mvp.sendEmail(emailToResend, subject, content, APP_CONFIG.BANK_NAME);
+      const emailResult = await mvp.sendEmail(emailToResend, subject, content, APP_CONFIG.BANK_NAME);
+      if (!emailResult.success) throw new Error(emailResult.error || 'Failed to resend code');
       setSuccessMsg(`Code sent successfully to ${emailToResend}`); setResendTimer(60);
     } catch (err: any) { setError(err.message || 'Failed to resend code.'); } finally { setIsLoading(false); }
   };
