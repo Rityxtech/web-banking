@@ -6,7 +6,7 @@
  */
 
 // ─── Mutable runtime state (updated by admin settings) ─────
-let _siteName = 'Lennox Bank';
+let _siteName = 'Veltrix Bank';
 let _siteLogo = '';
 
 // Try to restore from localStorage on module load
