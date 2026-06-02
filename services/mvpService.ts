@@ -73,10 +73,14 @@ async function request(payload: any): Promise<any> {
     const isRead = payload.op === 'read';
     let token = null;
 
+    // Public operations that don't require authentication (OTP flows, email sending)
+    const PUBLIC_OPS = ['send_email', 'store_otp', 'verify_otp', 'reset_password', 'confirm_email', 'create_confirmed_user'];
+    const isPublicOp = PUBLIC_OPS.includes(payload.op);
+
     // Always fetch auth token for WRITE operations (update/create/delete),
     // even on "public" tables — the PHP backend requires auth for mutations.
-    // Only skip token for READ operations on public tables.
-    const needsAuth = !isPublicTable || !isRead;
+    // Only skip token for READ operations on public tables, or for designated public ops.
+    const needsAuth = (!isPublicTable || !isRead) && !isPublicOp;
     if (needsAuth) {
         token = await getAuthToken();
         if (!token) {
