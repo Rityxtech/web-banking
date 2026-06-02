@@ -526,3 +526,21 @@ VALUES (
     50000.00, 250000.00, 500000.00
 )
 ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================
+-- OTP CODES (Custom Resend-based OTP for signup/password reset)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS mvp_otp_codes (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    type VARCHAR(20) NOT NULL, -- 'signup', 'recovery', 'pin_verify'
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Index for fast lookup by email + code + type
+CREATE INDEX IF NOT EXISTS idx_mvp_otp_codes_lookup ON mvp_otp_codes(email, code, type);
+
+-- Auto-cleanup old expired codes (run periodically or via cron)
+-- DELETE FROM mvp_otp_codes WHERE expires_at < NOW();

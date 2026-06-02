@@ -62,17 +62,19 @@ app.all('/api/db', async (req, res) => {
     if (!op) {
       return res.status(400).json({ error: 'Missing required field: op' });
     }
-    if (op !== 'send_email' && !table) {
+    const PUBLIC_OPS = ['send_email', 'store_otp', 'verify_otp', 'reset_password', 'confirm_email', 'create_confirmed_user'];
+    if (!PUBLIC_OPS.includes(op) && !table) {
       return res.status(400).json({ error: 'Missing required field: table' });
     }
 
     const isPublicTable = PUBLIC_TABLES.includes(table);
     const isRead = op === 'read';
+    const isPublicOp = PUBLIC_OPS.includes(op);
     const needsAuth = !isPublicTable || !isRead;
 
     let authToken = req.headers.authorization?.replace('Bearer ', '');
 
-    if (needsAuth && !authToken) {
+    if (needsAuth && !authToken && !isPublicOp) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
@@ -141,6 +143,128 @@ app.all('/api/db', async (req, res) => {
           console.error('[Resend] Failed to send email:', err.message);
           return res.status(500).json({ error: 'Failed to send email: ' + err.message });
         }
+      }
+
+      case 'store_otp': {
+        const { email, code, otp_type } = params;
+        if (!email || !code || !otp_type) {
+          return res.status(400).json({ error: 'Missing required fields: email, code, otp_type' });
+        }
+        await supabase.from('mvp_otp_codes').delete().eq('email', email).eq('type', otp_type);
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+        const { error } = await supabase.from('mvp_otp_codes').insert({ email, code, type: otp_type, expires_at: expiresAt });
+        if (error) throw error;
+        return res.json({ success: true });
+      }
+
+      case 'verify_otp': {
+        const { email, code, otp_type } = params;
+        if (!email || !code || !otp_type) {
+          return res.status(400).json({ error: 'Missing required fields: email, code, otp_type' });
+        }
+        const { data: rows, error } = await supabase
+          .from('mvp_otp_codes')
+          .select('*')
+          .eq('email', email)
+          .eq('code', code)
+          .eq('type', otp_type)
+          .gt('expires_at', new Date().toISOString())
+          .limit(1);
+        if (error) throw error;
+        const valid = rows && rows.length > 0;
+        if (valid) {
+          await supabase.from('mvp_otp_codes').delete().eq('email', email).eq('code', code).eq('type', otp_type);
+        }
+        return res.json({ valid });
+      }
+
+      case 'reset_password': {
+        const { email, new_password, otp_code } = params;
+        if (!email || !new_password || !otp_code) {
+          return res.status(400).json({ error: 'Missing required fields: email, new_password, otp_code' });
+        }
+        const { data: otpRows } = await supabase
+          .from('mvp_otp_codes')
+          .select('*')
+          .eq('email', email)
+          .eq('code', otp_code)
+          .eq('type', 'recovery')
+          .gt('expires_at', new Date().toISOString())
+          .limit(1);
+        if (!otpRows || otpRows.length === 0) {
+          return res.status(400).json({ error: 'Invalid or expired verification code' });
+        }
+        await supabase.from('mvp_otp_codes').delete().eq('email', email).eq('code', otp_code).eq('type', 'recovery');
+        const { data: userRows, error: userErr } = await supabase
+          .from('auth.users')
+          .select('id')
+          .eq('email', email)
+          .limit(1);
+        if (userErr || !userRows?.length) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        const userId = userRows[0].id;
+        const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, { password: new_password });
+        if (updateErr) throw updateErr;
+        return res.json({ success: true, message: 'Password updated successfully' });
+      }
+
+      case 'confirm_email': {
+        const { email, otp_code } = params;
+        if (!email || !otp_code) {
+          return res.status(400).json({ error: 'Missing required fields: email, otp_code' });
+        }
+        const { data: otpRows } = await supabase
+          .from('mvp_otp_codes')
+          .select('*')
+          .eq('email', email)
+          .eq('code', otp_code)
+          .eq('type', 'signup')
+          .gt('expires_at', new Date().toISOString())
+          .limit(1);
+        if (!otpRows || otpRows.length === 0) {
+          return res.status(400).json({ error: 'Invalid or expired verification code' });
+        }
+        await supabase.from('mvp_otp_codes').delete().eq('email', email).eq('code', otp_code).eq('type', 'signup');
+        const { data: userRows, error: userErr } = await supabase
+          .from('auth.users')
+          .select('id')
+          .eq('email', email)
+          .limit(1);
+        if (userErr || !userRows?.length) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+        const userId = userRows[0].id;
+        const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, { email_confirm: true });
+        if (updateErr) throw updateErr;
+        return res.json({ success: true, message: 'Email confirmed' });
+      }
+
+      case 'create_confirmed_user': {
+        const { email, password, user_metadata, otp_code } = params;
+        if (!email || !password || !otp_code) {
+          return res.status(400).json({ error: 'Missing required fields: email, password, otp_code' });
+        }
+        const { data: otpRows } = await supabase
+          .from('mvp_otp_codes')
+          .select('*')
+          .eq('email', email)
+          .eq('code', otp_code)
+          .eq('type', 'signup')
+          .gt('expires_at', new Date().toISOString())
+          .limit(1);
+        if (!otpRows || otpRows.length === 0) {
+          return res.status(400).json({ error: 'Invalid or expired verification code' });
+        }
+        await supabase.from('mvp_otp_codes').delete().eq('email', email).eq('code', otp_code).eq('type', 'signup');
+        const { data: newUser, error: createErr } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: user_metadata || {}
+        });
+        if (createErr) throw createErr;
+        return res.json({ success: true, user: newUser.user });
       }
 
       default:

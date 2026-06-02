@@ -77,6 +77,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [resendTimer, setResendTimer] = useState(0);
+  const [otpPurpose, setOtpPurpose] = useState<'signup' | 'confirm_email'>('signup');
   const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
   const defaultLogo = "https://image2url.com/r2/default/images/1769428285590-d43b30ba-a0ba-499f-a066-6411c1619f75.webp";
@@ -269,9 +270,19 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       onAuthSuccess();
     } catch (err: any) {
       if (err.message && (err.message.includes('Email not confirmed'))) {
-        setSignInEmail(signInEmail);
-        setCurrentView('verify_otp');
-        setSuccessMsg(`Email verification needed for ${signInEmail}`);
+        try {
+          const code = Math.floor(100000 + Math.random() * 900000).toString();
+          await mvp.storeOtp(signInEmail, code, 'signup');
+          const { subject, content } = getEmailTemplate('otp', { otp: code });
+          await mvp.sendEmail(signInEmail, subject, content, APP_CONFIG.BANK_NAME);
+          setOtpPurpose('confirm_email');
+          setSignInEmail(signInEmail);
+          setCurrentView('verify_otp');
+          setSuccessMsg(`Email verification needed for ${signInEmail}`);
+          setResendTimer(60);
+        } catch (otpErr: any) {
+          setError(otpErr.message || 'Failed to send verification code.');
+        }
         setIsLoading(false);
         return;
       }
@@ -302,57 +313,17 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
     localStorage.setItem('lennox_auth_intent', 'signup');
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            username: formData.username,
-            phone: formData.phone,
-            dob: formData.dob,
-            gender: formData.gender,
-            address: formData.address,
-            city: formData.city,
-            country: formData.country,
-            pin: formData.pin,
-            full_name: `${formData.firstName} ${formData.lastName}`
-          }
-        }
-      });
+      // Generate OTP, store via backend, send via Resend
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      await mvp.storeOtp(formData.email, code, 'signup');
+      const { subject, content } = getEmailTemplate('otp', { otp: code });
+      await mvp.sendEmail(formData.email, subject, content, APP_CONFIG.BANK_NAME);
 
-      if (error) {
-        // Capture every field Supabase gives us
-        const debug: Record<string, any> = {
-          message: error.message,
-          status: (error as any).status ?? 'n/a',
-          code: (error as any).code ?? 'n/a',
-          name: (error as any).name ?? 'n/a',
-          details: (error as any).__isAuthError ? 'AuthError' : 'unknown',
-        };
-        // Log full raw object to console too
-        console.error('[SignUp Error] Full error object:', JSON.stringify(error, null, 2));
-        setDebugInfo(debug);
-        throw error;
-      }
-
-      if (data.user && data.user.identities && data.user.identities.length === 0) {
-        throw new Error(`Account ${formData.email} already exists. Please sign in.`);
-      }
-
+      setOtpPurpose('signup');
       setSignInEmail(formData.email);
-
-      if (data.session && data.user) {
-        const userName = data.user.user_metadata?.full_name || 'Valued Client';
-        const { subject, content } = getEmailTemplate('welcome', { user_name: userName });
-        mvp.sendEmail(data.user.email!, subject, content, 'Welcome').catch(console.error);
-        onAuthSuccess();
-      } else if (data?.user && !data.session) {
-        setCurrentView('verify_otp');
-        setSuccessMsg(`Code sent to ${formData.email}`);
-        setResendTimer(60);
-      }
+      setCurrentView('verify_otp');
+      setSuccessMsg(`Code sent to ${formData.email}`);
+      setResendTimer(60);
     } catch (err: any) {
       setError(err.message || 'Signup failed.');
     } finally {
@@ -365,8 +336,10 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
     if (!signInEmail) { setError("Enter your email address."); return; }
     setIsLoading(true); setError('');
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(signInEmail);
-      if (error) throw error;
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      await mvp.storeOtp(signInEmail, code, 'recovery');
+      const { subject, content } = getEmailTemplate('otp', { otp: code });
+      await mvp.sendEmail(signInEmail, subject, content, APP_CONFIG.BANK_NAME);
       setCurrentView('reset_password'); setSuccessMsg(`Code sent to ${signInEmail}`); setResendTimer(60);
     } catch (err: any) { setError(err.message); } finally { setIsLoading(false); }
   };
@@ -377,8 +350,11 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
     try {
       const emailToResend = signInEmail || formData.email;
       if (!emailToResend) throw new Error("Email address missing.");
-      const { error } = await supabase.auth.resend({ type: currentView === 'reset_password' ? 'recovery' : 'signup', email: emailToResend });
-      if (error) throw error;
+      const otpType = currentView === 'reset_password' ? 'recovery' : 'signup';
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      await mvp.storeOtp(emailToResend, code, otpType as any);
+      const { subject, content } = getEmailTemplate('otp', { otp: code });
+      await mvp.sendEmail(emailToResend, subject, content, APP_CONFIG.BANK_NAME);
       setSuccessMsg(`Code sent successfully to ${emailToResend}`); setResendTimer(60);
     } catch (err: any) { setError(err.message || 'Failed to resend code.'); } finally { setIsLoading(false); }
   };
@@ -395,20 +371,63 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
     }
 
     try {
-      const { data, error } = await supabase.auth.verifyOtp({ email: signInEmail || formData.email, token, type: currentView === 'reset_password' ? 'recovery' : 'signup' });
-      if (error) throw error;
+      const email = signInEmail || formData.email;
+      if (!email) throw new Error("Email address missing.");
 
       if (currentView === 'reset_password') {
-        const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
-        if (updateError) throw updateError;
-        setSuccessMsg('Password updated!'); setTimeout(() => onAuthSuccess(), 1000);
+        // Verify OTP + reset password via backend
+        const result = await mvp.resetPassword(email, newPassword, token);
+        if (!result.success) throw new Error(result.error || 'Failed to reset password');
+        setSuccessMsg('Password updated! Redirecting...');
+        setTimeout(() => { setCurrentView('signin'); onSwitch('signin'); }, 1500);
+      } else if (otpPurpose === 'confirm_email') {
+        // Confirm existing user's email via backend
+        const confirmResult = await mvp.confirmEmail(email, token);
+        if (!confirmResult.success) throw new Error(confirmResult.error || 'Failed to confirm email');
+        // Now sign in with the password they entered earlier
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: signInEmail,
+          password: signInPassword
+        });
+        if (signInError) throw signInError;
+        onAuthSuccess();
       } else {
-        // Successful signup verification
-        if (data.user) {
-          const userName = data.user.user_metadata?.full_name || 'Valued Client';
-          const { subject, content } = getEmailTemplate('welcome', { user_name: userName });
-          mvp.sendEmail(data.user.email!, subject, content, 'Welcome').catch(console.error);
+        // Signup verification: verify OTP then create confirmed user via backend
+        const verifyResult = await mvp.verifyOtp(email, token, 'signup');
+        if (!verifyResult.valid) throw new Error('Invalid or expired code.');
+
+        const userMetadata = {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          username: formData.username,
+          phone: formData.phone,
+          dob: formData.dob,
+          gender: formData.gender,
+          address: formData.address,
+          city: formData.city,
+          country: formData.country,
+          pin: formData.pin,
+          full_name: `${formData.firstName} ${formData.lastName}`
+        };
+
+        const createResult = await mvp.createConfirmedUser(email, formData.password, token, userMetadata);
+        if (!createResult.success) {
+          if (createResult.error?.includes('already exists') || createResult.error?.includes('duplicate')) {
+            throw new Error(`Account ${email} already exists. Please sign in.`);
+          }
+          throw new Error(createResult.error || 'Failed to create account');
         }
+
+        // Sign in the newly created user
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: formData.password
+        });
+        if (signInError) throw signInError;
+
+        const userName = userMetadata.full_name || 'Valued Client';
+        const { subject, content } = getEmailTemplate('welcome', { user_name: userName });
+        mvp.sendEmail(email, subject, content, 'Welcome').catch(console.error);
         onAuthSuccess();
       }
     } catch (err: any) { setError(err.message || 'Invalid code.'); } finally { setIsLoading(false); }

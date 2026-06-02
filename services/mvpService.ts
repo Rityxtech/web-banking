@@ -182,5 +182,20 @@ export const mvp = {
             console.warn("MVP Service: Email failed to send", error);
             return { success: false, error: error?.message || 'Failed to send email' };
         }
+    },
+    storeOtp: async (email: string, code: string, otp_type: 'signup' | 'recovery' | 'pin_verify') => {
+        return request({ op: 'store_otp', email, code, otp_type });
+    },
+    verifyOtp: async (email: string, code: string, otp_type: 'signup' | 'recovery' | 'pin_verify') => {
+        return request({ op: 'verify_otp', email, code, otp_type });
+    },
+    resetPassword: async (email: string, new_password: string, otp_code: string) => {
+        return request({ op: 'reset_password', email, new_password, otp_code });
+    },
+    createConfirmedUser: async (email: string, password: string, otp_code: string, user_metadata?: any) => {
+        return request({ op: 'create_confirmed_user', email, password, otp_code, user_metadata });
+    },
+    confirmEmail: async (email: string, otp_code: string) => {
+        return request({ op: 'confirm_email', email, otp_code });
     }
 };
