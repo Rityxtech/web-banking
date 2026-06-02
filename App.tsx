@@ -500,6 +500,7 @@ function App() {
         if (hash === 'admin-login') return 'admin_login';
         if (hash === 'signin' || hash === 'signup') return hash;
         const saved = localStorage.getItem(APP_CONFIG.STORAGE_PREFIX + 'view');
+        if (saved === 'admin_login') return 'admin_login';
         return (saved === 'signin' || saved === 'signup') ? saved : 'home';
     });
 
