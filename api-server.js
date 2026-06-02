@@ -195,15 +195,12 @@ app.all('/api/db', async (req, res) => {
           return res.status(400).json({ error: 'Invalid or expired verification code' });
         }
         await supabase.from('mvp_otp_codes').delete().eq('email', email).eq('code', otp_code).eq('type', 'recovery');
-        const { data: userRows, error: userErr } = await supabase
-          .from('auth.users')
-          .select('id')
-          .eq('email', email)
-          .limit(1);
-        if (userErr || !userRows?.length) {
+        const { data: userList, error: listErr } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        const user = listErr ? null : userList?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        if (!user) {
           return res.status(404).json({ error: 'User not found' });
         }
-        const userId = userRows[0].id;
+        const userId = user.id;
         const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, { password: new_password });
         if (updateErr) throw updateErr;
         return res.json({ success: true, message: 'Password updated successfully' });
@@ -226,15 +223,12 @@ app.all('/api/db', async (req, res) => {
           return res.status(400).json({ error: 'Invalid or expired verification code' });
         }
         await supabase.from('mvp_otp_codes').delete().eq('email', email).eq('code', otp_code).eq('type', 'signup');
-        const { data: userRows, error: userErr } = await supabase
-          .from('auth.users')
-          .select('id')
-          .eq('email', email)
-          .limit(1);
-        if (userErr || !userRows?.length) {
+        const { data: userList, error: listErr } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        const user = listErr ? null : userList?.users?.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        if (!user) {
           return res.status(404).json({ error: 'User not found' });
         }
-        const userId = userRows[0].id;
+        const userId = user.id;
         const { error: updateErr } = await supabase.auth.admin.updateUserById(userId, { email_confirm: true });
         if (updateErr) throw updateErr;
         return res.json({ success: true, message: 'Email confirmed' });

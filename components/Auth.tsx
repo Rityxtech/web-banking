@@ -385,7 +385,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         setSuccessMsg('Password updated! Redirecting...');
         setTimeout(() => { setCurrentView('signin'); onSwitch('signin'); }, 1500);
       } else if (otpPurpose === 'confirm_email') {
-        // Confirm existing user's email via backend
+        // Confirm existing user's email via backend (OTP verified server-side)
         const confirmResult = await mvp.confirmEmail(email, token);
         if (!confirmResult.success) throw new Error(confirmResult.error || 'Failed to confirm email');
         // Now sign in with the password they entered earlier
@@ -396,10 +396,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         if (signInError) throw signInError;
         onAuthSuccess();
       } else {
-        // Signup verification: verify OTP then create confirmed user via backend
-        const verifyResult = await mvp.verifyOtp(email, token, 'signup');
-        if (!verifyResult.valid) throw new Error('Invalid or expired code.');
-
+        // Signup verification: create confirmed user via backend (OTP verified server-side)
         const userMetadata = {
           first_name: formData.firstName,
           last_name: formData.lastName,
