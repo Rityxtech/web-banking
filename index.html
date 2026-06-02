@@ -20,10 +20,62 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bank</title>
+
+  <!-- Open Graph / Social Share Meta Tags -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Secure Online Banking" />
+  <meta property="og:description" content="Experience secure, seamless, and intelligent banking. Manage your finances, transfer funds, and grow your wealth — anytime, anywhere." />
+  <meta property="og:image" content="" />
+  <meta property="og:url" content="" />
+  <meta property="og:site_name" content="Bank" />
+
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Secure Online Banking" />
+  <meta name="twitter:description" content="Experience secure, seamless, and intelligent banking. Manage your finances, transfer funds, and grow your wealth — anytime, anywhere." />
+  <meta name="twitter:image" content="" />
+
+  <!-- Standard Meta Description -->
+  <meta name="description" content="Experience secure, seamless, and intelligent banking. Manage your finances, transfer funds, and grow your wealth — anytime, anywhere." />
+
   <script>
     try {
       const siteName = localStorage.getItem('site_name');
-      if (siteName) document.title = siteName;
+      const siteLogo = localStorage.getItem('site_logo');
+      const currentUrl = window.location.origin;
+
+      if (siteName) {
+        document.title = siteName + ' — Secure Online Banking';
+
+        const updateMeta = (selector, attr, value) => {
+          const el = document.querySelector(selector);
+          if (el) el.setAttribute(attr, value);
+        };
+
+        updateMeta('meta[property="og:title"]', 'content', siteName + ' — Secure Online Banking');
+        updateMeta('meta[property="og:site_name"]', 'content', siteName);
+        updateMeta('meta[name="twitter:title"]', 'content', siteName + ' — Secure Online Banking');
+
+        const desc = 'Experience secure, seamless, and intelligent banking with ' + siteName + '. Manage your finances, transfer funds, invest, and grow your wealth — anytime, anywhere.';
+        updateMeta('meta[property="og:description"]', 'content', desc);
+        updateMeta('meta[name="twitter:description"]', 'content', desc);
+        updateMeta('meta[name="description"]', 'content', desc);
+      }
+
+      if (siteLogo) {
+        const updateMeta = (selector, attr, value) => {
+          const el = document.querySelector(selector);
+          if (el) el.setAttribute(attr, value);
+        };
+        updateMeta('meta[property="og:image"]', 'content', siteLogo);
+        updateMeta('meta[name="twitter:image"]', 'content', siteLogo);
+      }
+
+      const updateMeta = (selector, attr, value) => {
+        const el = document.querySelector(selector);
+        if (el) el.setAttribute(attr, value);
+      };
+      updateMeta('meta[property="og:url"]', 'content', currentUrl);
     } catch {}
   </script>
   <script src="https://cdn.tailwindcss.com"></script>

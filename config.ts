@@ -28,6 +28,31 @@ export function setSiteConfig(name: string, logo?: string) {
         localStorage.setItem('site_name', name);
         if (logo !== undefined) localStorage.setItem('site_logo', logo);
     } catch { /* localStorage not available */ }
+
+    // Update Open Graph / Twitter Card meta tags dynamically
+    try {
+        const updateMeta = (selector: string, attr: string, value: string) => {
+            const el = document.querySelector(selector);
+            if (el) el.setAttribute(attr, value);
+        };
+
+        document.title = name + ' — Secure Online Banking';
+        updateMeta('meta[property="og:title"]', 'content', name + ' — Secure Online Banking');
+        updateMeta('meta[property="og:site_name"]', 'content', name);
+        updateMeta('meta[name="twitter:title"]', 'content', name + ' — Secure Online Banking');
+
+        const desc = 'Experience secure, seamless, and intelligent banking with ' + name + '. Manage your finances, transfer funds, invest, and grow your wealth — anytime, anywhere.';
+        updateMeta('meta[property="og:description"]', 'content', desc);
+        updateMeta('meta[name="twitter:description"]', 'content', desc);
+        updateMeta('meta[name="description"]', 'content', desc);
+
+        if (logo) {
+            updateMeta('meta[property="og:image"]', 'content', logo);
+            updateMeta('meta[name="twitter:image"]', 'content', logo);
+        }
+
+        updateMeta('meta[property="og:url"]', 'content', window.location.origin);
+    } catch { /* document not available */ }
 }
 
 export function getSiteName(): string { return _siteName; }
