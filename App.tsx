@@ -1010,6 +1010,26 @@ function App() {
                     maintenanceVerifiedRef.current = session.user.id; // Mark verified — prevents re-check on TOKEN_REFRESHED
                 }
 
+                // Block Google OAuth sign-in from login page if no profile exists
+                const authIntent = localStorage.getItem('lennox_auth_intent');
+                if (authIntent === 'signin') {
+                    const { data: existingProfiles } = await supabase
+                        .from('mvp_profiles')
+                        .select('id')
+                        .eq('user_id', session.user.id)
+                        .limit(1);
+                    if (!existingProfiles || existingProfiles.length === 0) {
+                        // User clicked "Sign in with Google" on login page but has no account
+                        await supabase.auth.signOut();
+                        localStorage.removeItem('lennox_auth_intent');
+                        setAuthErrorMessage('No account exists with this email. Please sign up first.');
+                        setCurrentView('signin');
+                        setLoadingAuth(false);
+                        return;
+                    }
+                }
+                localStorage.removeItem('lennox_auth_intent');
+
                 const hasPin = session.user.user_metadata?.pin;
                 if (!hasPin) {
                     setIsAccountIncomplete(true);
