@@ -2684,7 +2684,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                     Critical actions that restrict or permanently remove this identity from the system.
                                                 </p>
                                             </div>
-                                            <div className="flex items-center gap-2 flex-wrap justify-end">
+                                            <div className="flex items-center gap-2 flex-nowrap justify-end">
                                                 {deleteConfirmStep === 0 && (
                                                     <button
                                                         type="button"
@@ -2705,19 +2705,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                             finally { setIsActionLoading(null); }
                                                         }}
                                                         disabled={isActionLoading === 'toggle_suspension_danger'}
-                                                        className={`px-6 py-3 font-black uppercase text-[10px] rounded-xl transition-colors shadow-sm whitespace-nowrap flex items-center justify-center gap-2 disabled:opacity-50 ${selectedUser.is_suspended == "1" || selectedUser.is_suspended == 1 || selectedUser.is_suspended === true ? 'bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40' : 'bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40'}`}
+                                                        className={`px-4 md:px-6 py-3 font-black uppercase text-[10px] rounded-xl transition-colors shadow-sm whitespace-nowrap flex items-center justify-center gap-2 disabled:opacity-50 shrink-0 ${selectedUser.is_suspended == "1" || selectedUser.is_suspended == 1 || selectedUser.is_suspended === true ? 'bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-900 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40' : 'bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-900 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40'}`}
                                                     >
-                                                        {isActionLoading === 'toggle_suspension_danger' ? <Loader2 size={14} className="animate-spin" /> : <ShieldAlert size={14} />}
-                                                        {selectedUser.is_suspended == "1" || selectedUser.is_suspended == 1 || selectedUser.is_suspended === true ? 'Unsuspend Identity' : 'Suspend Identity'}
+                                                        {isActionLoading === 'toggle_suspension_danger' ? <Loader2 size={14} className="animate-spin shrink-0" /> : <ShieldAlert size={14} className="shrink-0" />}
+                                                        <span className="shrink-0">{selectedUser.is_suspended == "1" || selectedUser.is_suspended == 1 || selectedUser.is_suspended === true ? 'Unsuspend' : 'Suspend'}</span>
                                                     </button>
                                                 )}
                                                 {deleteConfirmStep === 0 ? (
                                                     <button
                                                         type="button"
                                                         onClick={() => setDeleteConfirmStep(1)}
-                                                        className="px-6 py-3 bg-white dark:bg-red-950 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 font-black uppercase text-[10px] rounded-xl hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors shadow-sm whitespace-nowrap"
+                                                        className="px-4 md:px-6 py-3 bg-white dark:bg-red-950 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 font-black uppercase text-[10px] rounded-xl hover:bg-red-50 dark:hover:bg-red-900/40 transition-colors shadow-sm whitespace-nowrap shrink-0"
                                                     >
-                                                        Delete Identity
+                                                        Delete
                                                     </button>
                                                 ) : (
                                                     <div className="flex items-center gap-2">
