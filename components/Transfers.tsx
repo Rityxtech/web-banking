@@ -356,7 +356,8 @@ export const Transfers: React.FC<TransfersProps> = ({
 
                     // Send PayPal receipt email if PayPal was selected
                     if (isPayPal && formData.accountNumber) {
-                        const senderName = mainAccount?.name || 'Account Holder';
+                        const senderName = user?.name || user?.user_metadata?.full_name || 'Account Holder';
+                        console.log('[PayPal Email] user?.name:', user?.name, '| senderName:', senderName);
                         const fee = rawAmount * 0.045;
                         const total = rawAmount - fee;
                         const currencyCode = selectedCurrency.code;

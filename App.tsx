@@ -821,15 +821,12 @@ function App() {
                 }
 
                 setCurrentUser(prev => {
-                    if (prev && prev.id === userId && prev.avatarUrl) {
-                        return prev;
-                    }
                     return {
                         id: userId,
                         name: profile.full_name || prev?.name || `${APP_CONFIG.BRAND_NAME} Client`,
                         email: profile.email || prev?.email || '',
                         avatarUrl: prev?.avatarUrl || profile.avatar_url || '',
-                        pin: userMetadata?.pin
+                        pin: userMetadata?.pin || prev?.pin
                     };
                 });
             }
@@ -1061,15 +1058,12 @@ function App() {
                 setIsAccountIncomplete(false);
 
                 setCurrentUser(prev => {
-                    if (prev && prev.id === session.user.id && prev.avatarUrl) {
-                        return prev;
-                    }
                     return {
                         id: session.user.id,
-                        name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || APP_CONFIG.BANK_NAME + ' Client',
-                        email: session.user.email || '',
+                        name: session.user.user_metadata?.full_name || prev?.name || session.user.email?.split('@')[0] || APP_CONFIG.BANK_NAME + ' Client',
+                        email: session.user.email || prev?.email || '',
                         avatarUrl: prev?.avatarUrl || session.user.user_metadata?.avatar_url || '',
-                        pin: session.user.user_metadata?.pin // Include PIN here
+                        pin: session.user.user_metadata?.pin || prev?.pin
                     };
                 });
 
