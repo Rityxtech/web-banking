@@ -242,8 +242,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ accounts, transactions, ca
   const {
     txChartData,
     spentChartData,
+    incomeChartData,
     mainChartData,
     totalSpent,
+    totalIncome,
     avgIncome,
     avgExpense
   } = useMemo(() => {
@@ -264,6 +266,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ accounts, transactions, ca
       v: validTransactions
         .filter(t => t.date && t.date.startsWith(date) && (t.amount < 0 || [TransactionType.PAYMENT, TransactionType.PURCHASE, TransactionType.TRANSFER_OUT].includes(t.type)))
         .reduce((sum, t) => sum + Math.abs(t.amount), 0)
+    }));
+
+    // Income Chart Data
+    const incData = last7Days.map(date => ({
+      v: validTransactions
+        .filter(t => t.date && t.date.startsWith(date) && t.amount > 0 && ![TransactionType.WITHDRAWAL, TransactionType.TRANSFER_OUT].includes(t.type))
+        .reduce((sum, t) => sum + t.amount, 0)
     }));
 
     // 2. Main Statistics Chart (Last 6 Months)
@@ -292,14 +301,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ accounts, transactions, ca
       .filter(t => t.amount < 0 || [TransactionType.PAYMENT, TransactionType.PURCHASE, TransactionType.TRANSFER_OUT].includes(t.type))
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
+    const totInc = validTransactions
+      .filter(t => t.amount > 0 && ![TransactionType.WITHDRAWAL, TransactionType.TRANSFER_OUT].includes(t.type))
+      .reduce((sum, t) => sum + t.amount, 0);
+
     const avInc = mainData.reduce((acc, curr) => acc + curr.income, 0) / (mainData.length || 1);
     const avExp = mainData.reduce((acc, curr) => acc + curr.expense, 0) / (mainData.length || 1);
 
     return {
       txChartData: txData,
       spentChartData: spData,
+      incomeChartData: incData,
       mainChartData: mainData,
       totalSpent: totSpent,
+      totalIncome: totInc,
       avgIncome: avInc,
       avgExpense: avExp
     };
@@ -323,9 +338,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ accounts, transactions, ca
     })
     .sort((a: any, b: any) => b.amount - a.amount)
     .slice(0, 3);
-
-  // Mock Cashback Data
-  const cashbackChartData = [{ v: 15 }, { v: 25 }, { v: 20 }, { v: 45 }, { v: 30 }, { v: 50 }, { v: 40 }];
 
   return (
     <div className="space-y-2.5 md:space-y-6 animate-fade-in relative">
@@ -414,12 +426,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ accounts, transactions, ca
               color="#ef4444"
             />
             <StatsCard
-              title="Cashback"
-              value="$148"
-              change="18.9%"
+              title="Income"
+              value={`$${totalIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+              change="+2.1%"
               isPositive={true}
-              chartData={cashbackChartData}
-              color="#f97316"
+              chartData={incomeChartData}
+              color="#10b981"
               className="hidden md:flex"
             />
           </div>
