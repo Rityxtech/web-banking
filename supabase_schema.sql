@@ -308,12 +308,15 @@ DROP POLICY IF EXISTS "Users can update own assets" ON mvp_assets;
 DROP POLICY IF EXISTS "Users can view own notifications" ON mvp_notifications;
 DROP POLICY IF EXISTS "Users can insert own notifications" ON mvp_notifications;
 DROP POLICY IF EXISTS "Users can update own notifications" ON mvp_notifications;
+DROP POLICY IF EXISTS "Users can delete own notifications" ON mvp_notifications;
 DROP POLICY IF EXISTS "Users can view own messages" ON mvp_messages;
 DROP POLICY IF EXISTS "Users can insert own messages" ON mvp_messages;
 DROP POLICY IF EXISTS "Users can update own messages" ON mvp_messages;
+DROP POLICY IF EXISTS "Users can delete own messages" ON mvp_messages;
 DROP POLICY IF EXISTS "Users can view own support_tickets" ON mvp_support_tickets;
 DROP POLICY IF EXISTS "Users can insert own support_tickets" ON mvp_support_tickets;
 DROP POLICY IF EXISTS "Users can update own support_tickets" ON mvp_support_tickets;
+DROP POLICY IF EXISTS "Users can delete own support_tickets" ON mvp_support_tickets;
 DROP POLICY IF EXISTS "Allow read all banks" ON mvp_banks;
 
 -- Public tables (no auth required)
