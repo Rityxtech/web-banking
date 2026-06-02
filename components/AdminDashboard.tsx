@@ -484,6 +484,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         updateBalance: true
     });
 
+    // Transaction Generator State
+    const [txGenerator, setTxGenerator] = useState({
+        minAmount: '',
+        maxAmount: '',
+        fromDate: '',
+        toDate: '',
+        count: '',
+        type: 'Deposit'
+    });
+
     // Transaction Edit State
     const [selectedTxToEdit, setSelectedTxToEdit] = useState<any | null>(null);
     const [editTxForm, setEditTxForm] = useState({
@@ -977,6 +987,88 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             setTimeout(() => setSuccessMsg(null), 5000);
         } catch (err: any) {
             setErrorMsg(err.message || "Transaction creation failed.");
+        } finally {
+            setIsActionLoading(null);
+        }
+    };
+
+    const handleGenerateTransactions = async () => {
+        if (!selectedUser) return;
+        const min = parseFloat(txGenerator.minAmount);
+        const max = parseFloat(txGenerator.maxAmount);
+        const count = parseInt(txGenerator.count);
+        if (isNaN(min) || isNaN(max) || min <= 0 || max <= 0 || min > max) {
+            setErrorMsg("Invalid amount range.");
+            return;
+        }
+        if (isNaN(count) || count <= 0 || count > 100) {
+            setErrorMsg("Count must be between 1 and 100.");
+            return;
+        }
+        if (!txGenerator.fromDate || !txGenerator.toDate) {
+            setErrorMsg("Please select both from and to dates.");
+            return;
+        }
+
+        setIsActionLoading('generate_tx');
+        try {
+            const typeMap: Record<string, { type: string; category: string; isExpense: boolean }> = {
+                'Top up': { type: 'Deposit', category: 'Deposit', isExpense: false },
+                'Bills': { type: 'Payment', category: 'Bill Pay', isExpense: true },
+                'Investments': { type: 'Purchase', category: 'Investment', isExpense: true },
+                'Transfers': { type: 'Transfer In', category: 'Transfer', isExpense: false },
+                'Request': { type: 'Others', category: 'Request', isExpense: false },
+                'Stocks': { type: 'Purchase', category: 'Investment', isExpense: true },
+                'Withdrawal': { type: 'Withdrawal', category: 'Withdrawal', isExpense: true },
+                'Salary': { type: 'Deposit', category: 'Salary', isExpense: false },
+                'Shopping': { type: 'Purchase', category: 'Shopping', isExpense: true },
+                'Groceries': { type: 'Purchase', category: 'Groceries', isExpense: true }
+            };
+            const config = typeMap[txGenerator.type] || typeMap['Top up'];
+            const fromTime = new Date(txGenerator.fromDate).getTime();
+            const toTime = new Date(txGenerator.toDate).getTime();
+
+            const payloads: any[] = [];
+            let totalDelta = 0;
+
+            for (let i = 0; i < count; i++) {
+                const rawAmt = Math.random() * (max - min) + min;
+                const amount = config.isExpense ? -rawAmt : rawAmt;
+                const randomDate = new Date(fromTime + Math.random() * (toTime - fromTime));
+                const txId = `TX-${Math.floor(10000000 + Math.random() * 90000000)}`;
+                payloads.push({
+                    uuid: txId,
+                    user_id: selectedUser.user_id,
+                    account_id: selectedUserAccount?.id || null,
+                    amount: Number(amount.toFixed(2)),
+                    description: `${txGenerator.type} - Auto Generated`,
+                    merchant: null,
+                    type: config.type,
+                    category: config.category,
+                    status: 'Success',
+                    date: randomDate.toISOString()
+                });
+                if (config.type !== 'Others') {
+                    totalDelta += amount;
+                }
+            }
+
+            if (selectedUserAccount && totalDelta !== 0) {
+                const currentBalance = Number(selectedUserAccount.balance) || 0;
+                const newBalance = currentBalance + totalDelta;
+                const { error: balErr } = await supabaseAdmin.from('mvp_accounts').update({ balance: newBalance }).eq('id', selectedUserAccount.id);
+                if (balErr) throw new Error(balErr.message);
+            }
+
+            const { error: txErr } = await supabaseAdmin.from('mvp_transactions').insert(payloads);
+            if (txErr) throw new Error(txErr.message);
+
+            setSuccessMsg(`${count} transactions generated successfully.`);
+            setTxGenerator({ minAmount: '', maxAmount: '', fromDate: '', toDate: '', count: '', type: 'Deposit' });
+            await fetchUserDetails(selectedUser);
+            setTimeout(() => setSuccessMsg(null), 5000);
+        } catch (err: any) {
+            setErrorMsg(err.message || "Transaction generation failed.");
         } finally {
             setIsActionLoading(null);
         }
@@ -2354,7 +2446,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                         </div>
 
                                         <div className="p-3 md:p-10 bg-[#0f172a] border-b border-white/5 rounded-2xl mx-3 md:mx-10 mt-6 shadow-2xl border border-slate-800">
-                                            <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center justify-between mb-4">
                                                 <div className="flex items-center gap-2">
                                                     <PlusCircle size={18} className="text-blue-500" />
                                                     <h4 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest">Manual Transaction Protocol</h4>
@@ -2366,7 +2458,62 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                     <Plus size={14} /> Create Transaction
                                                 </button>
                                             </div>
-                                            <p className="text-[10px] text-slate-500 leading-relaxed max-w-lg">Trigger a manual entry in the user's ledger. This can be used for penalty adjustments, custom bonuses, or correcting synchronization errors.</p>
+                                            <p className="text-[10px] text-slate-500 leading-relaxed max-w-lg mb-4">Trigger a manual entry or auto-generate bulk transaction history for this user's ledger.</p>
+
+                                            {/* Auto Generator */}
+                                            <div className="bg-slate-900/50 border border-slate-700/50 rounded-xl p-3 md:p-4">
+                                                <div className="flex items-center gap-2 mb-3">
+                                                    <Sparkles size={14} className="text-amber-400" />
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auto Generator</span>
+                                                </div>
+                                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">Min Amount</label>
+                                                        <input type="number" min="0" step="0.01" value={txGenerator.minAmount} onChange={e => setTxGenerator({ ...txGenerator, minAmount: e.target.value })} placeholder="0.00" className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-[11px] text-white focus:ring-1 focus:ring-blue-500 outline-none" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">Max Amount</label>
+                                                        <input type="number" min="0" step="0.01" value={txGenerator.maxAmount} onChange={e => setTxGenerator({ ...txGenerator, maxAmount: e.target.value })} placeholder="0.00" className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-[11px] text-white focus:ring-1 focus:ring-blue-500 outline-none" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">From Date</label>
+                                                        <input type="date" value={txGenerator.fromDate} onChange={e => setTxGenerator({ ...txGenerator, fromDate: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-[11px] text-white focus:ring-1 focus:ring-blue-500 outline-none" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">To Date</label>
+                                                        <input type="date" value={txGenerator.toDate} onChange={e => setTxGenerator({ ...txGenerator, toDate: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-[11px] text-white focus:ring-1 focus:ring-blue-500 outline-none" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">Count</label>
+                                                        <input type="number" min="1" max="100" value={txGenerator.count} onChange={e => setTxGenerator({ ...txGenerator, count: e.target.value })} placeholder="1-100" className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-[11px] text-white focus:ring-1 focus:ring-blue-500 outline-none" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-bold text-slate-500 uppercase">Type</label>
+                                                        <select value={txGenerator.type} onChange={e => setTxGenerator({ ...txGenerator, type: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-[11px] text-white focus:ring-1 focus:ring-blue-500 outline-none">
+                                                            <option>Top up</option>
+                                                            <option>Bills</option>
+                                                            <option>Investments</option>
+                                                            <option>Transfers</option>
+                                                            <option>Request</option>
+                                                            <option>Stocks</option>
+                                                            <option>Withdrawal</option>
+                                                            <option>Salary</option>
+                                                            <option>Shopping</option>
+                                                            <option>Groceries</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-3 flex justify-end">
+                                                    <button
+                                                        onClick={handleGenerateTransactions}
+                                                        disabled={isActionLoading === 'generate_tx'}
+                                                        className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-600/20 transition-all flex items-center gap-2 disabled:opacity-50"
+                                                    >
+                                                        {isActionLoading === 'generate_tx' ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                                                        Generate Transactions
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div className="p-3 md:p-10 bg-slate-50/50 dark:bg-black/20 border-b border-slate-100 dark:border-white/5">
