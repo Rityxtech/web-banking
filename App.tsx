@@ -403,6 +403,10 @@ const AdminLoginScreen = ({ logoUrl, siteName, onBack }: { logoUrl?: string, sit
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
+    const inputClass = "w-full pl-9 pr-3 py-2.5 bg-black/20 border border-white/20 rounded-xl text-xs font-medium outline-none focus:bg-black/30 focus:border-blue-300 transition-all placeholder:text-white/60 text-white backdrop-blur-[2px] shadow-sm";
+    const displayName = siteName || APP_CONFIG.BANK_NAME;
+    const displayLogo = logoUrl || '';
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
@@ -434,39 +438,48 @@ const AdminLoginScreen = ({ logoUrl, siteName, onBack }: { logoUrl?: string, sit
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-            <div className="w-full max-w-sm">
-                <button onClick={onBack} className="text-slate-500 hover:text-white mb-8 flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors">
-                    <ArrowLeft size={14} /> Back
-                </button>
-                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
-                    <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <ShieldCheck size={32} className="text-blue-500" />
-                        </div>
-                        <h1 className="text-xl font-black text-white uppercase tracking-tight">Staff Access</h1>
-                        <p className="text-slate-500 text-xs mt-2">{siteName || APP_CONFIG.BANK_NAME} Administration</p>
+        <div className="min-h-screen w-full flex items-center justify-center p-4 font-sans overflow-hidden bg-cover bg-center bg-no-repeat fixed inset-0" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070')" }}>
+            <div className="w-full max-w-[380px] flex flex-col items-center transition-all duration-300 ease-in-out relative z-10 -mt-[50px] md:mt-0">
+                <div className="w-full bg-black/20 backdrop-blur-[4px] rounded-[24px] shadow-2xl border border-white/20 overflow-hidden transition-all duration-300 ring-1 ring-white/10">
+                    <div className="pt-6 pb-2 px-8 text-center">
+                        <img
+                            src={displayLogo}
+                            alt={displayName}
+                            className="w-12 h-12 mx-auto mb-3 object-contain drop-shadow-lg"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                        <h1 className="text-lg font-bold text-white tracking-tight drop-shadow-md">Staff Access</h1>
+                        <p className="text-[11px] text-white/90 mt-1 font-medium drop-shadow-md">{displayName} Administration</p>
                     </div>
-                    {error && (
-                        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold flex items-center gap-2">
-                            <AlertCircle size={14} /> {error}
+                    <div className="px-8 pb-6 pt-4">
+                        {error && (
+                            <div className="mb-4 px-3 py-2 rounded-lg flex items-center gap-2 text-[10px] font-bold backdrop-blur-md border bg-red-500/20 text-white border-red-200/30">
+                                <AlertCircle size={14} /> <span className="flex-1">{error}</span>
+                            </div>
+                        )}
+                        <form onSubmit={handleSubmit} className="space-y-3">
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className={inputClass} placeholder="Admin email address" />
+                            </div>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-white" size={14} />
+                                <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className={inputClass} placeholder="Password" />
+                            </div>
+                            <button type="submit" disabled={isLoading} className="w-full py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2 mt-1 backdrop-blur-sm border bg-blue-600/80 hover:bg-blue-600 text-white shadow-blue-600/20 border-blue-500/30">
+                                {isLoading ? <Loader2 className="animate-spin" size={16} /> : <Key size={16} />} Authenticate
+                            </button>
+                        </form>
+                        <div className="mt-4 text-center">
+                            <button onClick={onBack} className="text-[10px] font-bold text-white hover:text-white/80 flex items-center justify-center gap-1 mx-auto">
+                                <ArrowLeft size={14} /> Back to Home
+                            </button>
                         </div>
-                    )}
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">Email</label>
-                            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:border-blue-500 focus:outline-none transition-colors placeholder:text-slate-600" placeholder="admin@example.com" />
-                        </div>
-                        <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">Password</label>
-                            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:border-blue-500 focus:outline-none transition-colors placeholder:text-slate-600" placeholder="••••••••" />
-                        </div>
-                        <button type="submit" disabled={isLoading} className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
-                            {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Key size={16} />} Authenticate
-                        </button>
-                    </form>
+                    </div>
                 </div>
-                {logoUrl && <img src={logoUrl} alt="" className="w-8 h-8 mx-auto mt-8 opacity-30" />}
+                <div className="mt-6 text-center opacity-90">
+                    <p className="text-[9px] font-bold text-white/70 uppercase tracking-widest text-shadow-sm drop-shadow-md">Secured by {displayName} ID</p>
+                </div>
             </div>
         </div>
     );
