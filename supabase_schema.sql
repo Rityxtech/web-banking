@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS mvp_profiles (
     kyc_documents JSONB DEFAULT '{}',
     -- Account status
     is_suspended BOOLEAN DEFAULT FALSE,
-    theme VARCHAR(20) DEFAULT 'dark',
+    theme VARCHAR(20) DEFAULT 'light',
     -- Contact info
     phone VARCHAR(50),
     gender VARCHAR(20),

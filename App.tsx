@@ -1082,6 +1082,16 @@ function App() {
         return () => clearInterval(interval);
     }, [currentUser, refreshNotifications, fetchGlobalSettings, refreshMessageCounts]);
 
+    // Initialize theme from localStorage on mount (before user profile loads)
+    useEffect(() => {
+        try {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                setIsDarkMode(savedTheme === 'dark');
+            }
+        } catch { /* localStorage not available */ }
+    }, []);
+
     useEffect(() => {
         if (isDarkMode || isAdminMode) document.documentElement.classList.add('dark');
         else document.documentElement.classList.remove('dark');
@@ -1091,10 +1101,13 @@ function App() {
         if (isAdminMode) return;
         const newMode = !isDarkMode;
         setIsDarkMode(newMode);
+        const themeValue = newMode ? 'dark' : 'light';
+        // Always save to localStorage so non-logged-in users and fallback work
+        try { localStorage.setItem('theme', themeValue); } catch { /* ignore */ }
         if (currentUser) {
             const { data: profiles } = await supabase.from('mvp_profiles').select('id,user_id').eq('user_id', currentUser.id);
             const profile = (profiles || [])[0];
-            if (profile) await supabase.from('mvp_profiles').update({ theme: newMode ? 'dark' : 'light' }).eq('id', profile.id);
+            if (profile) await supabase.from('mvp_profiles').update({ theme: themeValue }).eq('id', profile.id);
         }
     };
 
