@@ -442,7 +442,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 30px 40px;">
-                <a href="#" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
+                <a href="https://wa.me/14474508013" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
             </td>
         </tr>
         <tr>
