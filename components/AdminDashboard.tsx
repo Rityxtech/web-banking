@@ -714,7 +714,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             const shouldFetchLiquidity = activeSection === 'overview';
 
             let [{ data: tx }, { data: b }, { data: accLiq }] = await Promise.all([
-                shouldFetchTx ? supabaseAdmin.from('mvp_transactions').select('*').limit(50) : Promise.resolve({ data: null }),
+                shouldFetchTx ? supabaseAdmin.from('mvp_transactions').select('*').order('date', { ascending: false }).limit(50) : Promise.resolve({ data: null }),
                 shouldFetchBanks ? supabaseAdmin.from('mvp_banks').select('*').limit(50) : Promise.resolve({ data: null }),
                 shouldFetchLiquidity ? supabaseAdmin.from('mvp_accounts').select('balance').limit(50) : Promise.resolve({ data: null })
             ]);

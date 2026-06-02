@@ -837,7 +837,7 @@ function App() {
             const [{ data: accRes }, { data: cardRes }, { data: txRes }, { data: assetRes }, { data: notifRes }, { data: msgs }] = await Promise.all([
                 supabase.from('mvp_accounts').select('*').eq('user_id', userId),
                 supabase.from('mvp_cards').select('*').eq('user_id', userId),
-                supabase.from('mvp_transactions').select('*').eq('user_id', userId).limit(500),
+                supabase.from('mvp_transactions').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(500),
                 supabase.from('mvp_assets').select('*').eq('user_id', userId),
                 supabase.from('mvp_notifications').select('id,title,message,type,is_read,created_at').eq('user_id', userId).limit(20),
                 supabase.from('mvp_messages').select('id,sender,is_read,ticket_id').eq('user_id', userId).limit(100)
@@ -1105,7 +1105,7 @@ function App() {
             fetchGlobalSettings();
 
             // Use Supabase directly — MVP API is broken (404)
-            supabase.from('mvp_transactions').select('*').eq('user_id', currentUser.id).limit(20)
+            supabase.from('mvp_transactions').select('*').eq('user_id', currentUser.id).order('date', { ascending: false }).limit(20)
                 .then(({ data: txs }) => {
                     if (!txs) return;
                     const newTxs = txs.map((t: any) => ({ ...t, amount: Number(t.amount) }));

@@ -169,9 +169,12 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, onModa
     });
 
     filteredTransactions.sort((a, b) => {
-        if (!a.date) return 1;
-        if (!b.date) return -1;
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        const aTime = a.date ? new Date(a.date).getTime() : 0;
+        const bTime = b.date ? new Date(b.date).getTime() : 0;
+        if (isNaN(aTime) && isNaN(bTime)) return 0;
+        if (isNaN(aTime)) return 1;
+        if (isNaN(bTime)) return -1;
+        return bTime - aTime;
     });
 
     const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
