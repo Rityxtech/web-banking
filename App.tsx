@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Account, Transaction, TransactionType, Card, Asset, User, Notification, TransactionStatus, AccountType } from './types';
 import { supabase } from './services/supabase';
 import { mvp } from './services/mvpService';
-import { Loader2, ShieldCheck, Save, AlertCircle, ShieldAlert, LogOut, Send, CheckCircle, Ticket, Lock, Clock, ChevronRight, MessageSquare, Mail, Key, UserX, AlertTriangle, Ban } from 'lucide-react';
+import { Loader2, ShieldCheck, Save, AlertCircle, ShieldAlert, LogOut, Send, CheckCircle, Ticket, Lock, Clock, ChevronRight, MessageSquare, Mail, Key, UserX, AlertTriangle, Ban, ArrowLeft } from 'lucide-react';
 import { getEmailTemplate } from './utils/emailTemplates';
 import { APP_CONFIG, setSiteConfig } from './config';
 
@@ -397,6 +397,81 @@ const CompleteRegistration = ({ user, onComplete }: { user: any, onComplete: () 
     );
 };
 
+const AdminLoginScreen = ({ logoUrl, siteName, onBack }: { logoUrl?: string, siteName?: string, onBack: () => void }) => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        if (!email || !password) return;
+        setIsLoading(true);
+        try {
+            const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+            if (signInError) throw signInError;
+            if (!data.user) throw new Error('No user returned');
+
+            // Check admin status
+            const userEmail = data.user.email?.toLowerCase();
+            let isAdmin = userEmail === APP_CONFIG.ADMIN_EMAILS[0] || userEmail === 'akugbof@gmail.com';
+            if (!isAdmin) {
+                const { data: profiles } = await supabase.from('mvp_profiles').select('role').eq('user_id', data.user.id).single();
+                if (profiles?.role === 'admin') isAdmin = true;
+            }
+
+            if (!isAdmin) {
+                await supabase.auth.signOut();
+                throw new Error('Access denied. This login is reserved for authorized staff only.');
+            }
+            // Success — auth listener will handle setting isAdminMode and routing
+        } catch (err: any) {
+            setError(err.message || 'Authentication failed.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+            <div className="w-full max-w-sm">
+                <button onClick={onBack} className="text-slate-500 hover:text-white mb-8 flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors">
+                    <ArrowLeft size={14} /> Back
+                </button>
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <ShieldCheck size={32} className="text-blue-500" />
+                        </div>
+                        <h1 className="text-xl font-black text-white uppercase tracking-tight">Staff Access</h1>
+                        <p className="text-slate-500 text-xs mt-2">{siteName || APP_CONFIG.BANK_NAME} Administration</p>
+                    </div>
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold flex items-center gap-2">
+                            <AlertCircle size={14} /> {error}
+                        </div>
+                    )}
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">Email</label>
+                            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:border-blue-500 focus:outline-none transition-colors placeholder:text-slate-600" placeholder="admin@example.com" />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 block">Password</label>
+                            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} className="w-full p-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:border-blue-500 focus:outline-none transition-colors placeholder:text-slate-600" placeholder="••••••••" />
+                        </div>
+                        <button type="submit" disabled={isLoading} className="w-full py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2">
+                            {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Key size={16} />} Authenticate
+                        </button>
+                    </form>
+                </div>
+                {logoUrl && <img src={logoUrl} alt="" className="w-8 h-8 mx-auto mt-8 opacity-30" />}
+            </div>
+        </div>
+    );
+};
+
 function App() {
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [loadingAuth, setLoadingAuth] = useState(true);
@@ -407,8 +482,9 @@ function App() {
     const [forceMaintenance, setForceMaintenance] = useState(false);
     const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
 
-    const [currentView, setCurrentView] = useState<'home' | 'signin' | 'signup'>(() => {
+    const [currentView, setCurrentView] = useState<'home' | 'signin' | 'signup' | 'admin_login'>(() => {
         const hash = window.location.hash.substring(1);
+        if (hash === 'admin-login') return 'admin_login';
         if (hash === 'signin' || hash === 'signup') return hash;
         const saved = localStorage.getItem(APP_CONFIG.STORAGE_PREFIX + 'view');
         return (saved === 'signin' || saved === 'signup') ? saved : 'home';
@@ -487,7 +563,10 @@ function App() {
             const hash = window.location.hash.substring(1);
 
             // AUTH NAVIGATION (Checking !currentUser inside effect creates closure issues, rely on currentView logic)
-            if (hash === 'signin' || hash === 'signup') {
+            if (hash === 'admin-login') {
+                setCurrentView('admin_login');
+                localStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'view', 'admin_login');
+            } else if (hash === 'signin' || hash === 'signup') {
                 setCurrentView(hash);
                 localStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'view', hash);
             } else {
@@ -1219,6 +1298,7 @@ function App() {
             window.location.hash = p;
             if (e) setPrefilledEmail(e);
         }} />;
+        if (currentView === 'admin_login') return <AdminLoginScreen logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} onBack={() => { setCurrentView('home'); window.location.hash = ''; }} />;
         // Pass authErrorMessage to Auth component so it can display "Account not found..."
         return <Auth logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} showMaintenanceModal={showMaintenanceModal} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => { setShowMaintenanceModal(false); window.location.hash = view; }} onShowMaintenance={() => { setShowMaintenanceModal(true); }} />;
     }
