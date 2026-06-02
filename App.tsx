@@ -1097,11 +1097,16 @@ function App() {
     }, [currentUser, refreshNotifications, fetchGlobalSettings, refreshMessageCounts]);
 
     // Initialize theme from localStorage on mount (before user profile loads)
+    // Default to light mode; only use saved preference if explicitly set
     useEffect(() => {
         try {
             const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                setIsDarkMode(savedTheme === 'dark');
+            if (savedTheme === 'dark') {
+                setIsDarkMode(true);
+            } else {
+                // Default to light for new visitors and returning users without explicit preference
+                setIsDarkMode(false);
+                localStorage.setItem('theme', 'light');
             }
         } catch { /* localStorage not available */ }
     }, []);
