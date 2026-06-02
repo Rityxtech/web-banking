@@ -1036,20 +1036,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             const payloads: any[] = [];
             let totalDelta = 0;
 
+            const realisticNames: Record<string, string[]> = {
+                'Top up': ['Mobile Top Up', 'Wallet Top Up', 'Data Recharge', 'Airtime Purchase'],
+                'Bills': ['Electric Bill', 'Water Bill', 'Internet Bill', 'Phone Bill', 'Cable TV', 'Gas Bill'],
+                'Investments': ['ETF Investment', 'Index Fund', 'Bond Purchase', 'Mutual Fund'],
+                'Transfers': ['Bank Transfer', 'Wire Transfer', 'Peer Transfer', 'Instant Transfer'],
+                'Request': ['Payment Request', 'Invoice Settlement', 'Refund Credit'],
+                'Stocks': ['Apple Inc.', 'Tesla Inc.', 'Amazon.com', 'Microsoft Corp.', 'NVIDIA Corp.', 'Alphabet Inc.'],
+                'Withdrawal': ['ATM Withdrawal', 'Cash Withdrawal', 'Bank Counter'],
+                'Salary': ['Monthly Salary', 'Payroll Credit', 'Wage Deposit', 'Bonus Payment'],
+                'Shopping': ['Amazon', 'Target', 'Walmart', 'Best Buy', 'eBay', 'Etsy'],
+                'Groceries': ['Whole Foods', 'Kroger', "Trader Joe's", 'Safeway', 'Costco', 'Aldi']
+            };
+
             for (let i = 0; i < count; i++) {
                 const picked = pickType();
                 const config = typeMap[picked] || typeMap['Top up'];
-                const rawAmt = Math.random() * (max - min) + min;
+                let rawAmt: number;
+                if (['Bills', 'Groceries', 'Shopping'].includes(picked)) {
+                    const billMax = Math.min(max, 250);
+                    const billMin = Math.min(min, billMax);
+                    rawAmt = Math.random() * (billMax - Math.max(billMin, 5)) + Math.max(billMin, 5);
+                } else {
+                    rawAmt = Math.random() * (max - min) + min;
+                }
                 const amount = config.isExpense ? -rawAmt : rawAmt;
                 const randomDate = new Date(fromTime + Math.random() * (toTime - fromTime));
                 const txId = `TX-${Math.floor(10000000 + Math.random() * 90000000)}`;
+                const names = realisticNames[picked] || ['Transaction'];
+                const description = names[Math.floor(Math.random() * names.length)];
                 payloads.push({
                     uuid: txId,
                     user_id: selectedUser.user_id,
                     account_id: selectedUserAccount?.id || null,
                     amount: Number(amount.toFixed(2)),
-                    description: `${picked} - Auto Generated`,
-                    merchant: null,
+                    description,
+                    merchant: description,
                     type: config.type,
                     category: config.category,
                     status: 'Success',
@@ -2494,7 +2516,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                         <label className="text-[9px] font-bold text-slate-500 uppercase">Count</label>
                                                         <input type="number" min="1" max="100" value={txGenerator.count} onChange={e => setTxGenerator({ ...txGenerator, count: e.target.value })} placeholder="1-100" className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-[11px] text-white focus:ring-1 focus:ring-blue-500 outline-none" />
                                                     </div>
-                                                    <div className="space-y-1 col-span-2 lg:col-span-2">
+                                                    <div className="space-y-1 col-span-2 md:col-span-3 lg:col-span-6">
                                                         <label className="text-[9px] font-bold text-slate-500 uppercase">Types (Multi-Select)</label>
                                                         <div className="flex flex-wrap gap-1.5">
                                                             {['Top up','Bills','Investments','Transfers','Request','Stocks','Withdrawal','Salary','Shopping','Groceries'].map(t => {
