@@ -356,7 +356,7 @@ export const Transfers: React.FC<TransfersProps> = ({
 
                     // Send PayPal receipt email if PayPal was selected
                     if (isPayPal && formData.accountNumber) {
-                        const senderName = formData.recipientName || 'Account Holder';
+                        const senderName = mainAccount?.name || 'Account Holder';
                         const fee = rawAmount * 0.045;
                         const total = rawAmount - fee;
                         const currencyCode = selectedCurrency.code;
@@ -661,7 +661,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 <label className="text-[10px] md:text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Account Name</label>
                                 <input
                                     type="text"
-                                    placeholder="e.g. John Doe"
+                                    placeholder="e.g. Dylan harrison"
                                     value={formData.recipientName}
                                     onChange={(e) => setFormData({ ...formData, recipientName: e.target.value })}
                                     className="w-full p-2.5 md:p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm md:text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all dark:text-white"
