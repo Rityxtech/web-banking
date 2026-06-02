@@ -1293,12 +1293,24 @@ function App() {
 
 
 
+    // Admin login route — must be checked before !currentUser so it works even when a user is already logged in
+    if (currentView === 'admin_login') {
+        if (currentUser && isAdminMode) {
+            return (
+                <div className="relative">
+                    {globalSettings.maintenanceMode && <div className="bg-amber-500/90 text-white px-4 py-1 text-center text-xs font-bold uppercase tracking-widest sticky top-0 z-[100] backdrop-blur-md">Maintenance Mode Active</div>}
+                    <AdminDashboard onLogout={handleLogout} onExitAdmin={handleLogout} userAvatar={currentUser.avatarUrl} />
+                </div>
+            );
+        }
+        return <AdminLoginScreen logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} onBack={() => { setCurrentView('home'); window.location.hash = ''; }} />;
+    }
+
     if (!currentUser) {
         if (currentView === 'home') return <HomePage logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} onNavigate={(p, e) => {
             window.location.hash = p;
             if (e) setPrefilledEmail(e);
         }} />;
-        if (currentView === 'admin_login') return <AdminLoginScreen logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} onBack={() => { setCurrentView('home'); window.location.hash = ''; }} />;
         // Pass authErrorMessage to Auth component so it can display "Account not found..."
         return <Auth logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} showMaintenanceModal={showMaintenanceModal} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => { setShowMaintenanceModal(false); window.location.hash = view; }} onShowMaintenance={() => { setShowMaintenanceModal(true); }} />;
     }
