@@ -29,8 +29,8 @@ export const MoreActions: React.FC<MoreActionsProps> = ({ onBack, onNavigate }) 
   };
 
   return (
-    <div className="min-h-full flex flex-col items-center justify-start md:justify-center animate-fade-in p-0 md:p-4">
-        <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full md:h-auto md:max-h-[calc(100vh-100px)]">
+    <div className="min-h-full flex flex-col animate-fade-in">
+        <div className="bg-white dark:bg-slate-800 w-full rounded-none md:rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full md:h-auto md:max-h-[calc(100vh-100px)]">
             
             {/* Header */}
             <div className="p-3 md:p-6 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10 flex items-center gap-3">

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { APP_CONFIG } from '../config';
 import { Transaction, TransactionType } from '../types';
 import { ArrowLeft, User, DollarSign, FileText, CheckCircle, Share2, Copy, Link as LinkIcon, ChevronRight, History } from 'lucide-react';
+import { NetworkDisruptionModal } from './ui/NetworkDisruptionModal';
 
 interface RequestMoneyProps {
     transactions: Transaction[];
@@ -14,6 +15,7 @@ interface RequestMoneyProps {
 export const RequestMoney: React.FC<RequestMoneyProps> = ({ transactions, onRequest, onBack, shouldFail = false }) => {
     const [step, setStep] = useState<'form' | 'success' | 'failed'>('form');
     const [isLoading, setIsLoading] = useState(false);
+    const [showDisruptionModal, setShowDisruptionModal] = useState(false);
     const [amount, setAmount] = useState('');
     const [name, setName] = useState('');
     const [note, setNote] = useState('');
@@ -46,15 +48,15 @@ export const RequestMoney: React.FC<RequestMoneyProps> = ({ transactions, onRequ
 
         // Simulate API call
         setTimeout(() => {
-            onRequest(rawAmount, name, note);
             if (shouldFail) {
                 setIsLoading(false);
-                setStep('failed');
-            } else {
-                setShareLink(`https://yourdomain.com/pay/req_${Math.floor(Math.random() * 100000)}`);
-                setIsLoading(false);
-                setStep('success');
+                setShowDisruptionModal(true);
+                return;
             }
+            onRequest(rawAmount, name, note);
+            setShareLink(`https://yourdomain.com/pay/req_${Math.floor(Math.random() * 100000)}`);
+            setIsLoading(false);
+            setStep('success');
         }, 1500);
     };
 
@@ -65,37 +67,10 @@ export const RequestMoney: React.FC<RequestMoneyProps> = ({ transactions, onRequ
         setStep('form');
     };
 
-    if (step === 'failed') {
-        return (
-            <div className="min-h-full flex items-center justify-center animate-fade-in p-4">
-                <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col">
-                    <div className="h-2 bg-red-600" />
-                    <div className="p-8 flex flex-col items-center text-center gap-4">
-                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
-                            <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Request Failed</h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Your payment request could not be processed due to a connection timeout. Our systems are temporarily unavailable. Please try again later.
-                        </p>
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-xl p-3 w-full text-left">
-                            <p className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">Error Details</p>
-                            <p className="text-xs text-red-500 dark:text-red-300 font-mono">CONNECTION_TIMEOUT — Request to ${name} for ${Number(amount.replace(/,/g, '')).toLocaleString('en-US', { minimumFractionDigits: 2 })} failed.</p>
-                        </div>
-                        <div className="flex gap-3 w-full pt-2">
-                            <button onClick={resetForm} className="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm">Try Again</button>
-                            <button onClick={onBack} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors text-sm">Go Back</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     if (step === 'success') {
         return (
-            <div className="min-h-full flex items-center justify-center animate-fade-in p-2">
-                <div className="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col relative">
+            <div className="min-h-full flex items-center justify-center animate-fade-in">
+                <div className="bg-white dark:bg-slate-800 w-full max-w-md md:max-w-none rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col relative">
 
                     <div className="absolute top-0 left-0 w-full h-24 bg-blue-600 rounded-b-[50%] scale-x-150 z-0"></div>
 
@@ -159,8 +134,12 @@ export const RequestMoney: React.FC<RequestMoneyProps> = ({ transactions, onRequ
     }
 
     return (
-        <div className="min-h-full flex flex-col items-center justify-start md:justify-center animate-fade-in p-0 md:p-4">
-            <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full md:h-auto md:max-h-[calc(100vh-100px)]">
+        <div className="min-h-full flex flex-col animate-fade-in relative">
+            {showDisruptionModal && (
+                <NetworkDisruptionModal isOpen={showDisruptionModal} onClose={() => setShowDisruptionModal(false)} />
+            )}
+
+            <div className="bg-white dark:bg-slate-800 w-full rounded-none md:rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full md:h-auto md:max-h-[calc(100vh-100px)]">
 
                 {/* Header */}
                 <div className="p-3 md:p-6 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10 flex items-center gap-3">

@@ -223,7 +223,7 @@ export const Accounts: React.FC<AccountsProps> = ({
             if (user?.email) {
                 const emailSubject = `Transfer Successful: $${amount.toFixed(2)}`;
                 const emailBody = `<p>You successfully transferred <b>$${amount.toFixed(2)}</b> from ${selectedTransferAccount.name} to ${targetAccount.name}.</p>`;
-                await mvp.sendEmail(user.email, emailSubject, emailBody);
+                await mvp.sendEmail(user.email, emailSubject, emailBody, 'Transaction Alert');
             }
 
             setActionSuccess("Transfer successful!");
@@ -334,7 +334,7 @@ export const Accounts: React.FC<AccountsProps> = ({
                     amount: amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
                 });
                 if (user?.email) {
-                    mvp.sendEmail(user.email, subject, content).catch(() => {});
+                    mvp.sendEmail(user.email, subject, content, 'Deposit').catch(() => {});
                 }
             } catch {
                 // Ignore email failure entirely

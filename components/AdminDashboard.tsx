@@ -96,6 +96,197 @@ const EMAIL_TEMPLATES = [
         </div>
       </div>
     `
+    },
+    {
+        id: 'paypal_withdrawal',
+        name: 'PayPal',
+        description: 'Sent for PayPal withdrawal confirmations.',
+        subject: 'PayPal Payment Received',
+        content: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayPal Email Template</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f7fa; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #f5f7fa;">
+        
+        <tr>
+            <td align="center" style="padding: 20px 0 10px 0; font-size: 11px; color: #6c7378;">
+                Hello, Kellie Jacobson
+            </td>
+        </tr>
+
+        <tr>
+            <td align="center" style="padding: 15px 0 25px 0;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="24" style="display: block; border: 0;">
+            </td>
+        </tr>
+
+        <tr>
+            <td align="center" style="padding: 0 30px; font-weight: bold; font-size: 32px; line-height: 38px; color: #000000;">
+                Marie Florence Wagar sent<br>you $600.00 CAD
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 40px 40px 10px 40px;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: bold; color: #000000;">Transaction Details</h3>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 0 40px;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td valign="top" style="font-size: 12px; line-height: 18px;">
+                            <span style="color: #6c7378; display: block;">Transaction ID</span>
+                            <a href="#" style="color: #0070ba; text-decoration: underline; font-weight: 500;">4HF62992KL806822V</a>
+                        </td>
+                        <td align="right" valign="top" style="font-size: 12px; line-height: 18px;">
+                            <span style="color: #6c7378; display: block;">Transaction date</span>
+                            <span style="color: #000000; font-weight: 500;">May 11, 2025</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 20px 40px 0 40px;">
+                <hr style="border: 0; border-top: 1px solid #dcdcdc; margin: 0;">
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 15px 40px 10px 40px;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 13px;">
+                    <tr>
+                        <td style="color: #000000; font-weight: bold;">Amount</td>
+                        <td align="right" style="color: #000000;">$600.00 CAD</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 5px 40px 0 40px;">
+                <hr style="border: 0; border-top: 1px solid #dcdcdc; margin: 0;">
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 15px 40px 0 40px;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 13px; line-height: 22px;">
+                    <tr>
+                        <td style="color: #6c7378;">Fee</td>
+                        <td align="right" style="color: #6c7378;">$26.94 CAD</td>
+                    </tr>
+                    <tr style="font-weight: bold; font-size: 14px;">
+                        <td style="color: #000000; padding-top: 5px;">Total</td>
+                        <td align="right" style="color: #000000; padding-top: 5px;">$573.06 CAD</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 25px 40px 0 40px;">
+                <div style="border-top: 1px dotted #999999; height: 1px; width: 100%;"></div>
+            </td>
+        </tr>
+<tr>
+            <td style="padding: 20px 40px 0 40px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #000000;">Shipping Address</h4>
+                <div style="font-size: 13px; line-height: 18px;">
+                    <a href="#" style="color: #0070ba; text-decoration: underline;">7 Aldergate Dr</a><br>
+                    <a href="#" style="color: #0070ba; text-decoration: underline;">Apartment 205</a><br>
+                    <a href="#" style="color: #0070ba; text-decoration: underline;">Belleville ON K8P4W9</a><br>
+                    <a href="#" style="color: #0070ba; text-decoration: underline;">Canada</a>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 25px 40px 0 40px;">
+                <div style="border-top: 1px dotted #999999; height: 1px; width: 100%;"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 20px 40px 0 40px; font-size: 13px; line-height: 18px; color: #000000;">
+                <p style="margin: 0 0 4px 0; font-weight: 500;">Don't see the money in your account?</p>
+                <p style="margin: 0; color: #333333;">Don't worry – sometimes it just takes a few minutes for it to show up.</p>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 25px 40px 0 40px;">
+                <div style="border-top: 1px dotted #999999; height: 1px; width: 100%;"></div>
+            </td>
+        </tr>
+
+        <tr>
+            <td align="center" style="padding: 30px 40px;">
+                <a href="#" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 0 40px;">
+                <hr style="border: 0; border-top: 1px solid #c5c5c5; margin: 0;">
+            </td>
+        </tr>
+
+        <tr>
+            <td align="center" style="padding: 25px 0 10px 0;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="22" style="display: block; border: 0; opacity: 0.8;">
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 10px 40px 0 40px;">
+                <hr style="border: 0; border-top: 1px solid #dcdcdc; margin: 0;">
+            </td>
+        </tr>
+
+        <tr>
+            <td align="center" style="padding: 20px 40px 10px 40px; font-size: 11px;">
+                <div style="margin-bottom: 15px;">
+                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">Help & Contact</a>
+                    <span style="color: #c5c5c5; margin: 0 5px;">|</span>
+                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">Security</a>
+                    <span style="color: #c5c5c5; margin: 0 5px;">|</span>
+                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">Apps</a>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background-color: #8a8e91; color: #ffffff; line-height: 24px; font-weight: bold; font-size: 11px; margin: 0 6px;">X</span>
+                    <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background-color: #8a8e91; color: #ffffff; line-height: 24px; font-weight: bold; font-size: 11px; margin: 0 6px;">ig</span>
+                    <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background-color: #8a8e91; color: #ffffff; line-height: 24px; font-weight: bold; font-size: 11px; margin: 0 6px;">f</span>
+
+<span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background-color: #8a8e91; color: #ffffff; line-height: 24px; font-weight: bold; font-size: 11px; margin: 0 6px;">in</span>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <td style="padding: 0 40px 40px 40px; font-size: 10px; line-height: 15px; color: #6c7378;">
+                <p style="margin: 0 0 8px 0;">PayPal is committed to preventing fraudulent emails. Emails from PayPal will always contain your full name. <a href="#" style="color: #0070ba; text-decoration: underline;">Learn to identify phishing</a></p>
+                <p style="margin: 0 0 8px 0;">Please don't reply to this email. To get in touch with us, click <a href="#" style="color: #0070ba; text-decoration: underline;">Help & Contact</a>.</p>
+                <p style="margin: 0 0 12px 0;">Not sure why you received this email? <a href="#" style="color: #0070ba; text-decoration: underline;">Learn more</a></p>
+                <p style="margin: 0 0 4px 0;">Copyright © 1999-2026 PayPal, Inc. All rights reserved. PayPal is located at <a href="#" style="color: #0070ba; text-decoration: underline;">2211 N. First St., San Jose, CA 95131</a>.</p>
+                <p style="margin: 0; font-size: 9px; color: #9c9c9c;">PayPal RT000297:en_US(en-US):1.8.1:ab0bbbcf23caa</p>
+            </td>
+        </tr>
+
+    </table>
+
+</body>
+</html>
+    `
     }
 ];
 
@@ -159,7 +350,7 @@ const AdminCardReplica: React.FC<{ card: any, isDefault: boolean }> = ({ card, i
             <div className="absolute inset-0 p-3 md:p-4 flex flex-col justify-between text-white z-10">
                 <div className="flex justify-between items-start">
                     <div>
-                        <span className="font-bold text-[10px] md:text-xs tracking-tight block">{APP_CONFIG.BRAND_NAME}</span>
+                        <span className="font-bold text-[10px] md:text-xs tracking-tight block">{globalConfig.siteName || APP_CONFIG.BRAND_NAME}</span>
                         <span className="text-[6px] text-xs opacity-70 uppercase tracking-widest">{isDefault ? 'System Root' : 'Node Asset'}</span>
                     </div>
                     <div className="flex flex-col items-end gap-1">
@@ -332,6 +523,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     const [previewDoc, setPreviewDoc] = useState<string | null>(null);
 
     const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+    const [testEmailRecipient, setTestEmailRecipient] = useState('');
+    const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
 
     const [globalConfig, setGlobalConfig] = useState({
         maintenanceMode: false,
@@ -510,11 +703,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             const shouldFetchBanks = activeSection === 'bank_management';
             const shouldFetchLiquidity = activeSection === 'overview';
 
-            const [{ data: tx }, { data: b }, { data: accLiq }] = await Promise.all([
+            let [{ data: tx }, { data: b }, { data: accLiq }] = await Promise.all([
                 shouldFetchTx ? supabaseAdmin.from('mvp_transactions').select('*').limit(50) : Promise.resolve({ data: null }),
                 shouldFetchBanks ? supabaseAdmin.from('mvp_banks').select('*').limit(50) : Promise.resolve({ data: null }),
                 shouldFetchLiquidity ? supabaseAdmin.from('mvp_accounts').select('balance').limit(50) : Promise.resolve({ data: null })
             ]);
+
+            // Auto-insert PayPal as a default bank if missing
+            if (shouldFetchBanks && b !== null) {
+                const hasPaypal = (b || []).some((bank: any) => bank.name?.toLowerCase() === 'paypal');
+                if (!hasPaypal) {
+                    await supabaseAdmin.from('mvp_banks').insert([{
+                        name: 'PayPal',
+                        logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg',
+                        color: 'bg-blue-600'
+                    }]);
+                    const { data: refreshedBanks } = await supabaseAdmin.from('mvp_banks').select('*').limit(50);
+                    b = refreshedBanks;
+                }
+            }
 
             if (isMounted.current) {
                 if (tx !== null) setTransactions(tx);
@@ -986,6 +1193,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         } finally {
             setIsActionLoading(null);
             setDeleteConfirmStep(0);
+        }
+    };
+
+    const handleSendTestEmail = async () => {
+        if (!selectedTemplate || !testEmailRecipient) return;
+        setIsSendingTestEmail(true);
+        try {
+            const res = await mvp.sendEmail(testEmailRecipient, selectedTemplate.subject, selectedTemplate.content, selectedTemplate.name);
+            if (res.success || res.messageId) {
+                setSuccessMsg(`Test email sent to ${testEmailRecipient}`);
+            } else {
+                setErrorMsg(res.error || 'Failed to send test email');
+            }
+        } catch (err: any) {
+            setErrorMsg(err.message || 'Failed to send test email');
+        } finally {
+            setIsSendingTestEmail(false);
+            setTimeout(() => setSuccessMsg(null), 5000);
+            setTimeout(() => setErrorMsg(null), 5000);
         }
     };
 
@@ -1470,16 +1696,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
             let saveOk = false;
             try {
-                const { error: updErr } = await supabase.from('mvp_app_settings').update(corePayload).eq('id', 1);
-                if (!updErr) saveOk = true;
-            } catch (updateErr: any) {
-                // Row id=1 may not exist yet — try insert
-                try {
-                    const { error: insErr } = await supabase.from('mvp_app_settings').insert([{ id: 1, ...corePayload }]);
-                    if (!insErr) saveOk = true;
-                } catch (createErr: any) {
-                    throw new Error(`Save failed: ${createErr.message}`);
+                const { error: updErr } = await supabaseAdmin!.from('mvp_app_settings').update(corePayload).eq('id', 1);
+                if (updErr) {
+                    console.error('[Settings] Update error:', updErr);
+                    // Row id=1 may not exist yet — try insert
+                    const { error: insErr } = await supabaseAdmin!.from('mvp_app_settings').insert([{ id: 1, ...corePayload }]);
+                    if (insErr) throw new Error(`Save failed: ${insErr.message}`);
                 }
+                saveOk = true;
+            } catch (updateErr: any) {
+                throw new Error(`Save failed: ${updateErr.message}`);
             }
 
             // ── STEP 2: Extended save (optional columns) ──────────────────────────────
@@ -1494,10 +1720,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     monthly_limit: globalConfig.monthlyLimit,
                 };
                 try {
-                    const { error: extErr } = await supabase.from('mvp_app_settings').update(extendedPayload).eq('id', 1);
-                    if (!extErr) setSuccessMsg('Settings saved successfully.');
+                    const { error: extErr } = await supabaseAdmin!.from('mvp_app_settings').update(extendedPayload).eq('id', 1);
+                    if (extErr) {
+                        console.error('[Settings] Extended save error:', extErr);
+                        setSuccessMsg(`Core settings saved, but logo/limits failed: ${extErr.message}`);
+                    } else {
+                        setSuccessMsg('Settings saved successfully.');
+                    }
                 } catch (extErr: any) {
-                    // Show error but don't fail entirely since core settings saved
                     console.error('[Settings] Extended save error:', extErr);
                     setSuccessMsg(`Core settings saved, but logo/limits failed: ${extErr.message}`);
                 }
@@ -1957,10 +2187,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     <div className="flex items-center gap-2.5" onClick={() => handleSidebarClick('overview')}>
                         <img
                             src={globalConfig.siteLogo && globalConfig.siteLogo.trim() !== '' ? globalConfig.siteLogo : "https://image2url.com/r2/default/images/1769428285590-d43b30ba-a0ba-499f-a066-6411c1619f75.webp"}
-                            alt={APP_CONFIG.BRAND_NAME}
+                            alt={globalConfig.siteName}
                             className="w-8 h-8 object-contain cursor-pointer"
                         />
-                        <h1 className="text-sm md:text-lg font-bold tracking-tight text-slate-900 dark:text-white uppercase cursor-pointer">{APP_CONFIG.BRAND_NAME} Admin</h1>
+                        <h1 className="text-sm md:text-lg font-bold tracking-tight text-slate-900 dark:text-white uppercase cursor-pointer">{globalConfig.siteName || APP_CONFIG.BRAND_NAME} Admin</h1>
                     </div>
                     <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden p-1 text-slate-400"><span className="material-symbols-outlined">close</span></button>
                 </div>
@@ -2903,6 +3133,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-[9px] font-bold bg-slate-200 dark:bg-slate-700 px-2 py-1 rounded text-slate-600 dark:text-slate-300">HTML Format</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="email"
+                                                            placeholder="recipient@email.com"
+                                                            value={testEmailRecipient}
+                                                            onChange={(e) => setTestEmailRecipient(e.target.value)}
+                                                            className="w-40 md:w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg px-2 py-1 text-[10px] dark:text-white outline-none focus:border-blue-500 transition-colors"
+                                                        />
+                                                        <button
+                                                            onClick={handleSendTestEmail}
+                                                            disabled={isSendingTestEmail || !testEmailRecipient}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold hover:bg-blue-500 transition-colors disabled:opacity-50"
+                                                        >
+                                                            {isSendingTestEmail ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                                                            Send Test
+                                                        </button>
                                                     </div>
                                                 </div>
                                                 <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-100 dark:bg-[#0d141b] custom-scrollbar flex justify-center">

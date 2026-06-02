@@ -259,7 +259,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
               ip: geo.ip,
               location: location
             });
-            return mvp.sendEmail(data.user!.email!, subject, content);
+            return mvp.sendEmail(data.user!.email!, subject, content, 'Login Notification');
           }).then(() => {
             localStorage.setItem(deviceKey, 'true');
           }).catch(console.error);
@@ -346,7 +346,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       if (data.session && data.user) {
         const userName = data.user.user_metadata?.full_name || 'Valued Client';
         const { subject, content } = getEmailTemplate('welcome', { user_name: userName });
-        mvp.sendEmail(data.user.email!, subject, content).catch(console.error);
+        mvp.sendEmail(data.user.email!, subject, content, 'Welcome').catch(console.error);
         onAuthSuccess();
       } else if (data?.user && !data.session) {
         setCurrentView('verify_otp');
@@ -407,7 +407,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         if (data.user) {
           const userName = data.user.user_metadata?.full_name || 'Valued Client';
           const { subject, content } = getEmailTemplate('welcome', { user_name: userName });
-          mvp.sendEmail(data.user.email!, subject, content).catch(console.error);
+          mvp.sendEmail(data.user.email!, subject, content, 'Welcome').catch(console.error);
         }
         onAuthSuccess();
       }

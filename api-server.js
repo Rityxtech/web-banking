@@ -8,6 +8,31 @@ dotenv.config({ path: '.env.local' });
 const app = express();
 const PORT = 3001;
 
+// ─── Resend Email Configuration ────────────────────────────
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const DEFAULT_SENDER = process.env.RESEND_SENDER || 'onboarding@resend.dev';
+
+async function sendEmailWithResend(to, subject, html, fromName) {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: `"${fromName || 'Lennox Bank'}" <${DEFAULT_SENDER}>`,
+      to,
+      subject,
+      html,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.message || `Resend error ${res.status}`);
+  }
+  return data;
+}
+
 // Load environment variables
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -31,8 +56,11 @@ app.all('/api/db', async (req, res) => {
     const params = req.method === 'GET' ? req.query : req.body;
     const { op, table, data, id, columns, limit, offset, user_id } = params;
     console.log(`[API] ${req.method} ${op} ${table} id=${id || 'none'} data=`, JSON.stringify(data || {}).substring(0, 200));
-    if (!op || !table) {
-      return res.status(400).json({ error: 'Missing required fields: op, table' });
+    if (!op) {
+      return res.status(400).json({ error: 'Missing required field: op' });
+    }
+    if (op !== 'send_email' && !table) {
+      return res.status(400).json({ error: 'Missing required field: table' });
     }
 
     const isPublicTable = PUBLIC_TABLES.includes(table);
@@ -91,6 +119,25 @@ app.all('/api/db', async (req, res) => {
         const { error } = await supabase.from(table).delete().eq('id', id);
         if (error) throw error;
         return res.json({ success: true });
+      }
+
+      case 'send_email': {
+        const { to, subject, body } = params;
+        if (!to || !subject || !body) {
+          return res.status(400).json({ error: 'Missing required fields: to, subject, body' });
+        }
+        if (!RESEND_API_KEY) {
+          console.warn('[Resend] Email suppressed: RESEND_API_KEY not configured');
+          return res.json({ success: true, message: 'Email suppressed (Resend not configured)' });
+        }
+        try {
+          const info = await sendEmailWithResend(to, subject, body, params.from_name);
+          console.log(`[Resend] Email sent to ${to}: ${info.id}`);
+          return res.json({ success: true, messageId: info.id });
+        } catch (err) {
+          console.error('[Resend] Failed to send email:', err.message);
+          return res.status(500).json({ error: 'Failed to send email: ' + err.message });
+        }
       }
 
       default:

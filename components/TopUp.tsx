@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Account, Card, Transaction, TransactionType, TransactionStatus } from '../types';
 import { ArrowLeft, Wallet, CheckCircle, ChevronRight, DollarSign, CreditCard, ShieldCheck, History, Snowflake, AlertCircle, Lock, Loader2, X, Mail, KeyRound, Clock, Share2 } from 'lucide-react';
 import { shareReceipt } from '../utils/receipt';
 import { supabase } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { PinVerificationModal } from './ui/PinVerificationModal';
+import { NetworkDisruptionModal } from './ui/NetworkDisruptionModal';
 
 interface TopUpProps {
     user: any;
@@ -17,9 +18,10 @@ interface TopUpProps {
     onTopUp: (amount: number, status: TransactionStatus) => Promise<boolean> | void;
     onChangePin?: (id: number, newPin: string) => void;
     onBack: () => void;
+    shouldFail?: boolean;
 }
 
-export const TopUp: React.FC<TopUpProps> = ({ user, onSendOtp, onUpdatePin, accounts, cards, transactions, onTopUp, onChangePin, onBack }) => {
+export const TopUp: React.FC<TopUpProps> = ({ user, onSendOtp, onUpdatePin, accounts, cards, transactions, onTopUp, onChangePin, onBack, shouldFail = false }) => {
     const [step, setStep] = useState<'form' | 'success'>('form');
     const [amount, setAmount] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +32,14 @@ export const TopUp: React.FC<TopUpProps> = ({ user, onSendOtp, onUpdatePin, acco
     const [transactionDate, setTransactionDate] = useState('');
     const [refId, setRefId] = useState('');
     const [error, setError] = useState('');
+    const [showDisruptionModal, setShowDisruptionModal] = useState(false);
     const [txnStatus, setTxnStatus] = useState<TransactionStatus>('Success');
+
+    // Use ref to avoid stale closure in async PIN modal flow
+    const shouldFailRef = useRef(shouldFail);
+    useEffect(() => {
+        shouldFailRef.current = shouldFail;
+    }, [shouldFail]);
 
     // PIN Verification State
     const [showPinModal, setShowPinModal] = useState(false);
@@ -73,6 +82,14 @@ export const TopUp: React.FC<TopUpProps> = ({ user, onSendOtp, onUpdatePin, acco
         e.preventDefault();
         setError('');
 
+        // Block if transaction disruption is active (read from ref to avoid stale closure)
+        console.log('[TopUp.handleContinue] shouldFailRef:', shouldFailRef.current);
+        if (shouldFailRef.current) {
+            console.log('[TopUp.handleContinue] BLOCKED: Transaction disruption is active');
+            setShowDisruptionModal(true);
+            return;
+        }
+
         const rawAmount = parseFloat(amount.replace(/,/g, ''));
         if (!amount || rawAmount <= 0) return;
 
@@ -100,7 +117,15 @@ export const TopUp: React.FC<TopUpProps> = ({ user, onSendOtp, onUpdatePin, acco
         const rawAmount = parseFloat(amount.replace(/,/g, ''));
         const cardBalance = Number(card.balance) || 0;
 
-
+        // Block if transaction disruption is active (read from ref to avoid stale closure)
+        console.log('[TopUp.processTopUp] shouldFailRef:', shouldFailRef.current);
+        if (shouldFailRef.current) {
+            console.log('[TopUp.processTopUp] BLOCKED: Transaction disruption is active');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setIsLoading(false);
+            setShowDisruptionModal(true);
+            return;
+        }
 
         try {
             // Deduct from card balance — use Supabase directly (MVP API is broken 404)
@@ -168,8 +193,8 @@ export const TopUp: React.FC<TopUpProps> = ({ user, onSendOtp, onUpdatePin, acco
     if (step === 'success') {
         const isPending = txnStatus === 'Pending';
         return (
-            <div className="min-h-full flex items-center justify-center animate-fade-in p-2">
-                <div id="topup-receipt" className="bg-white dark:bg-slate-800 w-full max-w-[420px] rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col relative">
+            <div className="min-h-full flex items-center justify-center animate-fade-in">
+                <div id="topup-receipt" className="bg-white dark:bg-slate-800 w-full max-w-[420px] md:max-w-none rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col relative">
 
                     <div className={`absolute top-0 left-0 w-full h-20 rounded-b-[50%] scale-x-150 z-0 ${isPending ? 'bg-amber-500' : 'bg-emerald-600'}`}></div>
 
@@ -231,7 +256,12 @@ export const TopUp: React.FC<TopUpProps> = ({ user, onSendOtp, onUpdatePin, acco
     }
 
     return (
-        <div className="min-h-full flex flex-col items-center justify-start md:justify-center animate-fade-in p-0 md:p-4 relative">
+        <div className="min-h-full flex flex-col animate-fade-in relative">
+
+            {/* Network Disruption Modal */}
+            {showDisruptionModal && (
+                <NetworkDisruptionModal isOpen={showDisruptionModal} onClose={() => setShowDisruptionModal(false)} />
+            )}
 
             {/* PIN Verification Modal */}
             {showPinModal && (
@@ -248,7 +278,7 @@ export const TopUp: React.FC<TopUpProps> = ({ user, onSendOtp, onUpdatePin, acco
                 />
             )}
 
-            <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full md:h-auto md:max-h-[calc(100vh-100px)]">
+            <div className="bg-white dark:bg-slate-800 w-full rounded-none md:rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full md:h-auto md:max-h-[calc(100vh-100px)]">
 
                 <div className="p-3 md:p-6 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10 flex items-center gap-3">
                     <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">

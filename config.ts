@@ -38,17 +38,22 @@ function firstWord(name: string): string {
     return name.split(' ')[0] || name;
 }
 
+// Helper: derive domain from site name (e.g. "VeltrixBank" → "veltrixbank.com")
+function derivedDomain(name: string): string {
+    return firstWord(name).toLowerCase() + 'bank.com';
+}
+
 export const APP_CONFIG = {
     // ─── Branding (getters = reactive at runtime) ────────────
     get BANK_NAME() { return _siteName; },
     get BRAND_NAME() { return firstWord(_siteName); },
     get COMPANY_NAME() { return firstWord(_siteName) + ' Meridian Holdings'; },
     get LEGAL_ENTITY() { return firstWord(_siteName) + ' Invest LLC'; },
-    SUPPORT_EMAIL: 'support@yourdomain.com',
-    get SITE_URL() { return 'https://yourdomain.com'; },
+    get SUPPORT_EMAIL() { return 'support@' + derivedDomain(_siteName); },
+    get SITE_URL() { return 'https://' + derivedDomain(_siteName); },
 
     // ─── Security ────────────────────────────────────────────
-    ADMIN_EMAILS: ['admin@yourdomain.com'],
+    get ADMIN_EMAILS() { return ['admin@' + derivedDomain(_siteName)]; },
 
     // ─── Product / Feature Naming ────────────────────────────
     get AI_ASSISTANT_NAME() { return firstWord(_siteName); },

@@ -856,7 +856,7 @@ function App() {
     const refreshNotifications = useCallback(async () => {
         if (!currentUser) return;
         try {
-            const { data } = await supabase.from('mvp_notifications').select('id,title,message,type,is_read,created_at').limit(20);
+            const { data } = await supabase.from('mvp_notifications').select('id,title,message,type,is_read,created_at').eq('user_id', currentUser.id).limit(20);
             if (data) {
                 setNotifications(data.map((n: any) => ({ ...n, is_read: n.is_read == "1" || n.is_read == 1 || n.is_read === true })));
                 setNotificationsSynced(true);
@@ -1065,7 +1065,7 @@ function App() {
         if (error) console.error('[TopUp] Balance update failed:', error.message);
     }
 
-    function addTransactionToStateAndDb(amount: number, description: string, type: TransactionType, category: string, status: TransactionStatus = 'Success') {
+    function addTransactionToStateAndDb(amount: number, description: string, type: TransactionType, category: string, status: TransactionStatus = 'Success', skipEmail: boolean = false) {
         if (!currentUser || accounts.length === 0) return;
         const activeAccount = accounts.find(a => a.is_main) || accounts[0]; // Use Main Wallet
         const txId = generateUUID();
@@ -1114,8 +1114,8 @@ function App() {
             is_read: false
         }]).then(() => refreshNotifications());
 
-            // Trigger Transaction Email
-            if (globalSettings.emailNotifications && currentUser.email) {
+            // Trigger Transaction Email (skip if caller requested, e.g. PayPal transfers)
+            if (!skipEmail && globalSettings.emailNotifications && currentUser.email) {
                 const { subject, content } = getEmailTemplate('transaction', {
                     amount: `${amount < 0 ? '-' : ''}$${Math.abs(amount).toLocaleString()}`,
                     to_name: finalDescription,
@@ -1123,7 +1123,7 @@ function App() {
                     ref_id: txId,
                     status: finalStatus
                 });
-                mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
+                mvp.sendEmail(currentUser.email, subject, content, 'Transaction Alert').catch(console.error);
             }
 
         } else if (finalStatus === 'Failed' && globalSettings.disableTransactions) {
@@ -1164,7 +1164,7 @@ function App() {
             // Fallback to current MVP email if Supabase is not configured for this
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
             const { subject, content } = getEmailTemplate('otp', { otp: otp, name: currentUser.name || 'User' });
-            await mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
+            await mvp.sendEmail(currentUser.email, subject, content, 'Security').catch(console.error);
             return otp;
         }
     };
@@ -1250,13 +1250,34 @@ function App() {
     return (
         <Layout
             currentPath={route} onNavigate={navigate} onLogout={handleLogout} user={currentUser} isDarkMode={isDarkMode} toggleTheme={toggleTheme} isModalOpen={isModalOpen} notifications={notifications}
-            onMarkRead={(id) => supabase.from('mvp_notifications').update({ is_read: true }).eq('id', id).then(() => setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n)))}
-            onClearNotifications={async () => {
-                const ids = notifications.map(n => n.id);
-                setNotifications([]); // Optimistic clear
-                if (ids.length > 0) {
-                    try { await supabase.from('mvp_notifications').delete().in('id', ids); } catch (e) { console.error("Failed to delete notifications", e); }
+            onMarkRead={async (id) => {
+                if (!currentUser) return;
+                const { error } = await supabase.from('mvp_notifications').update({ is_read: true }).eq('id', id).eq('user_id', currentUser.id);
+                if (error) {
+                    console.error('[MarkRead] Supabase update failed:', error.message);
+                } else {
+                    setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
                 }
+            }}
+            onClearNotifications={async () => {
+                if (!currentUser) { console.warn('[ClearNotifications] No currentUser'); return; }
+                const ids = notifications.map(n => n.id);
+                console.log('[ClearNotifications] Deleting', ids.length, 'notifications for user', currentUser.id);
+                setNotifications([]); // Optimistic clear
+                // Try delete by user_id first
+                const { error: err1 } = await supabase.from('mvp_notifications').delete().eq('user_id', currentUser.id);
+                if (err1) {
+                    console.error('[ClearNotifications] Delete by user_id failed:', err1.message);
+                    // Fallback: delete by specific ids
+                    const { error: err2 } = await supabase.from('mvp_notifications').delete().in('id', ids);
+                    if (err2) console.error('[ClearNotifications] Delete by ids also failed:', err2.message);
+                    else console.log('[ClearNotifications] Delete by ids succeeded');
+                } else {
+                    console.log('[ClearNotifications] Delete by user_id succeeded');
+                }
+                // Verify by re-fetching
+                const { data: remaining } = await supabase.from('mvp_notifications').select('id').eq('user_id', currentUser.id);
+                console.log('[ClearNotifications] Remaining notifications after delete:', remaining?.length || 0, remaining);
             }}
             messageBadge={unreadAiMessages}
             supportBadge={unreadSupportMessages}
@@ -1371,7 +1392,7 @@ function App() {
                                             card_last4: n.slice(-4),
                                             action: 'Added New Card'
                                         });
-                                        mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
+                                        mvp.sendEmail(currentUser.email, subject, content, 'Card Services').catch(console.error);
                                     }
                                 }
                                 return { success: true };
@@ -1396,7 +1417,7 @@ function App() {
                                             card_last4: card.number.slice(-4),
                                             action: `${action} Card`
                                         });
-                                        mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
+                                        mvp.sendEmail(currentUser.email, subject, content, 'Card Services').catch(console.error);
                                     }
                                 }
                             }}
@@ -1529,7 +1550,7 @@ function App() {
                             dailyUsage={dailyUsage}
                             onSendOtp={sendOtpToUser}
                             onUpdatePin={handleUpdatePin}
-                            onTransfer={async (fid, tid, amt, note) => {
+                            onTransfer={async (fid, tid, amt, note, skipEmail) => {
                                 const { allowed, type } = checkTransactionLimit(amt);
                                 if (!allowed) {
                                     setLimitModalType(type || 'daily');
@@ -1537,7 +1558,7 @@ function App() {
                                     return false;
                                 }
                                 updateBalanceInStateAndDb(-amt);
-                                addTransactionToStateAndDb(-amt, `Transfer to ${tid}`, TransactionType.TRANSFER_OUT, 'Transfer');
+                                addTransactionToStateAndDb(-amt, `Transfer to ${tid}`, TransactionType.TRANSFER_OUT, 'Transfer', 'Success', skipEmail);
                                 return true;
                             }}
                             onBack={() => navigate('dashboard')}

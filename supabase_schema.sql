@@ -349,14 +349,17 @@ CREATE POLICY "Users can update own assets" ON mvp_assets FOR UPDATE USING (auth
 CREATE POLICY "Users can view own notifications" ON mvp_notifications FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own notifications" ON mvp_notifications FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own notifications" ON mvp_notifications FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own notifications" ON mvp_notifications FOR DELETE USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can view own messages" ON mvp_messages FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own messages" ON mvp_messages FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own messages" ON mvp_messages FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own messages" ON mvp_messages FOR DELETE USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can view own support_tickets" ON mvp_support_tickets FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own support_tickets" ON mvp_support_tickets FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own support_tickets" ON mvp_support_tickets FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own support_tickets" ON mvp_support_tickets FOR DELETE USING (auth.uid() = user_id);
 
 -- ============================================================
 -- DEFAULT DATA

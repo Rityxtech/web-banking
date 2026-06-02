@@ -5,6 +5,7 @@ import { supabase } from './services/supabase';
 import { mvp } from './services/mvpService';
 import { Loader2, ShieldCheck, Save, AlertCircle, ShieldAlert, LogOut, Send, CheckCircle, Ticket, Lock, Clock, ChevronRight, MessageSquare, Mail, Key, UserX } from 'lucide-react';
 import { getEmailTemplate } from '../utils/emailTemplates';
+import { setSiteConfig } from '../config';
 
 // Components
 import { Layout } from './components/ui/Layout';
@@ -351,6 +352,12 @@ function App() {
         siteLogo: ''
     });
 
+    // Ref to avoid stale closures in inline callbacks (e.g. onTopUp during PIN modal)
+    const globalSettingsRef = useRef(globalSettings);
+    useEffect(() => {
+        globalSettingsRef.current = globalSettings;
+    }, [globalSettings]);
+
     const [unreadMessages, setUnreadMessages] = useState(0);
     const [unreadAiMessages, setUnreadAiMessages] = useState(0);
     const [unreadSupportMessages, setUnreadSupportMessages] = useState(0);
@@ -387,6 +394,7 @@ function App() {
     const fetchGlobalSettings = useCallback(async () => {
         try {
             const settings = await mvp.getSettings();
+            console.log('[App.fetchGlobalSettings] fetched settings:', settings);
             if (settings) {
                 const isMaintenance = settings.maintenance_mode == "1" || settings.maintenance_mode == 1 || settings.maintenance_mode === true;
                 const isRegAllowed = settings.allow_registration == "1" || settings.allow_registration == 1 || settings.allow_registration === true;
@@ -402,12 +410,19 @@ function App() {
                     siteLogo: settings.site_logo || ''
                 });
             }
+            return settings;
         } catch (e: any) {
             console.warn("Failed to fetch settings", e);
+            return null;
         } finally {
             setLoadingSettings(false);
         }
     }, []);
+
+    // Sync module-level config so APP_CONFIG getters reflect admin changes across the app
+    useEffect(() => {
+        setSiteConfig(globalSettings.siteName, globalSettings.siteLogo);
+    }, [globalSettings.siteName, globalSettings.siteLogo]);
 
     const refreshMessageCounts = useCallback(async () => {
         if (!currentUser) return;
@@ -587,7 +602,8 @@ function App() {
         const handleSession = async (session: any, error: any = null) => {
             if (isLoggingOut.current) return;
 
-            await fetchGlobalSettings();
+            const settings = await fetchGlobalSettings();
+            const isMaintenance = settings?.maintenance_mode == "1" || settings?.maintenance_mode == 1 || settings?.maintenance_mode === true;
             if (session?.user) {
                 const email = session.user.email?.toLowerCase();
                 let isAdmin = email === 'admin@lennox.bank' || email === 'akugbof@gmail.com';
@@ -600,7 +616,7 @@ function App() {
                     } catch (err) { }
                 }
 
-                if (globalSettings.maintenanceMode && !isAdmin) {
+                if (isMaintenance && !isAdmin) {
                     await supabase.auth.signOut();
                     setForceMaintenance(true);
                     setCurrentView('home');
@@ -645,7 +661,7 @@ function App() {
             handleSession(session);
         });
         return () => subscription.unsubscribe();
-    }, [fetchAllUserData, fetchGlobalSettings, globalSettings.maintenanceMode]);
+    }, [fetchAllUserData, fetchGlobalSettings]);
 
     useEffect(() => {
         if (!currentUser) return;
@@ -672,6 +688,14 @@ function App() {
         }, 60000); // 60s to reduce egress (was 15000)
         return () => clearInterval(interval);
     }, [currentUser, refreshNotifications, fetchGlobalSettings, refreshMessageCounts]);
+
+    useEffect(() => {
+        const handleVisible = () => {
+            if (!document.hidden && currentUser) fetchGlobalSettings();
+        };
+        document.addEventListener('visibilitychange', handleVisible);
+        return () => document.removeEventListener('visibilitychange', handleVisible);
+    }, [currentUser, fetchGlobalSettings]);
 
     useEffect(() => {
         if (isDarkMode || isAdminMode) document.documentElement.classList.add('dark');
@@ -729,7 +753,7 @@ function App() {
         mvp.update('accounts', activeAccount.id, { balance: newBalance }).then();
     }
 
-    function addTransactionToStateAndDb(amount: number, description: string, type: TransactionType, category: string, status: TransactionStatus = 'Success') {
+    function addTransactionToStateAndDb(amount: number, description: string, type: TransactionType, category: string, status: TransactionStatus = 'Success', skipEmail: boolean = false) {
         if (!currentUser || !accounts[0]) return;
         const activeAccount = accounts[0];
         const txId = generateUUID();
@@ -756,15 +780,15 @@ function App() {
                 is_read: false
             }).then(() => refreshNotifications());
 
-            // Trigger Transaction Email
-            if (globalSettings.emailNotifications && currentUser.email) {
+            // Trigger Transaction Email (skip if caller requested, e.g. PayPal transfers)
+            if (!skipEmail && globalSettings.emailNotifications && currentUser.email) {
                 const { subject, content } = getEmailTemplate('transaction', {
                     amount: `${amount < 0 ? '-' : ''}$${Math.abs(amount).toLocaleString()}`,
                     to_name: finalDescription,
                     date: now.toLocaleString(),
                     ref_id: txId
                 });
-                mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
+                mvp.sendEmail(currentUser.email, subject, content, 'Transaction Alert').catch(console.error);
             }
 
         } else if (finalStatus === 'Failed' && globalSettings.disableTransactions) {
@@ -806,7 +830,7 @@ function App() {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         try {
             const { subject, content } = getEmailTemplate('otp', { otp: code });
-            await mvp.sendEmail(currentUser.email, subject, content);
+            await mvp.sendEmail(currentUser.email, subject, content, 'Security');
             return code;
         } catch (e) {
             console.error("Failed to send OTP", e);
@@ -875,7 +899,14 @@ function App() {
                 for (const id of unreadIds) { await mvp.update('notifications', id, { is_read: true }); }
                 setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
             }}
-            onClearNotifications={() => {
+            onClearNotifications={async () => {
+                try {
+                    for (const n of notifications) {
+                        await mvp.delete('notifications', n.id);
+                    }
+                } catch (e) {
+                    console.warn('Failed to clear notifications on backend:', e);
+                }
                 setNotifications([]);
             }}
             messageBadge={unreadAiMessages}
@@ -941,7 +972,7 @@ function App() {
                                             card_last4: n.slice(-4),
                                             action: 'Added New Card'
                                         });
-                                        mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
+                                        mvp.sendEmail(currentUser.email, subject, content, 'Card Services').catch(console.error);
                                     }
                                 }
                                 return { success: res.success };
@@ -961,7 +992,7 @@ function App() {
                                                 card_last4: card.number.slice(-4),
                                                 action: `${action} Card`
                                             });
-                                            mvp.sendEmail(currentUser.email, subject, content).catch(console.error);
+                                            mvp.sendEmail(currentUser.email, subject, content, 'Card Services').catch(console.error);
                                         }
                                     });
                                 }
@@ -999,6 +1030,7 @@ function App() {
                                 }
                             }}
                             onTopUp={(amt) => {
+                                if (globalSettings.disableTransactions) return;
                                 updateBalanceInStateAndDb(amt);
                                 addTransactionToStateAndDb(amt, 'Wallet Top Up', TransactionType.DEPOSIT, 'Deposit', 'Success');
                             }}
@@ -1071,29 +1103,40 @@ function App() {
                             accounts={accounts}
                             maxLimit={globalSettings.maxTxLimit}
                             shouldFail={globalSettings.disableTransactions}
-                            onTransfer={(fid, tid, amt, note) => {
+                            onTransfer={(fid, tid, amt, note, skipEmail) => {
+                                if (globalSettings.disableTransactions) return false;
                                 updateBalanceInStateAndDb(-amt);
-                                addTransactionToStateAndDb(-amt, `Transfer to ${tid}`, TransactionType.TRANSFER_OUT, 'Transfer');
+                                addTransactionToStateAndDb(-amt, `Transfer to ${tid}`, TransactionType.TRANSFER_OUT, 'Transfer', 'Success', skipEmail);
+                                return true;
                             }}
                             onBack={() => navigate('dashboard')}
                             onSendOtp={handleSendOtp}
                             onUpdatePin={handleUpdatePin}
                         />;
-                        case 'topup': return <TopUp accounts={accounts} cards={cards} transactions={transactions} onTopUp={(amt, status) => {
-                            if (status === 'Success') updateBalanceInStateAndDb(amt);
-                            addTransactionToStateAndDb(amt, 'Wallet Top Up', TransactionType.DEPOSIT, 'Deposit', status);
-                        }} onBack={() => navigate('dashboard')} onSendOtp={handleSendOtp} onUpdatePin={handleUpdatePin} />;
+                        case 'topup': return <TopUp accounts={accounts} cards={cards} transactions={transactions} shouldFail={globalSettings.disableTransactions} onTopUp={(amt, status) => {
+                                const isDisabled = globalSettingsRef.current.disableTransactions;
+                                console.log('[App.onTopUp] disableTransactions (ref):', isDisabled);
+                                if (isDisabled) {
+                                    console.log('[App.onTopUp] BLOCKED: disableTransactions is true');
+                                    return false;
+                                }
+                                if (status === 'Success') updateBalanceInStateAndDb(amt);
+                                addTransactionToStateAndDb(amt, 'Wallet Top Up', TransactionType.DEPOSIT, 'Deposit', status);
+                                return true;
+                            }} onBack={() => navigate('dashboard')} onSendOtp={handleSendOtp} onUpdatePin={handleUpdatePin} />;
                         case 'request': return <RequestMoney
                             transactions={transactions}
                             shouldFail={globalSettings.disableTransactions}
                             onRequest={(amt, name, note) => {
+                                if (globalSettings.disableTransactions) return false;
                                 addTransactionToStateAndDb(
                                     amt,
                                     `Request: ${name}`,
                                     TransactionType.TRANSFER_IN,
                                     'Request',
-                                    globalSettings.disableTransactions ? 'Failed' : 'Pending'
+                                    'Pending'
                                 );
+                                return true;
                             }}
                             onBack={() => navigate('dashboard')}
                         />;
@@ -1103,8 +1146,10 @@ function App() {
                             maxLimit={globalSettings.maxTxLimit}
                             shouldFail={globalSettings.disableTransactions}
                             onPay={(biller, amt) => {
+                                if (globalSettings.disableTransactions) return false;
                                 updateBalanceInStateAndDb(-amt);
                                 addTransactionToStateAndDb(-amt, `Bill Pay: ${biller}`, TransactionType.PAYMENT, 'Bills');
+                                return true;
                             }}
                             onBack={() => navigate('dashboard')}
                             onSendOtp={handleSendOtp}
@@ -1120,15 +1165,14 @@ function App() {
                         case 'contact-us': return <ContactUs user={currentUser!} unreadCount={unreadSupportMessages} onBack={() => navigate('more')} onNavigate={navigate} onAuthError={(e) => { console.error(e); handleLogout(); }} onRefreshCounts={refreshMessageCounts} />;
                         case 'message': return <AiAssistant user={currentUser!} accounts={accounts} transactions={transactions} onNavigate={navigate} onRefreshCounts={refreshMessageCounts} />;
                         case 'kyc': return <KycVerification userId={currentUser.id} onNavigate={navigate} />;
-                        case 'investments': return <Investments assets={assets} totalPortfolio={assets.reduce((s, a) => s + a.amount, 0)} walletBalance={accounts[0]?.balance || 0} onBuyAsset={async (symbol, name, amount, price) => {
+                        case 'investments': return <Investments assets={assets} totalPortfolio={assets.reduce((s, a) => s + a.amount, 0)} walletBalance={accounts[0]?.balance || 0} shouldFail={globalSettings.disableTransactions} onBuyAsset={async (symbol, name, amount, price) => {
                             if (!currentUser) return false;
                             try {
                                 const numAmount = Number(amount);
                                 if (isNaN(numAmount)) throw new Error("Invalid amount");
 
                                 if (globalSettings.disableTransactions) {
-                                    addTransactionToStateAndDb(-numAmount, numAmount > 0 ? `Investment: ${symbol}` : `Sold: ${symbol}`, numAmount > 0 ? TransactionType.PURCHASE : TransactionType.DEPOSIT, 'Investments');
-                                    return true; // We return true to allow the UI to show the 'success' (which will be a recorded failure)
+                                    return false;
                                 }
 
                                 updateBalanceInStateAndDb(-numAmount);

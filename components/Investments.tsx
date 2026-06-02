@@ -3,6 +3,7 @@ import { Asset } from '../types';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, Plus, Search, ArrowUpRight, ArrowDownRight, DollarSign, Activity, Briefcase, Bitcoin, Zap, Filter, RefreshCw, X, ChevronRight, Minus, PieChart as PieIcon, Wallet, AlertCircle, CheckCircle, Loader2, Unplug } from 'lucide-react';
 import { PinVerificationModal } from './ui/PinVerificationModal';
+import { NetworkDisruptionModal } from './ui/NetworkDisruptionModal';
 
 interface InvestmentsProps {
     assets: Asset[];
@@ -14,6 +15,7 @@ interface InvestmentsProps {
     isBalanceHidden?: boolean;
     onSendOtp?: () => Promise<string | null>;
     onUpdatePin?: (newPin: string) => Promise<boolean>;
+    shouldFail?: boolean;
 }
 
 const ALLOCATION_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
@@ -34,7 +36,7 @@ const ASSET_METADATA: Record<string, { logo: string; type: string }> = {
     'VTI': { logo: 'https://logo.clearbit.com/vanguard.com?size=128', type: 'Stock' }
 };
 
-export const Investments: React.FC<InvestmentsProps> = ({ assets, totalPortfolio, walletBalance, onBuyAsset, onModalChange, user, isBalanceHidden = false, onSendOtp, onUpdatePin }) => {
+export const Investments: React.FC<InvestmentsProps> = ({ assets, totalPortfolio, walletBalance, onBuyAsset, onModalChange, user, isBalanceHidden = false, onSendOtp, onUpdatePin, shouldFail = false }) => {
     const [activeTab, setActiveTab] = useState<'portfolio' | 'market'>('portfolio');
     const [marketFilter, setMarketFilter] = useState<'all' | 'stocks' | 'crypto'>('all');
     const [showTradeModal, setShowTradeModal] = useState(false);
@@ -46,6 +48,7 @@ export const Investments: React.FC<InvestmentsProps> = ({ assets, totalPortfolio
     const [isProcessing, setIsProcessing] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
     const [networkError, setNetworkError] = useState<string | null>(null);
+    const [showDisruptionModal, setShowDisruptionModal] = useState(false);
     const [lastSync, setLastSync] = useState(new Date());
 
     // Real-time market state
@@ -217,6 +220,15 @@ export const Investments: React.FC<InvestmentsProps> = ({ assets, totalPortfolio
         if (!selectedAsset || rawAmount <= 0) return;
 
         setIsProcessing(true);
+
+        // Block if transaction disruption is active
+        if (shouldFail) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setIsProcessing(false);
+            setShowDisruptionModal(true);
+            return;
+        }
+
         const assetInfo = marketPrices.find(a => a.symbol === selectedAsset.symbol);
         const assetName = assetInfo?.name || selectedAsset.symbol;
         const finalAmount = tradeType === 'buy' ? rawAmount : -rawAmount;
@@ -268,6 +280,10 @@ export const Investments: React.FC<InvestmentsProps> = ({ assets, totalPortfolio
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showDisruptionModal && (
+                <NetworkDisruptionModal isOpen={showDisruptionModal} onClose={() => setShowDisruptionModal(false)} />
             )}
 
             {showPinModal && (

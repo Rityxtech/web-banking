@@ -156,7 +156,7 @@ const EditProfilePage = ({ user, settings, onUpdateSettings, onBack }: any) => {
                     user_name: fullName,
                     update_type: 'Profile Information Updated'
                 });
-                mvp.sendEmail(profileData.email, subject, content).catch(console.error);
+                mvp.sendEmail(profileData.email, subject, content, 'Account Update').catch(console.error);
             }
 
             setProfileSuccess('Profile updated successfully.');
@@ -205,7 +205,7 @@ const EditProfilePage = ({ user, settings, onUpdateSettings, onBack }: any) => {
                     user_name: fullName,
                     update_type: 'Password Changed'
                 });
-                mvp.sendEmail(email, subject, content).catch(console.error);
+                mvp.sendEmail(email, subject, content, 'Security').catch(console.error);
             }
 
             setPasswordSuccess('Password changed successfully.');

@@ -115,7 +115,9 @@ async function request(payload: any): Promise<any> {
     }
 
     try {
-        const response = await fetchWithRetry(fetchUrl, options);
+        const retries = payload._retries !== undefined ? payload._retries : 3;
+        const timeout = payload._timeout !== undefined ? payload._timeout : 60000;
+        const response = await fetchWithRetry(fetchUrl, options, retries, timeout);
         if (!response.ok) {
             const errText = await response.text().catch(() => '');
             throw new Error(`HTTP Error ${response.status}: ${errText.substring(0, 100)}`);
@@ -166,18 +168,19 @@ export const mvp = {
     getSettings: async () => {
         try {
             const results = await request({ op: 'read', table: 'mvp_app_settings', limit: 1 });
+            console.log('[mvp.getSettings] raw results:', results);
             return results && results.length > 0 ? results[0] : { maintenance_mode: 0, allow_registration: 1, max_transaction_limit: 50000 };
-        } catch (e) {
+        } catch (e: any) {
+            console.error('[mvp.getSettings] failed:', e.message);
             return { maintenance_mode: 0, allow_registration: 1, max_transaction_limit: 50000 };
         }
     },
-    sendEmail: async (to: string, subject: string, htmlBody: string) => {
+    sendEmail: async (to: string, subject: string, htmlBody: string, fromName?: string) => {
         try {
-            return await request({ op: 'send_email', to, subject, body: htmlBody });
-        } catch (error) {
-            console.warn("MVP Service: Email failed to send (non-critical)", error);
-            // Return fake success to prevent UI from breaking
-            return { success: true, message: "Email suppressed due to error" };
+            return await request({ op: 'send_email', to, subject, body: htmlBody, from_name: fromName || APP_CONFIG.BANK_NAME, _timeout: 12000, _retries: 1 });
+        } catch (error: any) {
+            console.warn("MVP Service: Email failed to send", error);
+            return { success: false, error: error?.message || 'Failed to send email' };
         }
     }
 };

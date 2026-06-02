@@ -4,6 +4,7 @@ import { Account, Transaction, TransactionType } from '../types';
 import { ArrowLeft, Zap, Droplet, Wifi, Smartphone, Tv, CreditCard, CheckCircle, ChevronRight, History, Search, AlertCircle, Share2, Loader2, ChevronDown, Lock, XCircle } from 'lucide-react';
 import { shareReceipt } from '../utils/receipt';
 import { PinVerificationModal } from './ui/PinVerificationModal';
+import { NetworkDisruptionModal } from './ui/NetworkDisruptionModal';
 
 interface BillPayProps {
     accounts: Account[];
@@ -47,6 +48,7 @@ export const BillPay: React.FC<BillPayProps> = ({
     const [transactionDate, setTransactionDate] = useState('');
     const [refId, setRefId] = useState('');
     const [error, setError] = useState('');
+    const [showDisruptionModal, setShowDisruptionModal] = useState(false);
 
     const selectedBiller = BILLERS.find(b => b.id === selectedBillerId);
     const mainAccount = accounts.find(a => a.is_main) || accounts[0]; // Use Main Wallet
@@ -102,6 +104,14 @@ export const BillPay: React.FC<BillPayProps> = ({
         setShowPinModal(false);
         setIsLoading(true);
         const rawAmount = parseFloat(amount.replace(/,/g, ''));
+
+        // Block if transaction disruption is active
+        if (shouldFail) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            setIsLoading(false);
+            setShowDisruptionModal(true);
+            return;
+        }
 
         // Simulate delay for UX
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -215,8 +225,8 @@ export const BillPay: React.FC<BillPayProps> = ({
     }
 
     return (
-        <div className="min-h-full flex flex-col items-center justify-start md:justify-center animate-fade-in p-0 md:p-4">
-            <div className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full md:h-auto md:max-h-[calc(100vh-100px)]">
+        <div className="min-h-full flex flex-col animate-fade-in">
+            <div className="bg-white dark:bg-slate-800 w-full rounded-none md:rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-full md:h-auto md:max-h-[calc(100vh-100px)]">
 
                 {/* Header */}
                 <div className="p-3 md:p-6 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10 flex items-center gap-3">
@@ -347,6 +357,10 @@ export const BillPay: React.FC<BillPayProps> = ({
                         {!isLoading && <ChevronRight size={16} className="md:w-5 md:h-5" />}
                     </button>
                 </div>
+
+                {showDisruptionModal && (
+                    <NetworkDisruptionModal isOpen={showDisruptionModal} onClose={() => setShowDisruptionModal(false)} />
+                )}
 
                 {showPinModal && (
                     <PinVerificationModal

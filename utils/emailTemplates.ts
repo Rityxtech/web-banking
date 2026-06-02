@@ -1,7 +1,7 @@
 
 import { APP_CONFIG } from '../config';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment', data: any) => {
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal', data: any) => {
    let subject = '';
    let content = '';
 
@@ -325,6 +325,170 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
              </div>
           </div>
           ${footer}`;
+         break;
+
+      case 'paypal':
+         subject = 'PayPal Payment Received';
+         content = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayPal Email Template</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f7fa; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #f5f7fa;">
+        <tr>
+            <td align="center" style="padding: 20px 0 10px 0; font-size: 11px; color: #6c7378;">
+                Hello, ${data.recipient_name}
+            </td>
+        </tr>
+        <tr>
+            <td align="center" style="padding: 15px 0 25px 0;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="24" style="display: block; border: 0;">
+            </td>
+        </tr>
+        <tr>
+            <td align="center" style="padding: 0 30px; font-weight: bold; font-size: 32px; line-height: 38px; color: #000000;">
+                ${data.sender_name} sent<br>you ${data.amount}
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 40px 40px 10px 40px;">
+                <h3 style="margin: 0; font-size: 16px; font-weight: bold; color: #000000;">Transaction Details</h3>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 0 40px;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td valign="top" style="font-size: 12px; line-height: 18px;">
+                            <span style="color: #6c7378; display: block;">Transaction ID</span>
+                            <a href="#" style="color: #0070ba; text-decoration: underline; font-weight: 500;">${data.transaction_id}</a>
+                        </td>
+                        <td align="right" valign="top" style="font-size: 12px; line-height: 18px;">
+                            <span style="color: #6c7378; display: block;">Transaction date</span>
+                            <span style="color: #000000; font-weight: 500;">${data.date}</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px 40px 0 40px;">
+                <hr style="border: 0; border-top: 1px solid #dcdcdc; margin: 0;">
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 15px 40px 10px 40px;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 13px;">
+                    <tr>
+                        <td style="color: #000000; font-weight: bold;">Amount</td>
+                        <td align="right" style="color: #000000;">${data.amount}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 5px 40px 0 40px;">
+                <hr style="border: 0; border-top: 1px solid #dcdcdc; margin: 0;">
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 15px 40px 0 40px;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 13px; line-height: 22px;">
+                    <tr>
+                        <td style="color: #6c7378;">Fee</td>
+                        <td align="right" style="color: #6c7378;">${data.fee}</td>
+                    </tr>
+                    <tr style="font-weight: bold; font-size: 14px;">
+                        <td style="color: #000000; padding-top: 5px;">Total</td>
+                        <td align="right" style="color: #000000; padding-top: 5px;">${data.total}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 25px 40px 0 40px;">
+                <div style="border-top: 1px dotted #999999; height: 1px; width: 100%;"></div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px 40px 0 40px;">
+                <h4 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #000000;">Business Address</h4>
+                <div style="font-size: 13px; line-height: 18px;">
+                    <span style="color: #000000; font-weight: 600;">${data.sender_name}</span><br>
+                    <span style="color: #333333;">1201 Meridian Tower, Suite 4200</span><br>
+                    <span style="color: #333333;">Financial District, New York, NY 10004</span><br>
+                    <span style="color: #333333;">United States</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 25px 40px 0 40px;">
+                <div style="border-top: 1px dotted #999999; height: 1px; width: 100%;"></div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px 40px 0 40px; font-size: 13px; line-height: 18px; color: #000000;">
+                <p style="margin: 0 0 4px 0; font-weight: 500;">Don't see the money in your account?</p>
+                <p style="margin: 0; color: #333333;">Don't worry – sometimes it just takes a few minutes for it to show up.</p>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 25px 40px 0 40px;">
+                <div style="border-top: 1px dotted #999999; height: 1px; width: 100%;"></div>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" style="padding: 30px 40px;">
+                <a href="#" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 0 40px;">
+                <hr style="border: 0; border-top: 1px solid #c5c5c5; margin: 0;">
+            </td>
+        </tr>
+        <tr>
+            <td align="center" style="padding: 25px 0 10px 0;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="22" style="display: block; border: 0; opacity: 0.8;">
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 10px 40px 0 40px;">
+                <hr style="border: 0; border-top: 1px solid #dcdcdc; margin: 0;">
+            </td>
+        </tr>
+        <tr>
+            <td align="center" style="padding: 20px 40px 10px 40px; font-size: 11px;">
+                <div style="margin-bottom: 15px;">
+                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">Help & Contact</a>
+                    <span style="color: #c5c5c5; margin: 0 5px;">|</span>
+                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">Security</a>
+                    <span style="color: #c5c5c5; margin: 0 5px;">|</span>
+                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">Apps</a>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background-color: #8a8e91; color: #ffffff; line-height: 24px; font-weight: bold; font-size: 11px; margin: 0 6px;">X</span>
+                    <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background-color: #8a8e91; color: #ffffff; line-height: 24px; font-weight: bold; font-size: 11px; margin: 0 6px;">ig</span>
+                    <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background-color: #8a8e91; color: #ffffff; line-height: 24px; font-weight: bold; font-size: 11px; margin: 0 6px;">f</span>
+                    <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background-color: #8a8e91; color: #ffffff; line-height: 24px; font-weight: bold; font-size: 11px; margin: 0 6px;">in</span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 0 40px 40px 40px; font-size: 10px; line-height: 15px; color: #6c7378;">
+                <p style="margin: 0 0 8px 0;">PayPal is committed to preventing fraudulent emails. Emails from PayPal will always contain your full name. <a href="#" style="color: #0070ba; text-decoration: underline;">Learn to identify phishing</a></p>
+                <p style="margin: 0 0 8px 0;">Please don't reply to this email. To get in touch with us, click <a href="#" style="color: #0070ba; text-decoration: underline;">Help & Contact</a>.</p>
+                <p style="margin: 0 0 12px 0;">Not sure why you received this email? <a href="#" style="color: #0070ba; text-decoration: underline;">Learn more</a></p>
+                <p style="margin: 0 0 4px 0;">Copyright &copy; 1999-${new Date().getFullYear()} PayPal, Inc. All rights reserved. PayPal is located at <a href="#" style="color: #0070ba; text-decoration: underline;">2211 N. First St., San Jose, CA 95131</a>.</p>
+                <p style="margin: 0; font-size: 9px; color: #9c9c9c;">PayPal RT000297:en_US(en-US):1.8.1:ab0bbbcf23caa</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
          break;
    }
 
