@@ -18,8 +18,8 @@ const DEFAULT_SENDER = process.env.RESEND_SENDER || 'onboarding@resend.dev';
 
 async function sendEmailWithResend(to: string, subject: string, html: string, fromName?: string) {
   const resolvedName = fromName || 'Lennox Bank';
-  const fromField = { name: resolvedName, email: DEFAULT_SENDER };
-  console.log(`[Resend] Sending email to ${to} with fromName="${resolvedName}"`, JSON.stringify(fromField));
+  const fromField = `${resolvedName} <${DEFAULT_SENDER}>`;
+  console.log(`[Resend] Sending email to ${to} from="${fromField}"`);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
