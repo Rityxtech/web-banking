@@ -1898,7 +1898,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         });
     }, [users]);
 
-    const kycPendingCount = useMemo(() => kycUsers.length, [kycUsers]);
+    const kycPendingCount = useMemo(() => {
+        return kycUsers.filter(u => (Number(u.kyc_level) || 0) < 2).length;
+    }, [kycUsers]);
 
     const volumeChartData = useMemo(() => {
         const last7Days = Array.from({ length: 7 }, (_, i) => {
