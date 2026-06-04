@@ -253,7 +253,7 @@ export const LiveChat: React.FC = () => {
 
     // ── Chat screen ──
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+        <div className="h-[100dvh] bg-slate-50 dark:bg-slate-950 flex flex-col">
             {/* Header */}
             <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
                 <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
