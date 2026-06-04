@@ -425,6 +425,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     const [transactions, setTransactions] = useState<any[]>([]);
     const [supportTickets, setSupportTickets] = useState<any[]>([]);
     const [liveMessages, setLiveMessages] = useState<any[]>([]);
+    const [liveChatUnreadCount, setLiveChatUnreadCount] = useState(0);
     const [banks, setBanks] = useState<any[]>([]);
     const [totalLiquidity, setTotalLiquidity] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
@@ -699,14 +700,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             if (showLoading) setIsLoading(false);
 
             // PHASE 2: Operational Data
-            const [{ data: tickets }, { data: msgs }] = await Promise.all([
+            const [{ data: tickets }, { data: msgs }, { data: unreadLiveChatMsgs }] = await Promise.all([
                 supabaseAdmin.from('mvp_support_tickets').select('*').limit(50),
-                supabaseAdmin.from('mvp_messages').select('*').limit(100)
+                supabaseAdmin.from('mvp_messages').select('*').limit(100),
+                supabaseAdmin.from('mvp_live_chat_messages').select('id').eq('sender_type', 'user').eq('is_read', false)
             ]);
 
             if (isMounted.current) {
                 setSupportTickets(tickets || []);
                 setLiveMessages(msgs || []);
+                setLiveChatUnreadCount((unreadLiveChatMsgs || []).length);
             }
 
             // PHASE 3: Heavy Data
@@ -812,6 +815,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
         return unreadReplies + unreadBaseTickets;
     }, [liveMessages, supportTickets, users]);
+
+    const pendingRequestCount = useMemo(() => {
+        return transactions.filter(t => t.status === 'Pending').length;
+    }, [transactions]);
+
+    const kycPendingCount = useMemo(() => {
+        return kycUsers.length;
+    }, [kycUsers]);
 
     const adminFilteredTransactions = useMemo(() => {
         return transactions.filter(t => {
@@ -2321,13 +2332,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     <SidebarItem id="overview" label="Overview" icon="dashboard" active={activeSection === 'overview'} onClick={handleSidebarClick} />
                     <SidebarItem id="users" label="Users" icon="group" active={activeSection === 'users'} onClick={handleSidebarClick} />
                     <SidebarItem id="transactions" label="Transactions" icon="swap_horiz" active={activeSection === 'transactions'} onClick={handleSidebarClick} />
-                    <SidebarItem id="requests" label="Pending Requests" icon="pending_actions" active={activeSection === 'requests'} onClick={handleSidebarClick} />
-                    <SidebarItem id="kyc" label="KYC Verif" icon="badge" active={activeSection === 'kyc'} onClick={handleSidebarClick} />
+                    <SidebarItem id="requests" label="Pending Requests" icon="pending_actions" active={activeSection === 'requests'} onClick={handleSidebarClick} badgeCount={pendingRequestCount} />
+                    <SidebarItem id="kyc" label="KYC Verif" icon="badge" active={activeSection === 'kyc'} onClick={handleSidebarClick} badgeCount={kycPendingCount} />
 
                     <div className="py-2">
                         <p className="px-3 mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-50">Support Channels</p>
                         <SidebarItem id="support_live" label="AI Handover" icon="chat" active={activeSection === 'support_live'} onClick={handleSidebarClick} badgeCount={unreadLiveCount} />
-                        <SidebarItem id="email_live_chat" label="Email Live Chat" icon="headset" active={activeSection === 'email_live_chat'} onClick={handleSidebarClick} />
+                        <SidebarItem id="email_live_chat" label="Email Live Chat" icon="headset" active={activeSection === 'email_live_chat'} onClick={handleSidebarClick} badgeCount={liveChatUnreadCount} />
                         <SidebarItem id="support_tickets" label="Tickets" icon="confirmation_number" active={activeSection === 'support_tickets'} onClick={handleSidebarClick} badgeCount={unreadTicketCount} />
                     </div>
 
