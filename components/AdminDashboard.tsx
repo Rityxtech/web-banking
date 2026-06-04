@@ -573,6 +573,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         localStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'admin_section', activeSection);
     }, [activeSection]);
 
+    // Clear email live chat badge when admin views the tab
+    useEffect(() => {
+        if (activeSection === 'email_live_chat' && liveChatUnreadCount > 0) {
+            setLiveChatUnreadCount(0);
+            supabaseAdmin
+                .from('mvp_live_chat_messages')
+                .update({ is_read: true })
+                .eq('sender_type', 'user')
+                .eq('is_read', false)
+                .then(() => {})
+                .catch(() => {});
+        }
+    }, [activeSection, liveChatUnreadCount]);
+
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm, txFilters, activeSection]);
