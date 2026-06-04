@@ -115,3 +115,23 @@ export interface Notification {
 }
 
 export type AdminViewType = 'dashboard' | 'users' | 'kyc' | 'transactions' | 'settings';
+
+export interface LiveChatRoom {
+    id: number;
+    user_email: string;
+    user_name?: string;
+    status: 'open' | 'closed' | 'archived';
+    last_message_at?: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface LiveChatMessage {
+    id: number;
+    room_id: number;
+    sender_type: 'user' | 'admin';
+    sender_name?: string;
+    text: string;
+    is_read: boolean;
+    created_at?: string;
+}

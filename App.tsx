@@ -31,6 +31,7 @@ import { Settings } from './components/Settings';
 import { HomePage } from './components/HomePage';
 import { Auth } from './components/Auth';
 import { AdminDashboard } from './components/AdminDashboard';
+import { LiveChat } from './components/LiveChat';
 
 
 function generateUUID() {
@@ -565,7 +566,7 @@ function App() {
         });
     }, []);
 
-    const [route, setRoute] = useState(() => window.location.hash.substring(1) || 'dashboard');
+    const [route, setRoute] = useState(() => window.location.hash.substring(1).split('?')[0] || 'dashboard');
 
     const navigate = useCallback((path: string) => {
         setRoute(path);
@@ -575,7 +576,8 @@ function App() {
     // Navigation History Handler
     useEffect(() => {
         const handleHashChange = () => {
-            const hash = window.location.hash.substring(1);
+            const rawHash = window.location.hash.substring(1);
+            const hash = rawHash.split('?')[0]; // Strip query params from route
 
             // AUTH NAVIGATION (Checking !currentUser inside effect creates closure issues, rely on currentView logic)
             if (hash === 'admin-login') {
@@ -1372,6 +1374,9 @@ function App() {
         }
         return <AdminLoginScreen logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} onBack={() => { setCurrentView('home'); window.location.hash = ''; }} />;
     }
+
+    // Public live chat route (accessible without login)
+    if (route === 'livechat') return <LiveChat />;
 
     if (!currentUser) {
         if (currentView === 'home') return <HomePage logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} onNavigate={(p, e) => {

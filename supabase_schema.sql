@@ -547,3 +547,57 @@ CREATE INDEX IF NOT EXISTS idx_mvp_otp_codes_lookup ON mvp_otp_codes(email, code
 
 -- Auto-cleanup old expired codes (run periodically or via cron)
 -- DELETE FROM mvp_otp_codes WHERE expires_at < NOW();
+
+-- ============================================================
+-- LIVE CHAT (Public support chat for email redirects)
+--    Used by: LiveChat.tsx, AdminLiveChat.tsx
+-- ============================================================
+CREATE TABLE IF NOT EXISTS mvp_live_chat_rooms (
+    id SERIAL PRIMARY KEY,
+    user_email VARCHAR(255) NOT NULL,
+    user_name VARCHAR(255),
+    status VARCHAR(20) DEFAULT 'open',
+    last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS mvp_live_chat_messages (
+    id SERIAL PRIMARY KEY,
+    room_id INTEGER REFERENCES mvp_live_chat_rooms(id) ON DELETE CASCADE,
+    sender_type VARCHAR(20) DEFAULT 'user',
+    sender_name VARCHAR(255),
+    text TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for live chat performance
+CREATE INDEX IF NOT EXISTS idx_live_chat_rooms_email ON mvp_live_chat_rooms(user_email);
+CREATE INDEX IF NOT EXISTS idx_live_chat_rooms_status ON mvp_live_chat_rooms(status);
+CREATE INDEX IF NOT EXISTS idx_live_chat_rooms_last_msg ON mvp_live_chat_rooms(last_message_at DESC);
+CREATE INDEX IF NOT EXISTS idx_live_chat_messages_room ON mvp_live_chat_messages(room_id);
+CREATE INDEX IF NOT EXISTS idx_live_chat_messages_created ON mvp_live_chat_messages(created_at);
+
+-- Enable RLS on live chat tables
+ALTER TABLE mvp_live_chat_rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mvp_live_chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Public insert policies (anyone can create a room/message from the email link)
+CREATE POLICY "Public can create chat rooms" ON mvp_live_chat_rooms FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public can view own chat room by email" ON mvp_live_chat_rooms FOR SELECT USING (true);
+CREATE POLICY "Public can update own chat room by email" ON mvp_live_chat_rooms FOR UPDATE USING (true);
+CREATE POLICY "Public can create chat messages" ON mvp_live_chat_messages FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public can view chat messages" ON mvp_live_chat_messages FOR SELECT USING (true);
+
+-- Admin: full access on live chat tables (service role bypasses RLS anyway, but explicit for safety)
+CREATE POLICY "Admin can manage all chat rooms" ON mvp_live_chat_rooms FOR ALL USING (
+    EXISTS (SELECT 1 FROM mvp_profiles WHERE user_id = auth.uid() AND is_admin = TRUE)
+);
+CREATE POLICY "Admin can manage all chat messages" ON mvp_live_chat_messages FOR ALL USING (
+    EXISTS (SELECT 1 FROM mvp_profiles WHERE user_id = auth.uid() AND is_admin = TRUE)
+);
+
+-- Auto-update trigger for live chat rooms
+DROP TRIGGER IF EXISTS update_mvp_live_chat_rooms_updated_at ON mvp_live_chat_rooms;
+CREATE TRIGGER update_mvp_live_chat_rooms_updated_at BEFORE UPDATE ON mvp_live_chat_rooms FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

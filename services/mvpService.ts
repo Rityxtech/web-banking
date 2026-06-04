@@ -47,7 +47,10 @@ async function fetchWithRetry(url: string, options: any, retries = 3, timeout = 
         try {
             const res = await fetch(url, { ...options, signal: controller.signal });
             clearTimeout(id);
-            if (!res.ok && res.status >= 500) throw new Error(`HTTP ${res.status}`);
+            if (!res.ok && res.status >= 500) {
+                const errText = await res.text().catch(() => '');
+                throw new Error(`HTTP ${res.status}: ${errText.substring(0, 200)}`);
+            }
             return res;
         } catch (e: any) {
             clearTimeout(id);

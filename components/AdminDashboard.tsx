@@ -7,6 +7,7 @@ import {
     BarChart, Bar, CartesianGrid, Cell
 } from 'recharts';
 import { User, Mail, Shield, ShieldAlert, Trash2, ArrowLeft, Save, Loader2, Key, MapPin, Phone, UserCheck, X, CheckCircle, AlertCircle, AlertTriangle, AlertOctagon, RotateCcw, Settings as SettingsIcon, Headphones, ShieldCheck, Lock, CreditCard, Eye, EyeOff, Wifi, Wallet, Plus, PlusCircle, Minus, ArrowRightLeft, RefreshCw, Unlock, UserX, BadgeCheck, FileText, Camera, Image as ImageIcon, Check, Ban, Undo2, MessageSquare, Send, Sparkles, Clock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Search as SearchIcon, Filter, MoreVertical, Paperclip, ExternalLink, ShieldX, LogOut, Calendar, DollarSign, ArrowUpRight, ArrowDownLeft, Landmark, Upload, Link as LinkIcon, Edit3, TrendingUp, TrendingDown } from 'lucide-react';
+import { AdminLiveChat } from './AdminLiveChat';
 
 interface AdminDashboardProps {
     onLogout: () => void;
@@ -14,7 +15,7 @@ interface AdminDashboardProps {
     userAvatar?: string;
 }
 
-type AdminSection = 'overview' | 'users' | 'transactions' | 'requests' | 'kyc' | 'support_tickets' | 'support_live' | 'settings' | 'bank_management' | 'email_templates';
+type AdminSection = 'overview' | 'users' | 'transactions' | 'requests' | 'kyc' | 'support_tickets' | 'support_live' | 'email_live_chat' | 'settings' | 'bank_management' | 'email_templates';
 
 const EMAIL_TEMPLATES = [
     {
@@ -231,7 +232,7 @@ const EMAIL_TEMPLATES = [
 
         <tr>
             <td align="center" style="padding: 30px 40px;">
-                <a href="https://wa.me/14474508013" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
+                <a href="#livechat" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
             </td>
         </tr>
 
@@ -561,7 +562,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     // Restore active section from localStorage on mount
     useEffect(() => {
         const savedSection = localStorage.getItem(APP_CONFIG.STORAGE_PREFIX + 'admin_section') as AdminSection | null;
-        if (savedSection && ['overview', 'users', 'transactions', 'requests', 'kyc', 'support_live', 'support_tickets', 'bank_management', 'email_templates', 'settings'].includes(savedSection)) {
+        if (savedSection && ['overview', 'users', 'transactions', 'requests', 'kyc', 'support_live', 'support_tickets', 'email_live_chat', 'bank_management', 'email_templates', 'settings'].includes(savedSection)) {
             setActiveSection(savedSection);
         }
     }, []);
@@ -2325,7 +2326,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
                     <div className="py-2">
                         <p className="px-3 mb-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-50">Support Channels</p>
-                        <SidebarItem id="support_live" label="Live Chat" icon="chat" active={activeSection === 'support_live'} onClick={handleSidebarClick} badgeCount={unreadLiveCount} />
+                        <SidebarItem id="support_live" label="AI Handover" icon="chat" active={activeSection === 'support_live'} onClick={handleSidebarClick} badgeCount={unreadLiveCount} />
+                        <SidebarItem id="email_live_chat" label="Email Live Chat" icon="headset" active={activeSection === 'email_live_chat'} onClick={handleSidebarClick} />
                         <SidebarItem id="support_tickets" label="Tickets" icon="confirmation_number" active={activeSection === 'support_tickets'} onClick={handleSidebarClick} badgeCount={unreadTicketCount} />
                     </div>
 
@@ -3384,7 +3386,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                 <div className="h-[calc(100vh-140px)] flex bg-white dark:bg-[#111a22] rounded-2xl border border-slate-200 dark:border-[#324d67] overflow-hidden shadow-xl animate-in fade-in duration-300">
                                     <div className={`${activeChatUser ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-slate-200 dark:border-[#233648] flex flex-col bg-slate-50/30 dark:bg-black/10`}>
                                         <div className="p-4 border-b border-slate-200 dark:border-[#233648] bg-white dark:bg-[#111a22]">
-                                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2"><MessageSquare size={14} className="text-blue-500" /> Live Terminals</h3>
+                                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-2"><MessageSquare size={14} className="text-blue-500" /> AI Handover Terminals</h3>
                                         </div>
                                         <div className="flex-1 overflow-y-auto custom-scrollbar">
                                             {paginatedChatUsers.map(chat => (
@@ -3464,6 +3466,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                     </div>
                                 </div>
                             )}
+
+                            {activeSection === 'email_live_chat' && <AdminLiveChat />}
 
                             {activeSection === 'bank_management' && (
                                 <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-300">
