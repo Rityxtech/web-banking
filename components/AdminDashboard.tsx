@@ -820,10 +820,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         return transactions.filter(t => t.status === 'Pending').length;
     }, [transactions]);
 
-    const kycPendingCount = useMemo(() => {
-        return kycUsers.length;
-    }, [kycUsers]);
-
     const adminFilteredTransactions = useMemo(() => {
         return transactions.filter(t => {
             const user = users.find(u => u.user_id === t.user_id);
@@ -1887,6 +1883,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             return (u.kyc_documents && u.kyc_documents !== '{}') || (settings.kycStatus && Object.keys(settings.kycStatus).length > 0);
         });
     }, [users]);
+
+    const kycPendingCount = useMemo(() => kycUsers.length, [kycUsers]);
 
     const volumeChartData = useMemo(() => {
         const last7Days = Array.from({ length: 7 }, (_, i) => {
