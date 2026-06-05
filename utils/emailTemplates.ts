@@ -1,7 +1,9 @@
 
 import { APP_CONFIG } from '../config';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal', data: any) => {
+import { getWiseEmailTemplate } from './wiseEmailTemplate';
+
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise', data: any) => {
    let subject = '';
    let content = '';
 
@@ -325,6 +327,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
              </div>
           </div>
           ${footer}`;
+         break;
+
+      case 'wise':
+         subject = 'Wise Payment Receipt';
+         content = getWiseEmailTemplate(data);
          break;
 
       case 'paypal':

@@ -346,7 +346,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                 setStep('result');
             } else {
                 const isPayPal = selectedBank?.name?.toLowerCase() === 'paypal';
-                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal);
+                const isWise = selectedBank?.name?.toLowerCase() === 'wise';
+                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -377,6 +378,43 @@ export const Transfers: React.FC<TransfersProps> = ({
                             mvp.sendEmail(formData.accountNumber, subject, content, 'PayPal').catch(console.error);
                         } catch (e) {
                             console.error('Failed to send PayPal email:', e);
+                        }
+                    }
+
+                    // Send Wise receipt email if Wise was selected
+                    if (isWise && formData.accountNumber) {
+                        const senderName = user?.name || user?.user_metadata?.full_name || 'Account Holder';
+                        const fee = rawAmount * 0.015;
+                        const subtotal = rawAmount + fee;
+                        const currencyCode = selectedCurrency.code;
+                        const symbol = selectedCurrency.symbol;
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+                        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                        try {
+                            const { subject, content } = getEmailTemplate('wise', {
+                                sender_name: senderName,
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                transfer_id: `WISE-${Math.floor(100000 + Math.random() * 900000)}`,
+                                status: 'Completed',
+                                country: user?.country || 'United States',
+                                method: selectedBank?.name || 'Bank Transfer',
+                                date: dateStr,
+                                time: timeStr,
+                                amount: `${symbol}${rawAmount.toFixed(2)}`,
+                                fee: `${symbol}${fee.toFixed(2)}`,
+                                subtotal: `${symbol}${subtotal.toFixed(2)}`,
+                                total: `${symbol}${subtotal.toFixed(2)}`,
+                                payment_method: 'Bank Transfer',
+                                reference_number: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+                                payment_status: 'Successful',
+                                barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+                                cta_link: `${APP_CONFIG.SITE_URL}`
+                            });
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Wise').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send Wise email:', e);
                         }
                     }
                 }

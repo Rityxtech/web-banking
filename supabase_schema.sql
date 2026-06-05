@@ -584,16 +584,23 @@ ALTER TABLE mvp_live_chat_rooms ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mvp_live_chat_messages ENABLE ROW LEVEL SECURITY;
 
 -- Public insert policies (anyone can create a room/message from the email link)
+DROP POLICY IF EXISTS "Public can create chat rooms" ON mvp_live_chat_rooms;
 CREATE POLICY "Public can create chat rooms" ON mvp_live_chat_rooms FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public can view own chat room by email" ON mvp_live_chat_rooms;
 CREATE POLICY "Public can view own chat room by email" ON mvp_live_chat_rooms FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public can update own chat room by email" ON mvp_live_chat_rooms;
 CREATE POLICY "Public can update own chat room by email" ON mvp_live_chat_rooms FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Public can create chat messages" ON mvp_live_chat_messages;
 CREATE POLICY "Public can create chat messages" ON mvp_live_chat_messages FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public can view chat messages" ON mvp_live_chat_messages;
 CREATE POLICY "Public can view chat messages" ON mvp_live_chat_messages FOR SELECT USING (true);
 
 -- Admin: full access on live chat tables (service role bypasses RLS anyway, but explicit for safety)
+DROP POLICY IF EXISTS "Admin can manage all chat rooms" ON mvp_live_chat_rooms;
 CREATE POLICY "Admin can manage all chat rooms" ON mvp_live_chat_rooms FOR ALL USING (
     EXISTS (SELECT 1 FROM mvp_profiles WHERE user_id = auth.uid() AND is_admin = TRUE)
 );
+DROP POLICY IF EXISTS "Admin can manage all chat messages" ON mvp_live_chat_messages;
 CREATE POLICY "Admin can manage all chat messages" ON mvp_live_chat_messages FOR ALL USING (
     EXISTS (SELECT 1 FROM mvp_profiles WHERE user_id = auth.uid() AND is_admin = TRUE)
 );
