@@ -149,12 +149,17 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         if (!email || !code || !otp_type) {
           return res.status(400).json({ error: 'Missing required fields: email, code, otp_type' });
         }
+        console.log('[OTP] Storing OTP for:', email, 'type:', otp_type);
         // Delete any existing OTP for this email+type
         await supabase.from('mvp_otp_codes').delete().eq('email', email).eq('type', otp_type);
         // Insert new OTP (expires in 10 minutes)
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
         const { error } = await supabase.from('mvp_otp_codes').insert({ email, code, type: otp_type, expires_at: expiresAt });
-        if (error) throw error;
+        if (error) {
+          console.error('[OTP] Store failed:', error.message);
+          throw error;
+        }
+        console.log('[OTP] Stored successfully, expires:', expiresAt);
         return res.json({ success: true });
       }
 
@@ -247,8 +252,9 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         if (!email || !password || !otp_code) {
           return res.status(400).json({ error: 'Missing required fields: email, password, otp_code' });
         }
+        console.log('[OTP] Verifying signup OTP for:', email, 'code:', otp_code);
         // Verify OTP
-        const { data: otpRows } = await supabase
+        const { data: otpRows, error: otpErr } = await supabase
           .from('mvp_otp_codes')
           .select('*')
           .eq('email', email)
@@ -256,6 +262,10 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
           .eq('type', 'signup')
           .gt('expires_at', new Date().toISOString())
           .limit(1);
+        if (otpErr) {
+          console.error('[OTP] DB error during verification:', otpErr.message);
+        }
+        console.log('[OTP] Rows found:', otpRows?.length || 0, 'Current time:', new Date().toISOString());
         if (!otpRows || otpRows.length === 0) {
           return res.status(400).json({ error: 'Invalid or expired verification code' });
         }
