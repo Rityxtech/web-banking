@@ -35,7 +35,7 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
 
         /* Diagonal Watermark Overlay */
         .receipt-container::before {
-            content: "CreateReceipt      CreateReceipt      CreateReceipt\A\A CreateReceipt      CreateReceipt      CreateReceipt\A\A CreateReceipt      CreateReceipt      CreateReceipt\A\A CreateReceipt      CreateReceipt      CreateReceipt\A\A CreateReceipt      CreateReceipt      CreateReceipt\A\A CreateReceipt      CreateReceipt      CreateReceipt";
+            content: "Wise      Wise      Wise\A\A Wise      Wise      Wise\A\A Wise      Wise      Wise\A\A Wise      Wise      Wise\A\A Wise      Wise      Wise\A\A Wise      Wise      Wise";
             white-space: pre;
             position: absolute;
             top: -20%;
@@ -167,23 +167,6 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
             letter-spacing: 2px;
         }
 
-        .cta-button-container {
-            text-align: center;
-            margin: 25px 0;
-        }
-
-        .cta-button {
-            background-color: #163300;
-            color: #ffffff;
-            text-decoration: none;
-            padding: 12px 30px;
-            font-size: 14px;
-            font-weight: bold;
-            display: inline-block;
-            border-radius: 4px;
-            font-family: 'Courier Prime', monospace;
-        }
-
         .footer-msg {
             text-align: center;
             font-size: 13px;
@@ -300,10 +283,6 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         <div class="barcode-container">
             <div class="barcode"></div>
             <div class="barcode-number">${data.barcode_number}</div>
-        </div>
-
-        <div class="cta-button-container">
-            <a href="${data.cta_link}" class="cta-button">Confirm Transfer</a>
         </div>
 
         <div class="footer-msg">

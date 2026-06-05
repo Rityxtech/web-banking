@@ -409,8 +409,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 payment_method: 'Bank Transfer',
                                 reference_number: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
                                 payment_status: 'Successful',
-                                barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-                                cta_link: `${APP_CONFIG.SITE_URL}`
+                                barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`
                             });
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Wise').catch(console.error);
                         } catch (e) {
