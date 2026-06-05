@@ -243,6 +243,13 @@ CREATE TABLE IF NOT EXISTS mvp_banks (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Seed default banks (PayPal & Wise)
+INSERT INTO mvp_banks (name, logo, color)
+VALUES
+    ('PayPal', 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg', 'bg-blue-600'),
+    ('Wise', 'https://wise.com/public-resources/assets/logos/wise-main-logo.svg', 'bg-green-700')
+ON CONFLICT DO NOTHING;
+
 -- ============================================================
 -- INDEXES FOR PERFORMANCE
 -- ============================================================

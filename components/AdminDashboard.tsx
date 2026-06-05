@@ -1064,7 +1064,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 shouldFetchLiquidity ? supabaseAdmin.from('mvp_accounts').select('balance').limit(50) : Promise.resolve({ data: null })
             ]);
 
-            // Auto-insert PayPal as a default bank if missing
+            // Auto-insert PayPal & Wise as default banks if missing
             if (shouldFetchBanks && b !== null) {
                 const hasPaypal = (b || []).some((bank: any) => bank.name?.toLowerCase() === 'paypal');
                 if (!hasPaypal) {
@@ -1073,6 +1073,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                         logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg',
                         color: 'bg-blue-600'
                     }]);
+                }
+                const hasWise = (b || []).some((bank: any) => bank.name?.toLowerCase() === 'wise');
+                if (!hasWise) {
+                    await supabaseAdmin.from('mvp_banks').insert([{
+                        name: 'Wise',
+                        logo: 'https://wise.com/public-resources/assets/logos/wise-main-logo.svg',
+                        color: 'bg-green-700'
+                    }]);
+                }
+                if (!hasPaypal || !hasWise) {
                     const { data: refreshedBanks } = await supabaseAdmin.from('mvp_banks').select('*').limit(50);
                     b = refreshedBanks;
                 }
