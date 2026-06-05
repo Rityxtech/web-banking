@@ -443,11 +443,18 @@ export const Transfers: React.FC<TransfersProps> = ({
         setIsSharing(false);
     };
 
-    const renderBankIcon = (bank: any, sizeClass = "w-6 h-6 md:w-8 md:h-8") => {
-        if (bank?.logo) {
-            return <img src={bank.logo} alt={bank.name} className={`${sizeClass} rounded-full object-cover bg-white shadow-sm border border-slate-100`} onError={(e) => { e.currentTarget.style.display = 'none' }} />;
+    const BankIcon = ({ bank, sizeClass = "w-6 h-6 md:w-8 md:h-8" }: { bank: any; sizeClass?: string }) => {
+        const [err, setErr] = useState(false);
+        if (bank?.logo && !err) {
+            return (
+                <img
+                    src={bank.logo}
+                    alt={bank.name}
+                    className={`${sizeClass} rounded-full object-contain bg-white shadow-sm border border-slate-100`}
+                    onError={() => setErr(true)}
+                />
+            );
         }
-        // Fallback if logo fails or is missing
         return (
             <div className={`${sizeClass} rounded-full ${bank?.color || 'bg-slate-400'} flex items-center justify-center text-white font-bold shadow-sm`}>
                 {bank?.name ? bank.name.charAt(0) : <Globe size={14} />}
@@ -512,7 +519,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 <div className="text-right">
                                     <span className="font-bold text-slate-900 dark:text-white block">{formData.recipientName}</span>
                                     <div className="flex items-center justify-end gap-1 mt-0.5">
-                                        {renderBankIcon(selectedBank, "w-3 h-3 md:w-5 md:h-5")}
+                                        <BankIcon bank={selectedBank} sizeClass="w-3 h-3 md:w-5 md:h-5" />
                                         <span className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400">{selectedBank.name}</span>
                                     </div>
                                     <span className="text-[10px] md:text-xs text-slate-400 block font-mono">**** {formData.accountNumber.slice(-4)}</span>
@@ -718,7 +725,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                     className="w-full p-2.5 md:p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm md:text-base font-medium flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all dark:text-white"
                                 >
                                     <div className="flex items-center gap-2.5 md:gap-3">
-                                        {renderBankIcon(selectedBank, "w-5 h-5 md:w-7 md:h-7")}
+                                        <BankIcon bank={selectedBank} sizeClass="w-5 h-5 md:w-7 md:h-7" />
                                         <span className="truncate">{selectedBank.name}</span>
                                     </div>
                                     <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${showBankDropdown ? 'rotate-180' : ''}`} />
@@ -737,7 +744,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                                 }}
                                                 className="w-full p-3 md:p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left"
                                             >
-                                                {renderBankIcon(bank, "w-8 h-8 md:w-9 md:h-9")}
+                                                <BankIcon bank={bank} sizeClass="w-8 h-8 md:w-9 md:h-9" />
                                                 <div>
                                                     <p className="text-sm md:text-base font-bold text-slate-900 dark:text-white">{bank.name}</p>
                                                 </div>

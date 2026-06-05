@@ -1078,7 +1078,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                 if (!hasWise) {
                     await supabaseAdmin.from('mvp_banks').insert([{
                         name: 'Wise',
-                        logo: 'https://wise.com/public-resources/assets/logos/wise-main-logo.svg',
+                        logo: 'https://wise.com/public-resources/assets/logos/wise-logo.svg',
                         color: 'bg-green-700'
                     }]);
                 }

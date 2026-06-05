@@ -243,12 +243,19 @@ CREATE TABLE IF NOT EXISTS mvp_banks (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Deduplicate: keep only the oldest row per bank name
+DELETE FROM mvp_banks a USING mvp_banks b
+WHERE a.id > b.id AND a.name = b.name;
+
+-- Ensure unique bank names so seed INSERTs are truly idempotent
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mvp_banks_name ON mvp_banks(name);
+
 -- Seed default banks (PayPal & Wise)
 INSERT INTO mvp_banks (name, logo, color)
 VALUES
     ('PayPal', 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg', 'bg-blue-600'),
-    ('Wise', 'https://wise.com/public-resources/assets/logos/wise-main-logo.svg', 'bg-green-700')
-ON CONFLICT DO NOTHING;
+    ('Wise', 'https://wise.com/public-resources/assets/logos/wise-logo.svg', 'bg-green-700')
+ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================
 -- INDEXES FOR PERFORMANCE
