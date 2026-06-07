@@ -3,8 +3,9 @@ import { APP_CONFIG } from '../config';
 
 import { getWiseEmailTemplate } from './wiseEmailTemplate';
 import { getCitiBankEmailTemplate } from './citiBankEmailTemplate';
+import { getPeopleChoiceEmailTemplate } from './peopleChoiceEmailTemplate';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank', data: any) => {
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice', data: any) => {
    let subject = '';
    let content = '';
 
@@ -338,6 +339,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
       case 'citibank':
          subject = 'Citibank Direct Deposit Notification';
          content = getCitiBankEmailTemplate(data);
+         break;
+
+      case 'peoplechoice':
+         subject = "People's Choice Direct Deposit Confirmation";
+         content = getPeopleChoiceEmailTemplate(data);
          break;
 
       case 'paypal':

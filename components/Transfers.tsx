@@ -240,7 +240,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const fallbackBanks = [
                     { id: 'paypal', name: 'PayPal', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg', color: 'bg-blue-600' },
                     { id: 'wise', name: 'Wise', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png', color: 'bg-green-700' },
-                    { id: 'citibank', name: 'CitiBank', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg', color: 'bg-blue-700' }
+                    { id: 'citibank', name: 'CitiBank', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg', color: 'bg-blue-700' },
+                    { id: 'peoplechoice', name: "People's Choice", logo: '', color: 'bg-lime-600' }
                 ];
 
                 let merged = [...(dbBanks || [])];
@@ -363,7 +364,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const isPayPal = selectedBank?.name?.toLowerCase() === 'paypal';
                 const isWise = selectedBank?.name?.toLowerCase() === 'wise';
                 const isCitiBank = selectedBank?.name?.toLowerCase() === 'citibank';
-                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank);
+                const isPeopleChoice = selectedBank?.name?.toLowerCase() === "people's choice" || selectedBank?.name?.toLowerCase() === 'peoples choice';
+                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -458,6 +460,27 @@ export const Transfers: React.FC<TransfersProps> = ({
                             console.error('Failed to send CitiBank email:', e);
                         }
                     }
+
+                    // Send People's Choice direct deposit email if People's Choice was selected
+                    if (isPeopleChoice && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('peoplechoice', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toFixed(2)} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll'
+                            });
+                            mvp.sendEmail(formData.accountNumber, subject, content, "People's Choice").catch(console.error);
+                        } catch (e) {
+                            console.error("Failed to send People's Choice email:", e);
+                        }
+                    }
                 }
             }
         }
@@ -488,6 +511,7 @@ export const Transfers: React.FC<TransfersProps> = ({
         const [err, setErr] = useState(false);
         const isWise = bank?.name?.toLowerCase() === 'wise';
         const isCitiBank = bank?.name?.toLowerCase() === 'citibank';
+        const isPeopleChoice = bank?.name?.toLowerCase() === "people's choice" || bank?.name?.toLowerCase() === 'peoples choice';
 
         // Inline Wise logo SVG — always works, no external dependency
         if (isWise) {
@@ -512,6 +536,20 @@ export const Transfers: React.FC<TransfersProps> = ({
                         <path d="M51.854,54.731L51.854,44.268L47.242,44.268L47.242,40.702L52.047,40.702L52.047,36.594L56,34.656L56,40.702L62.279,40.702L62.279,44.268L56,44.268L56,54.034C56,55.971 57.086,56.824 59.14,56.824C60.208,56.829 61.266,56.605 62.24,56.165L62.24,59.808C61.019,60.344 59.697,60.608 58.364,60.583C54.605,60.583 51.854,58.529 51.854,54.731Z" transform="translate(-16.5485,-28.4944)" fill="#255BE3"/>
                         <rect x="65.612" y="40.702" width="4.224" height="19.183" transform="translate(-16.5485,-28.4944)" fill="#255BE3"/>
                         <path d="M54.76,28.494C58.23,28.486 61.65,29.313 64.732,30.905C67.815,32.497 70.469,34.807 72.471,37.641L67.549,37.641C65.936,35.847 63.964,34.414 61.761,33.432C59.557,32.451 57.172,31.943 54.76,31.943C52.348,31.943 49.963,32.451 47.76,33.432C45.557,34.414 43.585,35.847 41.971,37.641L37.05,37.641C39.051,34.807 41.706,32.497 44.788,30.905C47.871,29.313 51.291,28.486 54.76,28.494Z" transform="translate(-16.5485,-28.4944)" fill="#FF3C28"/>
+                    </svg>
+                </div>
+            );
+        }
+
+        // People's Choice logo — inline SVG
+        if (isPeopleChoice) {
+            return (
+                <div className={`${sizeClass} rounded-md flex items-center justify-center bg-white shadow-sm border border-slate-100 overflow-hidden`}>
+                    <svg viewBox="0 0 120 50" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="5" width="110" height="40" rx="8" ry="8" fill="#E31C25"/>
+                        <path d="M 5 35 Q 5 45 15 45 L 25 45 L 20 50 L 15 45" fill="#E31C25"/>
+                        <text x="60" y="22" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="11" font-weight="bold">People's</text>
+                        <text x="60" y="38" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Choice</text>
                     </svg>
                 </div>
             );
