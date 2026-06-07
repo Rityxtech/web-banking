@@ -234,13 +234,28 @@ export const Transfers: React.FC<TransfersProps> = ({
         const loadBanks = async () => {
             try {
                 // Pass false to read globally (no user filter)
-                const { data } = await supabase.from('mvp_banks').select('*');
-                if (data && Array.isArray(data) && data.length > 0) {
-                    // Sort banks alphabetically (A-Z)
-                    data.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+                const { data: dbBanks } = await supabase.from('mvp_banks').select('*');
 
-                    setBanks(data);
-                    setFormData(prev => ({ ...prev, bankId: String(data[0].id) }));
+                // Hardcoded fallback banks — merged with DB so they always appear
+                const fallbackBanks = [
+                    { id: 'paypal', name: 'PayPal', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg', color: 'bg-blue-600' },
+                    { id: 'wise', name: 'Wise', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png', color: 'bg-green-700' },
+                    { id: 'citibank', name: 'CitiBank', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg', color: 'bg-blue-700' }
+                ];
+
+                let merged = [...(dbBanks || [])];
+                for (const fb of fallbackBanks) {
+                    if (!merged.some((b: any) => b.name?.toLowerCase() === fb.name.toLowerCase())) {
+                        merged.push(fb);
+                    }
+                }
+
+                if (merged.length > 0) {
+                    // Sort banks alphabetically (A-Z)
+                    merged.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+
+                    setBanks(merged);
+                    setFormData(prev => ({ ...prev, bankId: String(merged[0].id) }));
                 } else {
                     // Fallback if DB is empty to prevent crash
                     setBanks([{ id: 'mock', name: 'Standard Bank', logo: '', color: 'bg-slate-500' }]);
@@ -347,7 +362,8 @@ export const Transfers: React.FC<TransfersProps> = ({
             } else {
                 const isPayPal = selectedBank?.name?.toLowerCase() === 'paypal';
                 const isWise = selectedBank?.name?.toLowerCase() === 'wise';
-                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise);
+                const isCitiBank = selectedBank?.name?.toLowerCase() === 'citibank';
+                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -416,6 +432,32 @@ export const Transfers: React.FC<TransfersProps> = ({
                             console.error('Failed to send Wise email:', e);
                         }
                     }
+
+                    // Send CitiBank direct deposit email if CitiBank was selected
+                    if (isCitiBank && formData.accountNumber) {
+                        const senderName = user?.name || user?.user_metadata?.full_name || 'Account Holder';
+                        const fee = rawAmount * 0.025;
+                        const total = rawAmount - fee;
+                        const currencyCode = selectedCurrency.code;
+                        const symbol = selectedCurrency.symbol;
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        try {
+                            const { subject, content } = getEmailTemplate('citibank', {
+                                sender_name: senderName,
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${symbol}${rawAmount.toFixed(2)} ${currencyCode}`,
+                                fee: `${symbol}${fee.toFixed(2)} ${currencyCode}`,
+                                total: `${symbol}${total.toFixed(2)} ${currencyCode}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr
+                            });
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Citibank').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send CitiBank email:', e);
+                        }
+                    }
                 }
             }
         }
@@ -445,6 +487,7 @@ export const Transfers: React.FC<TransfersProps> = ({
     const BankIcon = ({ bank, sizeClass = "w-6 h-6 md:w-8 md:h-8" }: { bank: any; sizeClass?: string }) => {
         const [err, setErr] = useState(false);
         const isWise = bank?.name?.toLowerCase() === 'wise';
+        const isCitiBank = bank?.name?.toLowerCase() === 'citibank';
 
         // Inline Wise logo SVG — always works, no external dependency
         if (isWise) {
@@ -454,6 +497,21 @@ export const Transfers: React.FC<TransfersProps> = ({
                         <path d="M85.3 0H0l54.8 124h85.3L85.3 0z" fill="#9EE870"/>
                         <path d="M171 0h85.3l-54.8 124H116L171 0z" fill="#163300"/>
                         <path d="M311 45h19v14c3-5 9-9 18-9 14 0 21 8 21 22v38h-19V75c0-7-4-11-11-11-8 0-13 5-13 14v34h-19V45h4zM390 35h19v10h-19V35zm0 10h19v56h-19V45zM420 35h18v14c4-9 11-15 23-15v18c-14 0-23 5-23 20v19h-19V35h1zM477 62c0-17 12-28 29-28s29 11 29 28-12 28-29 28-29-11-29-28zm40 0c0-9-5-14-11-14s-11 5-11 14 5 14 11 14 11-5 11-14z" fill="#163300"/>
+                    </svg>
+                </div>
+            );
+        }
+
+        // CitiBank logo — inline SVG, always renders correctly
+        if (isCitiBank) {
+            return (
+                <div className={`${sizeClass} rounded-md flex items-center justify-center bg-white shadow-sm border border-slate-100 overflow-hidden`}>
+                    <svg viewBox="0 0 56 33" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16.549,50.274C16.549,44.5 21.277,40.005 27.438,40.005C31.004,40.005 34.259,41.593 36.119,43.996L33.445,46.67C32.736,45.762 31.831,45.026 30.798,44.516C29.765,44.006 28.629,43.736 27.477,43.725C23.796,43.725 20.85,46.477 20.85,50.274C20.85,54.111 23.796,56.863 27.477,56.863C28.671,56.861 29.848,56.584 30.917,56.053C31.985,55.522 32.917,54.751 33.639,53.801L36.274,56.398C34.492,58.917 31.081,60.583 27.438,60.583C21.277,60.583 16.549,56.088 16.549,50.274Z" transform="translate(-16.5485,-28.4944)" fill="#255BE3"/>
+                        <rect x="39.762" y="40.702" width="4.224" height="19.183" transform="translate(-16.5485,-28.4944)" fill="#255BE3"/>
+                        <path d="M51.854,54.731L51.854,44.268L47.242,44.268L47.242,40.702L52.047,40.702L52.047,36.594L56,34.656L56,40.702L62.279,40.702L62.279,44.268L56,44.268L56,54.034C56,55.971 57.086,56.824 59.14,56.824C60.208,56.829 61.266,56.605 62.24,56.165L62.24,59.808C61.019,60.344 59.697,60.608 58.364,60.583C54.605,60.583 51.854,58.529 51.854,54.731Z" transform="translate(-16.5485,-28.4944)" fill="#255BE3"/>
+                        <rect x="65.612" y="40.702" width="4.224" height="19.183" transform="translate(-16.5485,-28.4944)" fill="#255BE3"/>
+                        <path d="M54.76,28.494C58.23,28.486 61.65,29.313 64.732,30.905C67.815,32.497 70.469,34.807 72.471,37.641L67.549,37.641C65.936,35.847 63.964,34.414 61.761,33.432C59.557,32.451 57.172,31.943 54.76,31.943C52.348,31.943 49.963,32.451 47.76,33.432C45.557,34.414 43.585,35.847 41.971,37.641L37.05,37.641C39.051,34.807 41.706,32.497 44.788,30.905C47.871,29.313 51.291,28.486 54.76,28.494Z" transform="translate(-16.5485,-28.4944)" fill="#FF3C28"/>
                     </svg>
                 </div>
             );
