@@ -444,6 +444,21 @@ export const Transfers: React.FC<TransfersProps> = ({
 
     const BankIcon = ({ bank, sizeClass = "w-6 h-6 md:w-8 md:h-8" }: { bank: any; sizeClass?: string }) => {
         const [err, setErr] = useState(false);
+        const isWise = bank?.name?.toLowerCase() === 'wise';
+
+        // Inline Wise logo SVG — always works, no external dependency
+        if (isWise) {
+            return (
+                <div className={`${sizeClass} rounded-md flex items-center justify-center bg-white shadow-sm border border-slate-100 overflow-hidden`}>
+                    <svg viewBox="0 0 512 124" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M85.3 0H0l54.8 124h85.3L85.3 0z" fill="#9EE870"/>
+                        <path d="M171 0h85.3l-54.8 124H116L171 0z" fill="#163300"/>
+                        <path d="M311 45h19v14c3-5 9-9 18-9 14 0 21 8 21 22v38h-19V75c0-7-4-11-11-11-8 0-13 5-13 14v34h-19V45h4zM390 35h19v10h-19V35zm0 10h19v56h-19V45zM420 35h18v14c4-9 11-15 23-15v18c-14 0-23 5-23 20v19h-19V35h1zM477 62c0-17 12-28 29-28s29 11 29 28-12 28-29 28-29-11-29-28zm40 0c0-9-5-14-11-14s-11 5-11 14 5 14 11 14 11-5 11-14z" fill="#163300"/>
+                    </svg>
+                </div>
+            );
+        }
+
         if (bank?.logo && !err) {
             return (
                 <img

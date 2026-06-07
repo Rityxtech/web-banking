@@ -80,6 +80,16 @@
       updateMeta('meta[property="og:url"]', 'content', currentUrl);
     } catch {}
   </script>
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('livechat') === 'true') {
+        var email = params.get('email');
+        var hash = '#livechat' + (email ? '?email=' + encodeURIComponent(email) : '');
+        window.history.replaceState({}, '', window.location.pathname + hash);
+      }
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"

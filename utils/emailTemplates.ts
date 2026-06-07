@@ -352,7 +352,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 15px 0 25px 0;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="24" style="display: block; border: 0;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="74" height="auto" style="display: block; border: 0; width: 74px; height: auto;">
             </td>
         </tr>
         <tr>
@@ -449,7 +449,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 30px 40px;">
-                <a href="${APP_CONFIG.SITE_URL}/#livechat?email=${encodeURIComponent(data.recipient_email || '')}" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
+                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
             </td>
         </tr>
         <tr>
@@ -459,7 +459,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 25px 0 10px 0;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="22" style="display: block; border: 0; opacity: 0.8;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="68" height="auto" style="display: block; border: 0; opacity: 0.8; width: 68px; height: auto;">
             </td>
         </tr>
         <tr>

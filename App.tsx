@@ -566,7 +566,17 @@ function App() {
         });
     }, []);
 
-    const [route, setRoute] = useState(() => window.location.hash.substring(1).split('?')[0] || 'dashboard');
+    const [route, setRoute] = useState(() => {
+        // Email clients sometimes strip hash fragments; support ?livechat=true fallback
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('livechat') === 'true') {
+            const email = params.get('email');
+            const hash = 'livechat' + (email ? '?email=' + encodeURIComponent(email) : '');
+            window.history.replaceState({}, '', window.location.pathname + '#' + hash);
+            return 'livechat';
+        }
+        return window.location.hash.substring(1).split('?')[0] || 'dashboard';
+    });
 
     const navigate = useCallback((path: string) => {
         setRoute(path);

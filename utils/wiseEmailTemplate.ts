@@ -1,9 +1,16 @@
+import { APP_CONFIG } from '../config';
+
 export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wise Receipt</title>
+    <!--[if mso]>
+    <style type="text/css">
+        body, table, td, th, div, p, a, h1, h2, h3, h4, h5, h6 { font-family: 'Courier New', Courier, monospace !important; }
+    </style>
+    <![endif]-->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
@@ -59,10 +66,10 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
 
         .logo-container {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 8px;
         }
 
-        /* Simplified SVG replacement of the Wise Logo */
+        /* Wise Logo image */
         .wise-logo {
             width: 140px;
             height: auto;
@@ -70,7 +77,7 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
 
         .company-details {
             text-align: center;
-            font-size: 13px;
+            font-size: 20px;
             line-height: 1.4;
             margin-bottom: 20px;
         }
@@ -83,7 +90,7 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
 
         .title-block {
             text-align: center;
-            font-size: 14px;
+            font-size: 22px;
             line-height: 1.4;
             margin: 20px 0;
         }
@@ -93,7 +100,7 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
             grid-template-columns: 1fr 1fr;
             row-gap: 12px;
             column-gap: 15px;
-            font-size: 13px;
+            font-size: 20px;
             margin-bottom: 10px;
         }
 
@@ -106,14 +113,14 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         }
 
         .time-block {
-            font-size: 14px;
+            font-size: 22px;
             line-height: 1.5;
             margin: 15px 0;
         }
 
         .financial-table {
             width: 100%;
-            font-size: 14px;
+            font-size: 22px;
             border-collapse: collapse;
             margin: 15px 0;
         }
@@ -132,7 +139,7 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
 
         .totals-section {
             width: 100%;
-            font-size: 14px;
+            font-size: 22px;
             margin: 15px 0;
         }
 
@@ -163,28 +170,33 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         }
 
         .barcode-number {
-            font-size: 12px;
+            font-size: 19px;
             letter-spacing: 2px;
         }
 
         .footer-msg {
             text-align: center;
-            font-size: 13px;
+            font-size: 20px;
             line-height: 1.5;
             margin-top: 20px;
         }
     </style>
 </head>
-<body>
+<body style="margin: 0; padding: 0; background-color: #f0f2f5;">
 
-<div class="receipt-container">
-    <div class="receipt-content">
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f0f2f5;">
+    <tr>
+        <td align="center" style="padding: 20px;">
+            <!--[if (gte mso 9)|(IE)]>
+            <table align="center" border="0" cellspacing="0" cellpadding="0" width="400">
+            <tr>
+            <td align="center" valign="top" width="400">
+            <![endif]-->
+            <div class="receipt-container" style="margin: 0 auto;">
+                <div class="receipt-content">
         
         <div class="logo-container">
-            <svg class="wise-logo" viewBox="0 0 350 100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 20 L55 20 L40 55 L75 15 L110 15 L60 85 L20 85 Z" fill="#163300"/>
-                <text x="115" y="75" font-family="'Courier Prime', Arial, sans-serif" font-weight="900" font-size="72" fill="#163300" letter-spacing="-2">wise</text>
-            </svg>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Wise_Logo_512x124.svg" alt="Wise" class="wise-logo" width="340" style="display: block; width: 60%; height: auto; border: 0; border-radius: 0; margin: 0 auto;">
         </div>
 
         <div class="company-details">
@@ -206,32 +218,38 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
 
         <hr class="divider">
 
-        <div class="grid-section">
-            <div>
-                <div class="label">Sender :</div>
-                <div class="value">${data.sender_name}</div>
-            </div>
-            <div>
-                <div class="label">Transfer ID :</div>
-                <div class="value">${data.transfer_id}</div>
-            </div>
-            <div>
-                <div class="label">Email :</div>
-                <div class="value" style="word-break: break-all;">${data.recipient_email}</div>
-            </div>
-            <div>
-                <div class="label">Status :</div>
-                <div class="value">${data.status}</div>
-            </div>
-            <div>
-                <div class="label">Country :</div>
-                <div class="value">${data.country}</div>
-            </div>
-            <div>
-                <div class="label">Method :</div>
-                <div class="value">${data.method}</div>
-            </div>
-        </div>
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 20px; margin-bottom: 10px;">
+            <tr>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;">
+                    <div class="label">Sender :</div>
+                    <div class="value">${data.sender_name}</div>
+                </td>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px;">
+                    <div class="label">Transfer ID :</div>
+                    <div class="value">${data.transfer_id}</div>
+                </td>
+            </tr>
+            <tr>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;">
+                    <div class="label">Email :</div>
+                    <div class="value" style="word-break: break-all;">${data.recipient_email}</div>
+                </td>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px;">
+                    <div class="label">Status :</div>
+                    <div class="value">${data.status}</div>
+                </td>
+            </tr>
+            <tr>
+                <td width="50%" valign="top" style="padding-bottom: 0; padding-right: 7.5px;">
+                    <div class="label">Country :</div>
+                    <div class="value">${data.country}</div>
+                </td>
+                <td width="50%" valign="top" style="padding-bottom: 0; padding-left: 7.5px;">
+                    <div class="label">Method :</div>
+                    <div class="value">${data.method}</div>
+                </td>
+            </tr>
+        </table>
 
         <hr class="divider">
 
@@ -267,21 +285,73 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         </table>
 
         <hr class="divider">
-        <div class="grid-section">
-            <div class="label">Payment Method</div>
-            <div class="value text-right">${data.payment_method}</div>
-            
-            <div class="label">Reference Number</div>
-            <div class="value text-right">${data.reference_number}</div>
-            
-            <div class="label">Status</div>
-            <div class="value text-right">${data.payment_status}</div>
-        </div>
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 20px; margin-bottom: 10px;">
+            <tr>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;" class="label">Payment Method</td>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px; text-align: right;" class="value">${data.payment_method}</td>
+            </tr>
+            <tr>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;" class="label">Reference Number</td>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px; text-align: right;" class="value">${data.reference_number}</td>
+            </tr>
+            <tr>
+                <td width="50%" valign="top" style="padding-bottom: 0; padding-right: 7.5px;" class="label">Status</td>
+                <td width="50%" valign="top" style="padding-bottom: 0; padding-left: 7.5px; text-align: right;" class="value">${data.payment_status}</td>
+            </tr>
+        </table>
 
         <hr class="divider">
 
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 15px 0;">
+            <tr>
+                <td align="center">
+                    <table border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td align="center" bgcolor="#2E7D32" style="background-color: #2E7D32; border-radius: 4px;">
+                                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}" target="_blank" style="display: inline-block; padding: 14px 48px; font-size: 18px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 4px; font-family: 'Courier Prime', 'Courier New', Courier, monospace;">Confirm & Accept Deposit</a>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
         <div class="barcode-container">
-            <div class="barcode"></div>
+            <table border="0" cellpadding="0" cellspacing="0" width="240" height="50" style="width: 240px; height: 50px; margin: 0 auto 5px auto; border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
+                <tr>
+                    <td width="4" height="50" bgcolor="#111111" style="width: 4px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="2" height="50" bgcolor="#ffffff" style="width: 2px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="6" height="50" bgcolor="#111111" style="width: 6px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="3" height="50" bgcolor="#ffffff" style="width: 3px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="8" height="50" bgcolor="#111111" style="width: 8px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="2" height="50" bgcolor="#ffffff" style="width: 2px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="4" height="50" bgcolor="#111111" style="width: 4px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="6" height="50" bgcolor="#ffffff" style="width: 6px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="2" height="50" bgcolor="#111111" style="width: 2px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="8" height="50" bgcolor="#ffffff" style="width: 8px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="3" height="50" bgcolor="#111111" style="width: 3px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="4" height="50" bgcolor="#ffffff" style="width: 4px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="2" height="50" bgcolor="#111111" style="width: 2px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="6" height="50" bgcolor="#ffffff" style="width: 6px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="4" height="50" bgcolor="#111111" style="width: 4px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="2" height="50" bgcolor="#ffffff" style="width: 2px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="8" height="50" bgcolor="#111111" style="width: 8px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="3" height="50" bgcolor="#ffffff" style="width: 3px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="6" height="50" bgcolor="#111111" style="width: 6px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="4" height="50" bgcolor="#ffffff" style="width: 4px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="2" height="50" bgcolor="#111111" style="width: 2px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="8" height="50" bgcolor="#ffffff" style="width: 8px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="4" height="50" bgcolor="#111111" style="width: 4px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="6" height="50" bgcolor="#ffffff" style="width: 6px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="3" height="50" bgcolor="#111111" style="width: 3px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="2" height="50" bgcolor="#ffffff" style="width: 2px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="8" height="50" bgcolor="#111111" style="width: 8px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="4" height="50" bgcolor="#ffffff" style="width: 4px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="6" height="50" bgcolor="#111111" style="width: 6px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="2" height="50" bgcolor="#ffffff" style="width: 2px; height: 50px; background-color: #ffffff; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                    <td width="4" height="50" bgcolor="#111111" style="width: 4px; height: 50px; background-color: #111111; line-height: 1px; font-size: 1px;">&nbsp;</td>
+                </tr>
+            </table>
             <div class="barcode-number">${data.barcode_number}</div>
         </div>
 
@@ -291,8 +361,16 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
             Thank you for using Wise.
         </div>
 
-    </div>
-</div>
+                </div>
+            </div>
+            <!--[if (gte mso 9)|(IE)]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+        </td>
+    </tr>
+</table>
 
 </body>
 </html>`;

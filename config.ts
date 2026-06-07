@@ -66,8 +66,8 @@ function firstWord(name: string): string {
 // Helper: derive domain from site name (e.g. "VeltrixBank" → "veltrixbank.com")
 function derivedDomain(name: string): string {
     const word = firstWord(name).toLowerCase();
-    if (word.endsWith('bank')) return word + '.com';
-    return word + 'bank.com';
+    if (word.endsWith('bank')) return 'www.' + word + '.com';
+    return 'www.' + word + 'bank.com';
 }
 
 export const APP_CONFIG = {

