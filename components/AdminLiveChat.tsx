@@ -110,7 +110,7 @@ export const AdminLiveChat: React.FC = () => {
                 sender_type: 'admin',
                 sender_name: 'Support Team',
                 text: text,
-                is_read: true
+                is_read: false
             }]);
 
             await supabase

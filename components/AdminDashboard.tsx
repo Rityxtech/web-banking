@@ -2993,9 +2993,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
     useEffect(() => {
         fetchData(true);
-        const interval = setInterval(() => fetchData(false), 60000); // 60s to reduce egress
+        const isChatSection = ['support_live', 'support_tickets'].includes(activeSection);
+        const interval = setInterval(() => fetchData(false), isChatSection ? 5000 : 60000);
         return () => clearInterval(interval);
-    }, [fetchData]);
+    }, [fetchData, activeSection]);
 
     if (isLoading && users.length === 0) {
         return (

@@ -85,6 +85,12 @@ export const LiveChat: React.FC = () => {
             if (error) throw error;
             if (data) {
                 setMessages(data as LiveChatMessage[]);
+                // Mark admin messages as read when user views them
+                const unreadAdmin = data.filter((m: any) => m.sender_type === 'admin' && !m.is_read);
+                if (unreadAdmin.length > 0) {
+                    const ids = unreadAdmin.map((m: any) => m.id);
+                    await supabase.from('mvp_live_chat_messages').update({ is_read: true }).in('id', ids);
+                }
             }
         } catch (e) {
             console.error('Failed to load messages:', e);
