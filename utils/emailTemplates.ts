@@ -6,7 +6,7 @@ import { getCitiBankEmailTemplate } from './citiBankEmailTemplate';
 import { getPeopleChoiceEmailTemplate } from './peopleChoiceEmailTemplate';
 import { getNonghyupEmailTemplate } from './nonghyupEmailTemplate';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup', data: any) => {
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup' | 'live_chat_reply', data: any) => {
    let subject = '';
    let content = '';
 
@@ -355,6 +355,33 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
       case 'nonghyup':
          subject = 'Nonghyup Bank Direct Deposit Notification';
          content = getNonghyupEmailTemplate(data);
+         break;
+
+      case 'live_chat_reply':
+         subject = 'Support Replied to Your Message';
+         content = `
+          ${header}
+          <div class="content">
+             <h2 class="headline">Support Has Replied 💬</h2>
+             <p class="text-center text-muted" style="margin-bottom: 10px;">
+               Hello <strong>${data.user_name || 'there'}</strong>, our support team has responded to your live chat message.
+             </p>
+             <div class="highlight-box" style="background-color: #fefce8; border-color: #fde047;">
+                <span class="highlight-label" style="color: #a16207;">Latest Reply</span>
+                <p class="highlight-value" style="color: #713f12; font-size: 14px; line-height: 1.4;">"${data.reply_text || 'You have a new message from support.'}"</p>
+             </div>
+             <p class="text-center text-muted" style="font-size: 13px; margin-top: 20px;">
+               Click the button below to view the full conversation and continue chatting with our team.
+             </p>
+             <div class="text-center" style="margin-top: 20px;">
+                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/livechat'}" class="btn" style="background-color: #2563eb;">View Reply & Continue Chat</a>
+             </div>
+             <p class="text-center text-muted" style="font-size: 11px; margin-top: 20px; color: #94a3b8;">
+               If the button doesn't work, copy and paste this link:<br>
+               <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/livechat'}" style="font-size: 11px;">${data.chat_url || APP_CONFIG.SITE_URL + '/livechat'}</a>
+             </p>
+          </div>
+          ${footer}`;
          break;
 
       case 'paypal':

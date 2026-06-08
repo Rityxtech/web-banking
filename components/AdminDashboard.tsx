@@ -1264,6 +1264,33 @@ const EMAIL_TEMPLATES = [
 </body>
 </html>
     `
+    },
+    {
+        id: 'live_chat_reply',
+        name: 'Live Chat Reply Notification',
+        description: 'Sent when support replies and user is inactive.',
+        subject: 'Support Replied to Your Message',
+        content: `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <div style="background: #111827; padding: 24px; text-align: center;">
+           <h2 style="color: white; margin: 0; font-size: 20px; letter-spacing: 1px;">${APP_CONFIG.BANK_NAME}</h2>
+        </div>
+        <div style="padding: 40px 30px;">
+           <h2 style="color: #111827; margin-top: 0; font-size: 22px; text-align: center;">Support Has Replied 💬</h2>
+           <p style="color: #4b5563; line-height: 1.6; font-size: 15px; text-align: center;">Hello <strong>{{user_name}}</strong>, our support team has responded to your live chat message.</p>
+           <div style="background: #fefce8; padding: 20px; border-radius: 8px; margin: 25px 0; border: 1px solid #fde047;">
+              <p style="margin: 0; color: #713f12; font-size: 14px; line-height: 1.4; font-style: italic;">"{{reply_text}}"</p>
+           </div>
+           <p style="color: #4b5563; font-size: 14px; line-height: 1.5; text-align: center;">Click the button below to view the full conversation and continue chatting with our team.</p>
+           <div style="text-align: center; margin-top: 35px;">
+              <a href="{{chat_url}}" style="background: #2563eb; color: white; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;">View Reply & Continue Chat</a>
+           </div>
+        </div>
+        <div style="background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb;">
+           &copy; 2024 ${APP_CONFIG.BANK_NAME}. All rights reserved.
+        </div>
+      </div>
+    `
     }
 ];
 

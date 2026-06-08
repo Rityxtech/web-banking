@@ -654,6 +654,7 @@ CREATE TABLE IF NOT EXISTS mvp_live_chat_rooms (
     user_name VARCHAR(255),
     status VARCHAR(20) DEFAULT 'open',
     last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

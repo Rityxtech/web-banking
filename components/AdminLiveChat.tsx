@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../services/supabase';
+import { mvp } from '../services/mvpService';
+import { getEmailTemplate } from '../utils/emailTemplates';
 import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy, Check } from 'lucide-react';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
 
@@ -106,13 +108,13 @@ export const AdminLiveChat: React.FC = () => {
         setSending(true);
 
         try {
-            await supabase.from('mvp_live_chat_messages').insert([{
+            const { data: msgData } = await supabase.from('mvp_live_chat_messages').insert([{
                 room_id: selectedRoomId,
                 sender_type: 'admin',
                 sender_name: 'Support Team',
                 text: text,
                 is_read: false
-            }]);
+            }]).select('id').single();
 
             await supabase
                 .from('mvp_live_chat_rooms')
@@ -121,6 +123,30 @@ export const AdminLiveChat: React.FC = () => {
 
             await loadMessages(selectedRoomId);
             await loadRooms();
+
+            // Delayed email notification: wait 10s, check if user became active or read the message
+            const messageId = msgData?.id;
+            const roomId = selectedRoomId;
+            setTimeout(async () => {
+                try {
+                    // Check if user is still active (last_active_at within last 10s) or message was read
+                    const { data: room } = await supabase.from('mvp_live_chat_rooms').select('last_active_at,user_email,user_name').eq('id', roomId).single();
+                    const { data: msg } = await supabase.from('mvp_live_chat_messages').select('is_read').eq('id', messageId).single();
+                    const lastActive = room?.last_active_at ? new Date(room.last_active_at).getTime() : 0;
+                    const now = Date.now();
+                    const isActive = now - lastActive < 15000; // within 15s grace period
+                    if (!isActive && msg && !msg.is_read && room?.user_email) {
+                        const template = getEmailTemplate('live_chat_reply', {
+                            user_name: room.user_name || 'there',
+                            reply_text: text,
+                            chat_url: `${window.location.origin}/livechat?email=${encodeURIComponent(room.user_email)}`
+                        });
+                        await mvp.sendEmail(room.user_email, template.subject, template.content, 'Support Team');
+                    }
+                } catch (err) {
+                    console.error('Delayed email check failed:', err);
+                }
+            }, 10000);
         } catch (e: any) {
             setError(e.message || 'Failed to send message');
         } finally {

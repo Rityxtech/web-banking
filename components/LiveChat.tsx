@@ -56,6 +56,26 @@ export const LiveChat: React.FC = () => {
         return () => clearInterval(interval);
     }, [room?.id]);
 
+    // Heartbeat: update last_active_at while user is in chat
+    useEffect(() => {
+        if (!room) return;
+        const updateActive = () => {
+            supabase.from('mvp_live_chat_rooms').update({ last_active_at: new Date().toISOString() }).eq('id', room.id).then(() => {});
+        };
+        updateActive();
+        const heartbeat = setInterval(updateActive, 5000);
+        const onActivity = () => updateActive();
+        window.addEventListener('mousemove', onActivity);
+        window.addEventListener('keydown', onActivity);
+        window.addEventListener('touchstart', onActivity);
+        return () => {
+            clearInterval(heartbeat);
+            window.removeEventListener('mousemove', onActivity);
+            window.removeEventListener('keydown', onActivity);
+            window.removeEventListener('touchstart', onActivity);
+        };
+    }, [room?.id]);
+
     const restoreRoom = async (userEmail: string, roomId: number) => {
         setLoading(true);
         try {
@@ -67,6 +87,7 @@ export const LiveChat: React.FC = () => {
                 .single();
             if (data) {
                 setRoom(data as LiveChatRoom);
+                await supabase.from('mvp_live_chat_rooms').update({ last_active_at: new Date().toISOString() }).eq('id', roomId);
             } else {
                 localStorage.removeItem(STORAGE_KEY);
             }
@@ -146,6 +167,8 @@ export const LiveChat: React.FC = () => {
                     name: name.trim(),
                     roomId: roomData.id
                 }));
+                // Mark user as active immediately upon joining
+                await supabase.from('mvp_live_chat_rooms').update({ last_active_at: new Date().toISOString() }).eq('id', roomData.id);
             }
         } catch (e: any) {
             setError(e.message || 'Failed to start chat. Please try again.');
