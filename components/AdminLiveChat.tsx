@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../services/supabase';
-import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy } from 'lucide-react';
+import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy, Check } from 'lucide-react';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
 
 export const AdminLiveChat: React.FC = () => {
@@ -12,6 +12,7 @@ export const AdminLiveChat: React.FC = () => {
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [sending, setSending] = useState(false);
     const [error, setError] = useState('');
+    const [copiedMsgId, setCopiedMsgId] = useState<string | number | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -274,8 +275,8 @@ export const AdminLiveChat: React.FC = () => {
                                             {formatTime(msg.created_at)} · {msg.sender_type === 'admin' && msg.is_read ? <span className="text-[8px] font-bold text-amber-400">Seen</span> : msg.sender_type === 'admin' ? <span className="text-[8px] font-bold text-amber-400">Unread</span> : null}
                                         </div>
                                         {msg.sender_type !== 'admin' && (
-                                            <button onClick={() => navigator.clipboard.writeText(msg.text || '')} className="absolute top-1 right-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm" title="Copy text">
-                                                <Copy size={10} />
+                                            <button onClick={() => { navigator.clipboard.writeText(msg.text || ''); setCopiedMsgId(msg.id); setTimeout(() => setCopiedMsgId(null), 2000); }} className="absolute top-1 right-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm" title="Copy text">
+                                                {copiedMsgId === msg.id ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
                                             </button>
                                         )}
                                     </div>

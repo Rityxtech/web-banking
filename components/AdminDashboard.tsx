@@ -1402,6 +1402,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     const [supportTickets, setSupportTickets] = useState<any[]>([]);
     const [liveMessages, setLiveMessages] = useState<any[]>([]);
     const [liveChatUnreadCount, setLiveChatUnreadCount] = useState(0);
+    const [copiedMsgId, setCopiedMsgId] = useState<string | number | null>(null);
     const [banks, setBanks] = useState<any[]>([]);
     const [totalLiquidity, setTotalLiquidity] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
@@ -4341,8 +4342,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {msg.sender === 'admin' && (msg.is_read == 1 || msg.is_read === true) ? <span className="text-[8px] font-bold text-amber-400">Seen</span> : msg.sender === 'admin' ? <span className="text-[8px] font-bold text-amber-400">Unread</span> : null}
                                                                 </div>
                                                                 {msg.sender !== 'admin' && (
-                                                                    <button onClick={() => navigator.clipboard.writeText(msg.text || '')} className="absolute top-1 right-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm" title="Copy text">
-                                                                        <Copy size={8} />
+                                                                    <button onClick={() => { navigator.clipboard.writeText(msg.text || ''); setCopiedMsgId(msg.id); setTimeout(() => setCopiedMsgId(null), 2000); }} className="absolute top-1 right-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm" title="Copy text">
+                                                                        {copiedMsgId === msg.id ? <Check size={8} className="text-emerald-500" /> : <Copy size={8} />}
                                                                     </button>
                                                                 )}
                                                             </div>
