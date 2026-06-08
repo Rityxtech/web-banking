@@ -546,7 +546,8 @@ function App() {
         enableMonthlyLimit: true,
         dailyLimit: 50000,
         weeklyLimit: 250000,
-        monthlyLimit: 500000
+        monthlyLimit: 500000,
+        defaultTransferStatus: 'Success'
     });
 
     const [unreadMessages, setUnreadMessages] = useState(0);
@@ -756,7 +757,8 @@ function App() {
                     enableMonthlyLimit: settings.enable_monthly_limit == "1" || settings.enable_monthly_limit === 1 || settings.enable_monthly_limit === true,
                     dailyLimit: Number(settings.daily_limit) || 50000,
                     weeklyLimit: Number(settings.weekly_limit) || 250000,
-                    monthlyLimit: Number(settings.monthly_limit) || 500000
+                    monthlyLimit: Number(settings.monthly_limit) || 500000,
+                    defaultTransferStatus: settings.default_transfer_status || 'Success'
                 });
             }
         } catch (e: any) {
@@ -1262,7 +1264,8 @@ function App() {
 
         if (isDuplicate) return;
 
-        if (finalStatus === 'Success' || finalStatus === 'Pending') {
+        const isSuccessLike = finalStatus === 'Success' || finalStatus === 'Pending' || finalStatus === 'Processing' || finalStatus === 'On Hold';
+        if (isSuccessLike) {
             // Use Supabase directly — MVP API is broken (404)
         supabase.from('mvp_notifications').insert([{
             user_id: currentUser.id,
@@ -1724,15 +1727,19 @@ function App() {
                             dailyUsage={dailyUsage}
                             onSendOtp={sendOtpToUser}
                             onUpdatePin={handleUpdatePin}
-                            onTransfer={async (fid, tid, amt, note, skipEmail) => {
+                            defaultTransferStatus={globalSettings.defaultTransferStatus}
+                            onTransfer={async (fid, tid, amt, note, skipEmail, txStatus) => {
                                 const { allowed, type } = checkTransactionLimit(amt);
                                 if (!allowed) {
                                     setLimitModalType(type || 'daily');
                                     setShowLimitModal(true);
                                     return false;
                                 }
-                                updateBalanceInStateAndDb(-amt);
-                                addTransactionToStateAndDb(-amt, `Transfer to ${tid}`, TransactionType.TRANSFER_OUT, 'Transfer', 'Success', skipEmail);
+                                const status = txStatus || globalSettings.defaultTransferStatus || 'Success';
+                                if (status === 'Success') {
+                                    updateBalanceInStateAndDb(-amt);
+                                }
+                                addTransactionToStateAndDb(-amt, `Transfer to ${tid}`, TransactionType.TRANSFER_OUT, 'Transfer', status, skipEmail);
                                 return true;
                             }}
                             onBack={() => navigate('dashboard')}
