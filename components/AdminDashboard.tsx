@@ -6,7 +6,7 @@ import {
     AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip,
     BarChart, Bar, CartesianGrid, Cell
 } from 'recharts';
-import { User, Mail, Shield, ShieldAlert, Trash2, ArrowLeft, Save, Loader2, Key, MapPin, Phone, UserCheck, X, CheckCircle, AlertCircle, AlertTriangle, AlertOctagon, RotateCcw, Settings as SettingsIcon, Headphones, ShieldCheck, Lock, CreditCard, Eye, EyeOff, Wifi, Wallet, Plus, PlusCircle, Minus, ArrowRightLeft, RefreshCw, Unlock, UserX, BadgeCheck, FileText, Camera, Image as ImageIcon, Check, Ban, Undo2, MessageSquare, Send, Sparkles, Clock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Search as SearchIcon, Filter, MoreVertical, Paperclip, ExternalLink, ShieldX, LogOut, Calendar, DollarSign, ArrowUpRight, ArrowDownLeft, Landmark, Upload, Link as LinkIcon, Edit3, TrendingUp, TrendingDown } from 'lucide-react';
+import { User, Mail, Shield, ShieldAlert, Trash2, ArrowLeft, Save, Loader2, Key, MapPin, Phone, UserCheck, X, CheckCircle, AlertCircle, AlertTriangle, AlertOctagon, RotateCcw, Settings as SettingsIcon, Headphones, ShieldCheck, Lock, CreditCard, Eye, EyeOff, Wifi, Wallet, Plus, PlusCircle, Minus, ArrowRightLeft, RefreshCw, Unlock, UserX, BadgeCheck, FileText, Camera, Image as ImageIcon, Check, Ban, Undo2, MessageSquare, Send, Sparkles, Clock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Search as SearchIcon, Filter, MoreVertical, Paperclip, ExternalLink, ShieldX, LogOut, Calendar, DollarSign, ArrowUpRight, ArrowDownLeft, Landmark, Upload, Link as LinkIcon, Edit3, TrendingUp, TrendingDown, Copy, CheckCheck } from 'lucide-react';
 import { AdminLiveChat } from './AdminLiveChat';
 
 interface AdminDashboardProps {
@@ -4336,7 +4336,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                         <div key={msg.id} className={`flex items-end gap-2 group ${msg.sender === 'admin' ? 'flex-row-reverse' : 'flex-row'}`}>
                                                             <div className={`w-fit max-w-[85%] p-1.5 md:p-2 rounded-xl text-[11px] md:text-xs font-medium shadow-sm leading-relaxed relative ${msg.sender === 'admin' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white dark:bg-[#233648] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-[#324d67] rounded-tl-none'}`}>
                                                                 {renderMessageContent(msg.text)}
-                                                                <div className={`text-[8px] mt-1 opacity-40 font-mono flex items-center gap-1 ${msg.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                                <div className={`text-[8px] mt-1 opacity-40 font-mono flex items-center gap-1 ${msg.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>
+                                                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                    {msg.sender === 'admin' && (msg.is_read == 1 || msg.is_read === true) && <CheckCheck size={10} className="opacity-70" />}
+                                                                </div>
+                                                                {msg.sender !== 'admin' && (
+                                                                    <button onClick={() => navigator.clipboard.writeText(msg.text || '')} className="absolute top-1 right-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm" title="Copy text">
+                                                                        <Copy size={8} />
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     ))}
@@ -4491,9 +4499,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                         }
                                                         return (
                                                             <div key={msg.id} className={`flex items-end gap-2 group ${msg.sender === 'admin' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                                                <div className={`w-fit max-w-[85%] p-1.5 md:p-2 rounded-xl text-[11px] md:text-xs font-medium shadow-sm leading-relaxed ${msg.sender === 'admin' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white dark:bg-[#233648] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-[#324d67] rounded-tl-none'}`}>
+                                                                <div className={`w-fit max-w-[85%] p-1.5 md:p-2 rounded-xl text-[11px] md:text-xs font-medium shadow-sm leading-relaxed relative ${msg.sender === 'admin' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white dark:bg-[#233648] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-[#324d67] rounded-tl-none'}`}>
                                                                     {msg.text?.includes("USER_REQUESTED_LIVE_CHAT") ? (<div className="flex items-center gap-2 text-red-500 font-black uppercase text-[10px]"><AlertTriangle size={14} /> Client requested live support.</div>) : renderMessageContent(msg.text)}
-                                                                    <div className={`text-[8px] mt-1 opacity-40 font-mono flex items-center gap-1 ${msg.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                                    <div className={`text-[8px] mt-1 opacity-40 font-mono flex items-center gap-1 ${msg.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>
+                                                                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                        {msg.sender === 'admin' && (msg.is_read == 1 || msg.is_read === true) && <CheckCheck size={10} className="opacity-70" />}
+                                                                    </div>
+                                                                    {msg.sender !== 'admin' && (
+                                                                        <button onClick={() => navigator.clipboard.writeText(msg.text || '')} className="absolute top-1 right-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm" title="Copy text">
+                                                                            <Copy size={8} />
+                                                                        </button>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         );

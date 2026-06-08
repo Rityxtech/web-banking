@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../services/supabase';
-import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy } from 'lucide-react';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
 
 export const AdminLiveChat: React.FC = () => {
@@ -264,7 +264,7 @@ export const AdminLiveChat: React.FC = () => {
                             )}
                             {messages.map(msg => (
                                 <div key={msg.id} className={`flex items-end gap-2 group ${msg.sender_type === 'admin' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                    <div className={`w-fit max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                                    <div className={`w-fit max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed shadow-sm relative ${
                                         msg.sender_type === 'admin'
                                             ? 'bg-blue-600 text-white rounded-tr-none'
                                             : 'bg-white dark:bg-[#233648] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-[#324d67] rounded-tl-none'
@@ -272,8 +272,13 @@ export const AdminLiveChat: React.FC = () => {
                                         {msg.text}
                                         <div className={`text-[10px] mt-1 opacity-50 font-mono flex items-center gap-1 ${msg.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
                                             {formatTime(msg.created_at)}
-                                            {msg.sender_type === 'admin' && <CheckCheck size={10} />}
+                                            {msg.sender_type === 'admin' && msg.is_read && <CheckCheck size={10} />}
                                         </div>
+                                        {msg.sender_type !== 'admin' && (
+                                            <button onClick={() => navigator.clipboard.writeText(msg.text || '')} className="absolute top-1 right-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm" title="Copy text">
+                                                <Copy size={10} />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
