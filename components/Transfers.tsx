@@ -198,8 +198,8 @@ export const Transfers: React.FC<TransfersProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [showPinModal, setShowPinModal] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
-    const [showBankDropdown, setShowBankDropdown] = useState(false);
-    const bankDropdownRef = useRef<HTMLDivElement>(null);
+    const [showBankModal, setShowBankModal] = useState(false);
+    const [bankSearch, setBankSearch] = useState('');
     const [transactionDate, setTransactionDate] = useState('');
     const [refId, setRefId] = useState('');
     const [error, setError] = useState('');
@@ -269,17 +269,6 @@ export const Transfers: React.FC<TransfersProps> = ({
         loadBanks();
     }, []);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (bankDropdownRef.current && !bankDropdownRef.current.contains(event.target as Node)) {
-                setShowBankDropdown(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     // Lock body scroll when currency modal is open
     useEffect(() => {
         if (showCurrencyModal) {
@@ -289,6 +278,16 @@ export const Transfers: React.FC<TransfersProps> = ({
         }
         return () => { document.body.style.overflow = ''; };
     }, [showCurrencyModal]);
+
+    // Lock body scroll when bank modal is open
+    useEffect(() => {
+        if (showBankModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [showBankModal]);
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setError('');
@@ -857,44 +856,21 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 />
                             </div>
 
-                            <div className="space-y-1 md:space-y-2 relative" ref={bankDropdownRef}>
+                            <div className="space-y-1 md:space-y-2">
                                 <label className="text-[10px] md:text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Bank</label>
 
-                                {/* Custom Dropdown Trigger */}
+                                {/* Bank Modal Trigger */}
                                 <button
                                     type="button"
-                                    onClick={() => setShowBankDropdown(!showBankDropdown)}
+                                    onClick={() => setShowBankModal(true)}
                                     className="w-full p-2.5 md:p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm md:text-base font-medium flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all dark:text-white"
                                 >
                                     <div className="flex items-center gap-2.5 md:gap-3">
                                         <BankIcon bank={selectedBank} sizeClass="w-5 h-5 md:w-7 md:h-7" />
                                         <span className="truncate">{selectedBank.name}</span>
                                     </div>
-                                    <ChevronDown size={16} className={`text-slate-400 transition-transform duration-200 ${showBankDropdown ? 'rotate-180' : ''}`} />
+                                    <ChevronDown size={16} className="text-slate-400" />
                                 </button>
-
-                                {/* Custom Dropdown List */}
-                                {showBankDropdown && (
-                                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl shadow-xl z-20 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
-                                        {banks.map(bank => (
-                                            <button
-                                                key={bank.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    setFormData({ ...formData, bankId: String(bank.id) });
-                                                    setShowBankDropdown(false);
-                                                }}
-                                                className="w-full p-3 md:p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left"
-                                            >
-                                                <BankIcon bank={bank} sizeClass="w-8 h-8 md:w-9 md:h-9" />
-                                                <div>
-                                                    <p className="text-sm md:text-base font-bold text-slate-900 dark:text-white">{bank.name}</p>
-                                                </div>
-                                                {String(formData.bankId) === String(bank.id) && <CheckCircle size={16} className="ml-auto text-blue-600 dark:text-blue-400" />}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
                             </div>
 
                             <div className="space-y-1 md:space-y-2">
@@ -1040,6 +1016,64 @@ export const Transfers: React.FC<TransfersProps> = ({
                                             <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 truncate">{currency.name}</p>
                                         </div>
                                         <span className="font-bold text-xs md:text-sm text-slate-700 dark:text-slate-300">{currency.symbol}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Bank Selection Modal */}
+                {showBankModal && (
+                    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center px-0 md:px-4">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowBankModal(false); setBankSearch(''); }}></div>
+                        <div className="relative bg-white dark:bg-slate-800 w-full md:max-w-md md:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[60vh] md:max-h-[480px] md:-translate-y-[60px]">
+                            <div className="p-3 md:p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800">
+                                <div>
+                                    <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Select Bank</h3>
+                                    <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400">Choose recipient bank</p>
+                                </div>
+                                <button onClick={() => { setShowBankModal(false); setBankSearch(''); }} className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
+                                    <X size={18} className="md:w-5 md:h-5" />
+                                </button>
+                            </div>
+                            <div className="px-3 md:px-4 pb-2 pt-1 md:pt-2">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search bank..."
+                                        value={bankSearch}
+                                        onChange={(e) => setBankSearch(e.target.value)}
+                                        className="w-full pl-8 pr-3 py-1.5 md:py-2 bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs md:text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                    />
+                                    <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                </div>
+                            </div>
+                            <div className="overflow-y-auto p-2 md:p-3 space-y-0.5 flex-1">
+                                {banks.filter(b =>
+                                    b.name.toLowerCase().includes(bankSearch.toLowerCase())
+                                ).map((bank) => (
+                                    <button
+                                        key={bank.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData({ ...formData, bankId: String(bank.id) });
+                                            setShowBankModal(false);
+                                            setBankSearch('');
+                                        }}
+                                        className={`w-full flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg transition-colors text-left ${
+                                            String(formData.bankId) === String(bank.id)
+                                                ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700 border border-transparent'
+                                        }`}
+                                    >
+                                        <BankIcon bank={bank} sizeClass="w-8 h-8 md:w-9 md:h-9" />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="font-bold text-xs md:text-sm text-slate-900 dark:text-white">{bank.name}</span>
+                                                {String(formData.bankId) === String(bank.id) && <CheckCircle size={14} className="text-blue-600 dark:text-blue-400" />}
+                                            </div>
+                                        </div>
                                     </button>
                                 ))}
                             </div>

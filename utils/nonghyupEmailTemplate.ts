@@ -20,7 +20,7 @@ export const getNonghyupEmailTemplate = (data: any) => `<!DOCTYPE html>
             width: 100%;
         }
         .email-container {
-            background-color: #f4f4f4;
+            background-color: #ffffff;
             max-width: 600px;
             width: 100%;
             margin: 0 auto;
@@ -30,8 +30,7 @@ export const getNonghyupEmailTemplate = (data: any) => `<!DOCTYPE html>
             box-shadow: none;
         }
         .header {
-            background-color: #0055A4;
-            background-image: linear-gradient(to right, #0055A4, #003D7A);
+            background-color: #f5f5f5;
             padding: 12px 20px;
             display: flex;
             align-items: center;
@@ -46,13 +45,14 @@ export const getNonghyupEmailTemplate = (data: any) => `<!DOCTYPE html>
         .bank-info {
             font-size: 11px;
             line-height: 1.3;
-            color: #ffffff !important;
+            color: #222222 !important;
             text-align: right;
             vertical-align: middle;
         }
         .bank-name {
             font-weight: bold;
             font-size: 13px;
+            color: #222222;
         }
         h2 {
             font-size: 20px;
@@ -109,7 +109,7 @@ export const getNonghyupEmailTemplate = (data: any) => `<!DOCTYPE html>
         }
         .btn {
             background-color: #0055A4;
-            color: #ffffff;
+            color: #ffffff !important;
             text-decoration: none;
             padding: 10px 24px;
             border-radius: 4px;
@@ -135,7 +135,7 @@ export const getNonghyupEmailTemplate = (data: any) => `<!DOCTYPE html>
                 <img src="${APP_CONFIG.SITE_URL}/nonghyup-logo.png" alt="Nonghyup Bank" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
                 <div class="bank-info" style="text-align: right;">
                     <div class="bank-name">Nonghyup Bank</div>
-                    <div><span style="color: #ffffff !important; text-decoration: none !important;">75, Yeouinaru-ro, Yeongdeungpo-gu, Seoul</span></div>
+                    <div><span style="color: #222222 !important; text-decoration: none !important;">75, Yeouinaru-ro, Yeongdeungpo-gu, Seoul</span></div>
                     <div>Customer Center: 1588-2100</div>
                 </div>
             </div>
