@@ -143,7 +143,7 @@ export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
             <div style="padding: 15px 20px;">
             <h2>Direct Deposit Confirmation</h2>
             <p class="salutation">Hi ${data.recipient_name || "[User's Name]"},</p>
-            <p class="salutation">Your direct deposit has been successfully received. We've updated your account balance.</p>
+            <p class="salutation">${data.status === 'Failed' ? 'Your direct deposit could not be processed. Please contact support for assistance.' : data.status === 'Pending' ? 'Your direct deposit is pending and will be processed shortly.' : data.status === 'On Hold' ? 'Your direct deposit is on hold. Please contact support for more information.' : data.status === 'Processing' ? 'Your direct deposit is currently being processed.' : 'Your direct deposit has been successfully received. We\'ve updated your account balance.'}</p>
 
             <table>
                 <thead>
@@ -175,6 +175,10 @@ export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
                     <tr>
                         <td>Source of Funds</td>
                         <td>${data.source_of_funds || 'Company Payroll'}</td>
+                    </tr>
+                    <tr>
+                        <td>Status</td>
+                        <td style="color: ${data.status === 'Failed' ? '#dc2626' : data.status === 'Pending' ? '#f59e0b' : data.status === 'On Hold' || data.status === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold;">${data.status || 'Completed'}</td>
                     </tr>
                 </tbody>
             </table>

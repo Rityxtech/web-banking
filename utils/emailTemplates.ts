@@ -170,12 +170,16 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
          break;
 
       case 'transaction':
-         const isPending = data.status === 'Pending';
-         subject = isPending ? 'Transaction Pending' : 'Transaction Receipt';
-         const statusColor = isPending ? '#f59e0b' : '#10b981';
-         const statusIcon = isPending ? '⏳' : '✅';
-         const statusText = isPending ? 'Payment Pending' : 'Payment Successful';
-         const statusDesc = isPending ? 'Your transaction is currently pending approval.' : 'Your transaction has been processed successfully.';
+         const txStatus = data.status || 'Success';
+         const isTxPending = txStatus === 'Pending';
+         const isTxFailed = txStatus === 'Failed';
+         const isTxOnHold = txStatus === 'On Hold';
+         const isTxProcessing = txStatus === 'Processing';
+         subject = isTxFailed ? 'Transaction Failed' : isTxPending ? 'Transaction Pending' : isTxOnHold ? 'Transaction On Hold' : isTxProcessing ? 'Transaction Processing' : 'Transaction Receipt';
+         const statusColor = isTxFailed ? '#dc2626' : isTxPending ? '#f59e0b' : isTxOnHold || isTxProcessing ? '#2563eb' : '#10b981';
+         const statusIcon = isTxFailed ? '❌' : isTxPending ? '⏳' : isTxOnHold ? '⏸️' : isTxProcessing ? '⏳' : '✅';
+         const statusText = isTxFailed ? 'Payment Failed' : isTxPending ? 'Payment Pending' : isTxOnHold ? 'Payment On Hold' : isTxProcessing ? 'Payment Processing' : 'Payment Successful';
+         const statusDesc = isTxFailed ? 'Your transaction could not be processed. Please contact support.' : isTxPending ? 'Your transaction is currently pending approval.' : isTxOnHold ? 'Your transaction is on hold. Please contact support for more information.' : isTxProcessing ? 'Your transaction is currently being processed.' : 'Your transaction has been processed successfully.';
 
          content = `
         ${header}
@@ -203,7 +207,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
               </tr>
               <tr class="info-row">
                  <td class="info-label">Status</td>
-                 <td class="info-value" style="color: ${statusColor}">${isPending ? 'Pending' : 'Success'}</td>
+                 <td class="info-value" style="color: ${statusColor}">${txStatus}</td>
               </tr>
            </table>
            
@@ -353,7 +357,9 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
          break;
 
       case 'paypal':
-         subject = 'PayPal Payment Received';
+         const ppStatus = data.status || 'Success';
+         const isPpFailed = ppStatus === 'Failed';
+         subject = isPpFailed ? 'PayPal Payment Failed' : 'PayPal Payment Received';
          content = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -410,6 +416,10 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
                     <tr>
                         <td style="color: #000000; font-weight: bold;">Amount</td>
                         <td align="right" style="color: #000000;">${data.amount}</td>
+                    </tr>
+                    <tr>
+                        <td style="color: #6c7378; font-size: 12px; padding-top: 4px;">Status</td>
+                        <td align="right" style="color: ${ppStatus === 'Failed' ? '#dc2626' : ppStatus === 'Pending' ? '#f59e0b' : ppStatus === 'On Hold' || ppStatus === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold; font-size: 12px; padding-top: 4px;">${ppStatus}</td>
                     </tr>
                 </table>
             </td>

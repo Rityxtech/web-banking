@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS mvp_app_settings (
     daily_limit DECIMAL(15,2) DEFAULT 50000.00,
     weekly_limit DECIMAL(15,2) DEFAULT 250000.00,
     monthly_limit DECIMAL(15,2) DEFAULT 500000.00,
+    default_transfer_status VARCHAR(50) DEFAULT 'Success',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -605,6 +606,7 @@ ADD COLUMN IF NOT EXISTS enable_monthly_limit INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS daily_limit DECIMAL(15,2) DEFAULT 50000.00,
 ADD COLUMN IF NOT EXISTS weekly_limit DECIMAL(15,2) DEFAULT 250000.00,
 ADD COLUMN IF NOT EXISTS monthly_limit DECIMAL(15,2) DEFAULT 500000.00,
+ADD COLUMN IF NOT EXISTS default_transfer_status VARCHAR(50) DEFAULT 'Success',
 ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
 -- Ensure seed row exists (id=1 required by AdminDashboard)
@@ -612,13 +614,15 @@ INSERT INTO mvp_app_settings (
     id, maintenance_mode, allow_registration, max_transaction_limit,
     disable_transactions, email_notifications, site_name, site_logo,
     enable_daily_limit, enable_weekly_limit, enable_monthly_limit,
-    daily_limit, weekly_limit, monthly_limit
+    daily_limit, weekly_limit, monthly_limit,
+    default_transfer_status
 )
 VALUES (
     1, 0, 1, 50000.00,
     0, 1, 'Lennox Bank', '',
     0, 0, 0,
-    50000.00, 250000.00, 500000.00
+    50000.00, 250000.00, 500000.00,
+    'Success'
 )
 ON CONFLICT (id) DO NOTHING;
 

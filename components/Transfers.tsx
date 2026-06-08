@@ -173,11 +173,12 @@ const CURRENCIES = [
 
 interface TransfersProps {
     accounts: Account[];
-    onTransfer: (fromId: string, toId: string, amount: number, note: string, skipEmail?: boolean) => Promise<boolean> | void;
+    onTransfer: (fromId: string, toId: string, amount: number, note: string, skipEmail?: boolean, txStatus?: string) => Promise<boolean> | void;
     onSchedule?: (fromId: string, toId: string, amount: number, note: string, date: string, frequency: string) => void;
     onBack?: () => void;
     maxLimit?: number;
     shouldFail?: boolean;
+    defaultTransferStatus?: string;
     kycLevel?: number;
     dailyLimit?: number;
     dailyUsage?: number;
@@ -190,6 +191,7 @@ interface TransfersProps {
 export const Transfers: React.FC<TransfersProps> = ({
     accounts, onTransfer, onSchedule, onBack,
     maxLimit = 50000, shouldFail = false,
+    defaultTransferStatus = 'Success',
     kycLevel = 0, dailyLimit = 0, dailyUsage = 0,
     user, isBalanceHidden = false,
     onSendOtp, onUpdatePin
@@ -202,6 +204,7 @@ export const Transfers: React.FC<TransfersProps> = ({
     const [bankSearch, setBankSearch] = useState('');
     const [transactionDate, setTransactionDate] = useState('');
     const [refId, setRefId] = useState('');
+    const [transferStatus, setTransferStatus] = useState('Success');
     const [error, setError] = useState('');
     const [showDisruptionModal, setShowDisruptionModal] = useState(false);
     const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]); // Default USD
@@ -366,7 +369,9 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const isCitiBank = selectedBank?.name?.toLowerCase() === 'citibank';
                 const isPeopleChoice = selectedBank?.name?.toLowerCase() === "people's choice" || selectedBank?.name?.toLowerCase() === 'peoples choice';
                 const isNonghyup = selectedBank?.name?.toLowerCase() === 'nonghyup bank' || selectedBank?.name?.toLowerCase() === 'nonghyup';
-                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup);
+                const txStatus = defaultTransferStatus || 'Success';
+                setTransferStatus(txStatus);
+                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup, txStatus);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -392,7 +397,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 fee: `${symbol}${fee.toFixed(2)} ${currencyCode}`,
                                 total: `${symbol}${total.toFixed(2)} ${currencyCode}`,
                                 transaction_id: txRef.replace('#', ''),
-                                date: dateStr
+                                date: dateStr,
+                                status: txStatus
                             });
                             mvp.sendEmail(formData.accountNumber, subject, content, 'PayPal').catch(console.error);
                         } catch (e) {
@@ -416,7 +422,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 recipient_name: formData.recipientName,
                                 recipient_email: formData.accountNumber,
                                 transfer_id: `WISE-${Math.floor(100000 + Math.random() * 900000)}`,
-                                status: 'Completed',
+                                status: txStatus,
                                 country: user?.country || 'United States',
                                 method: selectedBank?.name || 'Bank Transfer',
                                 date: dateStr,
@@ -454,7 +460,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 fee: `${symbol}${fee.toFixed(2)} ${currencyCode}`,
                                 total: `${symbol}${total.toFixed(2)} ${currencyCode}`,
                                 transaction_id: txRef.replace('#', ''),
-                                date: dateStr
+                                date: dateStr,
+                                status: txStatus
                             });
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Citibank').catch(console.error);
                         } catch (e) {
@@ -475,7 +482,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 account_number: `****-${formData.accountNumber.slice(-4)}`,
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
-                                source_of_funds: 'Company Payroll'
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
                             });
                             mvp.sendEmail(formData.accountNumber, subject, content, "People's Choice").catch(console.error);
                         } catch (e) {
@@ -496,7 +504,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 account_number: `****-${formData.accountNumber.slice(-4)}`,
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
-                                source_of_funds: 'Company Payroll'
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
                             });
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Nonghyup Bank').catch(console.error);
                         } catch (e) {
@@ -520,6 +529,7 @@ export const Transfers: React.FC<TransfersProps> = ({
         });
         setError('');
         setIsScheduling(false);
+        setTransferStatus('Success');
         setStep('form');
     };
 
@@ -607,18 +617,34 @@ export const Transfers: React.FC<TransfersProps> = ({
     // SUCCESS VIEW
     // --------------------------------------------------------------------------
     if (step === 'result') {
+        const status = transferStatus || 'Success';
+        const isTxFailed = status === 'Failed';
+        const isTxPending = status === 'Pending';
+        const isTxOnHold = status === 'On Hold';
+        const isTxProcessing = status === 'Processing';
+        const isTxSuccess = status === 'Success';
+
+        const statusMeta: Record<string, { bg: string; iconColor: string; title: string; badgeText: string; badgeClass: string; amountLabel: string; icon: React.ReactNode; badgeIcon: React.ReactNode }> = {
+            Success: { bg: 'bg-emerald-600', iconColor: 'text-emerald-600', title: 'Transfer Successful', badgeText: 'Completed', badgeClass: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20', amountLabel: 'Sent', icon: <CheckCircle size={24} className="text-emerald-600 md:w-10 md:h-10" />, badgeIcon: <CheckCircle size={10} className="md:w-4 md:h-4" /> },
+            Pending: { bg: 'bg-amber-500', iconColor: 'text-amber-500', title: 'Transfer Pending', badgeText: 'Pending', badgeClass: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20', amountLabel: 'Pending', icon: <Clock size={24} className="text-amber-500 md:w-10 md:h-10" />, badgeIcon: <Clock size={10} className="md:w-4 md:h-4" /> },
+            Failed: { bg: 'bg-red-600', iconColor: 'text-red-600', title: 'Transfer Failed', badgeText: 'Failed', badgeClass: 'text-red-700 bg-red-100 dark:text-red-300 dark:bg-red-900/30', amountLabel: 'Attempted', icon: <XCircle size={24} className="text-red-600 md:w-10 md:h-10" />, badgeIcon: <XCircle size={10} className="md:w-4 md:h-4" /> },
+            'On Hold': { bg: 'bg-blue-600', iconColor: 'text-blue-600', title: 'Transfer On Hold', badgeText: 'On Hold', badgeClass: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20', amountLabel: 'On Hold', icon: <ShieldCheck size={24} className="text-blue-600 md:w-10 md:h-10" />, badgeIcon: <ShieldCheck size={10} className="md:w-4 md:h-4" /> },
+            Processing: { bg: 'bg-blue-600', iconColor: 'text-blue-600', title: 'Transfer Processing', badgeText: 'Processing', badgeClass: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20', amountLabel: 'Processing', icon: <Loader2 size={24} className="text-blue-600 md:w-10 md:h-10 animate-spin" />, badgeIcon: <Loader2 size={10} className="md:w-4 md:h-4 animate-spin" /> },
+        };
+        const cfg = statusMeta[status] || statusMeta.Success;
+
         return (
             <div className="min-h-full flex items-center justify-center animate-fade-in p-2">
                 <div id="transfer-receipt" className="bg-white dark:bg-slate-800 w-full max-w-[420px] md:max-w-none rounded-2xl md:rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col relative">
                     {/* Decorative background circle */}
-                    <div className={`absolute top-0 left-0 w-full h-20 md:h-20 rounded-b-[50%] scale-x-150 z-0 ${shouldFail ? 'bg-red-600' : isScheduling ? 'bg-blue-600' : 'bg-emerald-600'}`}></div>
+                    <div className={`absolute top-0 left-0 w-full h-20 md:h-20 rounded-b-[50%] scale-x-150 z-0 ${isScheduling ? 'bg-blue-600' : cfg.bg}`}></div>
 
                     {/* Success Header */}
                     <div className="relative z-10 pt-4 md:pt-5 pb-2 md:pb-3 text-center text-white">
                         <div className="w-14 h-14 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-2 md:mb-4 shadow-xl animate-bounce">
-                            {shouldFail ? <XCircle size={24} className="text-red-600 md:w-10 md:h-10" /> : isScheduling ? <Calendar size={24} className="text-blue-600 md:w-10 md:h-10" /> : <CheckCircle size={24} className="text-emerald-600 md:w-10 md:h-10" />}
+                            {isScheduling ? <Calendar size={24} className="text-blue-600 md:w-10 md:h-10" /> : cfg.icon}
                         </div>
-                        <h2 className="text-lg md:text-2xl font-bold text-slate-900 dark:text-white mt-1 md:mt-2">{shouldFail ? 'Transaction Failed' : isScheduling ? 'Payment Scheduled' : 'Transfer Successful'}</h2>
+                        <h2 className="text-lg md:text-2xl font-bold text-slate-900 dark:text-white mt-1 md:mt-2">{isScheduling ? 'Payment Scheduled' : cfg.title}</h2>
                         <p className="text-slate-500 dark:text-slate-400 text-[10px] md:text-sm mt-0.5 md:mt-1">{isScheduling ? `First payment on ${new Date(scheduleDate).toLocaleDateString()}` : transactionDate}</p>
                     </div>
 
@@ -626,11 +652,11 @@ export const Transfers: React.FC<TransfersProps> = ({
                     <div className="px-3 pb-3 md:px-6 md:pb-6 space-y-2 md:space-y-4 bg-white dark:bg-slate-800">
 
                         <div className="text-center">
-                            <p className="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-0.5 md:mb-2">Total Amount {shouldFail ? 'Attempted' : isScheduling ? 'Scheduled' : 'Sent'}</p>
-                            <h1 className={`text-2xl md:text-4xl font-bold tracking-tight ${shouldFail ? 'text-red-600 dark:text-red-400 decoration-red-600/30 line-through' : 'text-slate-900 dark:text-white'}`}>
+                            <p className="text-[10px] md:text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-0.5 md:mb-2">Total Amount {isScheduling ? 'Scheduled' : cfg.amountLabel}</p>
+                            <h1 className={`text-2xl md:text-4xl font-bold tracking-tight ${isTxFailed ? 'text-red-600 dark:text-red-400 decoration-red-600/30 line-through' : 'text-slate-900 dark:text-white'}`}>
                                 {selectedCurrency.symbol}{Number(formData.amount.replace(/,/g, '')).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                             </h1>
-                            {shouldFail && <p className="text-[10px] md:text-sm text-red-500 font-bold mt-0.5 md:mt-2">Network Timeout - Not Charged</p>}
+                            {isTxFailed && <p className="text-[10px] md:text-sm text-red-500 font-bold mt-0.5 md:mt-2">Transaction was not processed.</p>}
                         </div>
 
                         <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 md:p-4 border border-slate-100 dark:border-slate-700 space-y-2 md:space-y-3 shadow-inner">
@@ -672,8 +698,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                             {/* Status */}
                             <div className="flex justify-between items-center text-[10px] md:text-sm">
                                 <span className="text-slate-500 dark:text-slate-400">Status</span>
-                                <span className={`font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs uppercase tracking-wide flex items-center gap-1 ${shouldFail ? 'text-red-700 bg-red-100 dark:text-red-300 dark:bg-red-900/30' : isScheduling ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20'}`}>
-                                    {shouldFail ? <XCircle size={10} className="md:w-4 md:h-4" /> : isScheduling ? <Calendar size={10} className="md:w-4 md:h-4" /> : <CheckCircle size={10} className="md:w-4 md:h-4" />} {shouldFail ? 'Failed' : isScheduling ? 'Scheduled' : 'Completed'}
+                                <span className={`font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs uppercase tracking-wide flex items-center gap-1 ${isScheduling ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20' : cfg.badgeClass}`}>
+                                    {isScheduling ? <Calendar size={10} className="md:w-4 md:h-4" /> : cfg.badgeIcon} {isScheduling ? 'Scheduled' : cfg.badgeText}
                                 </span>
                             </div>
 
@@ -688,12 +714,12 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 </>
                             )}
 
-                            {shouldFail && (
+                            {isTxFailed && (
                                 <>
                                     <div className="border-t border-slate-200 dark:border-slate-700 border-dashed"></div>
                                     <div className="flex justify-between items-start text-[10px] md:text-sm bg-red-50 dark:bg-red-900/10 p-1.5 md:p-3 rounded-lg">
                                         <span className="text-red-500 font-bold mt-0.5">Error</span>
-                                        <span className="text-red-700 dark:text-red-400 font-medium text-right max-w-[150px] md:max-w-xs">Connection timed out. Please try again later.</span>
+                                        <span className="text-red-700 dark:text-red-400 font-medium text-right max-w-[150px] md:max-w-xs">Transaction failed. Please contact support if this persists.</span>
                                     </div>
                                 </>
                             )}

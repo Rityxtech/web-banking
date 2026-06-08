@@ -186,7 +186,7 @@ export const getCitiBankEmailTemplate = (data: any) => `<!DOCTYPE html>
                     </tr>
                     <tr>
                         <td>Status</td>
-                        <td style="color: #2E7D32; font-weight: bold;">Completed</td>
+                        <td style="color: ${data.status === 'Failed' ? '#dc2626' : data.status === 'Pending' ? '#f59e0b' : data.status === 'On Hold' || data.status === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold;">${data.status || 'Completed'}</td>
                     </tr>
                 </tbody>
             </table>

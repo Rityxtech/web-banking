@@ -296,7 +296,7 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
             </tr>
             <tr>
                 <td width="50%" valign="top" style="padding-bottom: 0; padding-right: 7.5px;" class="label">Status</td>
-                <td width="50%" valign="top" style="padding-bottom: 0; padding-left: 7.5px; text-align: right;" class="value">${data.payment_status}</td>
+                <td width="50%" valign="top" style="padding-bottom: 0; padding-left: 7.5px; text-align: right; color: ${data.status === 'Failed' ? '#dc2626' : data.status === 'Pending' ? '#f59e0b' : data.status === 'On Hold' || data.status === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold;" class="value">${data.status || 'Completed'}</td>
             </tr>
         </table>
 
@@ -356,7 +356,7 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         </div>
 
         <div class="footer-msg">
-            Your transfer has been successfully completed.<br>
+            ${data.status === 'Failed' ? 'Your transfer could not be completed. Please contact support for assistance.' : data.status === 'Pending' ? 'Your transfer is pending and will be processed shortly.' : data.status === 'On Hold' ? 'Your transfer is on hold. Please contact support for more information.' : data.status === 'Processing' ? 'Your transfer is currently being processed.' : 'Your transfer has been successfully completed.'}<br>
             Track transfers anytime at www.wise.com<br><br>
             Thank you for using Wise.
         </div>

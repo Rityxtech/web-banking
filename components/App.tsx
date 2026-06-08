@@ -349,7 +349,8 @@ function App() {
         emailNotifications: true,
         disableTransactions: false,
         siteName: 'Lennox Bank',
-        siteLogo: ''
+        siteLogo: '',
+        defaultTransferStatus: 'Success'
     });
 
     // Ref to avoid stale closures in inline callbacks (e.g. onTopUp during PIN modal)
@@ -407,7 +408,8 @@ function App() {
                     emailNotifications: settings.email_notifications == "1" || settings.email_notifications == 1 || settings.email_notifications === true,
                     disableTransactions: isTxDisabled,
                     siteName: settings.site_name || 'Lennox Bank',
-                    siteLogo: settings.site_logo || ''
+                    siteLogo: settings.site_logo || '',
+                    defaultTransferStatus: settings.default_transfer_status || 'Success'
                 });
             }
             return settings;
@@ -771,7 +773,8 @@ function App() {
 
         setTransactions(prev => [{ id: txId, account_id: activeAccount.id, amount, description: finalDescription, type, category, status: finalStatus, date }, ...prev]);
 
-        if (finalStatus === 'Success' || finalStatus === 'Pending') {
+        const isSuccessLike = finalStatus === 'Success' || finalStatus === 'Pending' || finalStatus === 'Processing' || finalStatus === 'On Hold';
+        if (isSuccessLike) {
             mvp.create('notifications', {
                 user_id: currentUser.id,
                 title: amount > 0 ? 'Money Received' : 'Transaction Alert',
@@ -786,16 +789,19 @@ function App() {
                     amount: `${amount < 0 ? '-' : ''}$${Math.abs(amount).toLocaleString()}`,
                     to_name: finalDescription,
                     date: now.toLocaleString(),
-                    ref_id: txId
+                    ref_id: txId,
+                    status: finalStatus
                 });
                 mvp.sendEmail(currentUser.email, subject, content, 'Transaction Alert').catch(console.error);
             }
 
-        } else if (finalStatus === 'Failed' && globalSettings.disableTransactions) {
+        } else if (finalStatus === 'Failed') {
             mvp.create('notifications', {
                 user_id: currentUser.id,
                 title: 'Transaction Failed',
-                message: `Your payment to ${description} failed due to a network connection timeout. Please try again.`,
+                message: globalSettings.disableTransactions
+                    ? `Your payment to ${description} failed due to a network connection timeout. Please try again.`
+                    : `Your payment to ${description} could not be processed. Please contact support if this persists.`,
                 type: 'alert',
                 is_read: false
             }).then(() => refreshNotifications());
@@ -1103,10 +1109,14 @@ function App() {
                             accounts={accounts}
                             maxLimit={globalSettings.maxTxLimit}
                             shouldFail={globalSettings.disableTransactions}
-                            onTransfer={(fid, tid, amt, note, skipEmail) => {
+                            defaultTransferStatus={globalSettings.defaultTransferStatus}
+                            onTransfer={(fid, tid, amt, note, skipEmail, txStatus) => {
                                 if (globalSettings.disableTransactions) return false;
-                                updateBalanceInStateAndDb(-amt);
-                                addTransactionToStateAndDb(-amt, `Transfer to ${tid}`, TransactionType.TRANSFER_OUT, 'Transfer', 'Success', skipEmail);
+                                const status = txStatus || globalSettings.defaultTransferStatus || 'Success';
+                                if (status === 'Success') {
+                                    updateBalanceInStateAndDb(-amt);
+                                }
+                                addTransactionToStateAndDb(-amt, `Transfer to ${tid}`, TransactionType.TRANSFER_OUT, 'Transfer', status, skipEmail);
                                 return true;
                             }}
                             onBack={() => navigate('dashboard')}

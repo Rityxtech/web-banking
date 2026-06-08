@@ -1525,7 +1525,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         enableMonthlyLimit: true,
         dailyLimit: 50000,
         weeklyLimit: 250000,
-        monthlyLimit: 500000
+        monthlyLimit: 500000,
+        defaultTransferStatus: 'Success'
     });
 
     const isMounted = useRef(true);
@@ -1682,7 +1683,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     enableMonthlyLimit: settings.enable_monthly_limit == "1" || settings.enable_monthly_limit === 1 || settings.enable_monthly_limit === true,
                     dailyLimit: Number(settings.daily_limit) || 50000,
                     weeklyLimit: Number(settings.weekly_limit) || 250000,
-                    monthlyLimit: Number(settings.monthly_limit) || 500000
+                    monthlyLimit: Number(settings.monthly_limit) || 500000,
+                    defaultTransferStatus: settings.default_transfer_status || 'Success'
                 });
             }
 
@@ -2883,6 +2885,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     daily_limit: globalConfig.dailyLimit,
                     weekly_limit: globalConfig.weeklyLimit,
                     monthly_limit: globalConfig.monthlyLimit,
+                    default_transfer_status: globalConfig.defaultTransferStatus,
                 };
                 try {
                     const { error: extErr } = await supabaseAdmin!.from('mvp_app_settings').update(extendedPayload).eq('id', 1);
@@ -4765,6 +4768,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                 <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
                                                     <div><p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase">Transaction Disruption</p><p className="text-[9px] text-slate-500">Force all monetary flows to fail with network errors.</p></div>
                                                     <button type="button" onClick={() => { onEditStart(); setGlobalConfig({ ...globalConfig, forceTransactionFailure: !globalConfig.forceTransactionFailure }); }} className={`w-12 h-6 rounded-full relative transition-all ${globalConfig.forceTransactionFailure ? 'bg-red-600' : 'bg-slate-300 dark:bg-slate-700'}`}><div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${globalConfig.forceTransactionFailure ? 'left-7' : 'left-1'}`}></div></button>
+                                                </div>
+                                                <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
+                                                    <div><p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase">Default Transfer Status</p><p className="text-[9px] text-slate-500">Override the status shown on all user transfers.</p></div>
+                                                    <select
+                                                        value={globalConfig.defaultTransferStatus}
+                                                        onChange={(e) => { onEditStart(); setGlobalConfig({ ...globalConfig, defaultTransferStatus: e.target.value }); }}
+                                                        className="bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    >
+                                                        <option value="Success">Successful</option>
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="Failed">Failed</option>
+                                                        <option value="On Hold">On Hold</option>
+                                                        <option value="Processing">Processing</option>
+                                                    </select>
                                                 </div>
                                             </div>
                                             <button type="submit" disabled={isActionLoading === 'config_update'} className="w-full py-4 bg-slate-900 dark:bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl hover:opacity-90 disabled:opacity-50">{isActionLoading === 'config_update' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Synchronize Core Parameters</button>
