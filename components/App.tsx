@@ -501,14 +501,15 @@ function App() {
                 });
             }
 
-            const [accRes, cardRes, txRes, assetRes, notifRes, msgs] = await Promise.all([
+            const [accRes, cardRes, txResRaw, assetRes, notifRes, msgs] = await Promise.all([
                 mvp.read('accounts', true),
                 mvp.read('cards', true),
-                mvp.read('transactions', true, { limit: 50 }),
+                supabase.from('mvp_transactions').select('*').eq('user_id', currentUser.id).order('date', { ascending: false }).limit(50),
                 mvp.read('assets', true),
                 mvp.read('notifications', true, { columns: 'id,title,message,type,is_read,created_at', limit: 20 }),
                 mvp.read('messages', true, { columns: 'id,sender,is_read,ticket_id', limit: 100 })
             ]);
+            const txRes = txResRaw.data || [];
 
             const unread = msgs.filter((m: any) => m.sender !== 'user' && (m.is_read == "0" || m.is_read == 0 || m.is_read === false)).length;
             setUnreadMessages(unread);
@@ -672,11 +673,14 @@ function App() {
             refreshNotifications();
             fetchGlobalSettings();
 
-            mvp.read('transactions', true, { limit: 20 })
-                .then(txs => setTransactions(prev => {
-                    const newTxs = txs.map((t: any) => ({ ...t, amount: Number(t.amount) }));
-                    return [...newTxs, ...prev.filter(p => !newTxs.some(n => n.id === p.id))].slice(0, 100);
-                }))
+            supabase.from('mvp_transactions').select('*').eq('user_id', currentUser.id).order('date', { ascending: false }).limit(20)
+                .then(({ data: txs }) => {
+                    if (!txs) return;
+                    setTransactions(prev => {
+                        const newTxs = txs.map((t: any) => ({ ...t, amount: Number(t.amount) }));
+                        return [...newTxs, ...prev.filter(p => !newTxs.some(n => n.id === p.id))].slice(0, 100);
+                    });
+                })
                 .catch(() => { });
 
             mvp.read('accounts', true)
@@ -807,7 +811,8 @@ function App() {
             }).then(() => refreshNotifications());
         }
 
-        mvp.create('transactions', {
+        // Write directly to Supabase to bypass PHP backend column filtering
+        supabase.from('mvp_transactions').insert([{
             uuid: txId,
             user_id: currentUser.id,
             account_id: activeAccount.id,
@@ -817,8 +822,8 @@ function App() {
             category,
             status: finalStatus,
             date
-        }).then((res) => {
-            if (!res.success) console.error("Failed to persist transaction:", res);
+        }]).then(({ error }) => {
+            if (error) console.error("[addTransactionToStateAndDb] Failed to persist transaction:", error);
         });
     }
 
