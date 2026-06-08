@@ -19,11 +19,6 @@ export const getCitiBankEmailTemplate = (data: any) => `<!DOCTYPE html>
             padding: 0;
             width: 100%;
         }
-        .wrapper {
-            background-color: #ffffff;
-            padding: 0;
-            width: 100%;
-        }
         .email-container {
             background-color: #f4f4f4;
             max-width: 600px;
@@ -135,11 +130,10 @@ export const getCitiBankEmailTemplate = (data: any) => `<!DOCTYPE html>
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #ffffff;">
-    <div class="wrapper">
-        <div class="email-container">
-            <div class="header">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg" alt="Citibank" class="logo" style="width: 85px; height: auto;">
-                <div class="bank-info">
+    <div class="email-container">
+            <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg" alt="Citibank" class="logo" style="width: 85px; height: auto; margin-right: 40px;">
+                <div class="bank-info" style="text-align: right;">
                     <div class="bank-name">Citibank N.A.</div>
                     <div><span style="color: #ffffff !important; text-decoration: none !important;">388 Greenwich Street, New York, NY 10013</span></div>
                     <div>Member FDIC</div>
@@ -218,6 +212,5 @@ export const getCitiBankEmailTemplate = (data: any) => `<!DOCTYPE html>
             </div>
             </div>
         </div>
-    </div>
 </body>
 </html>`;

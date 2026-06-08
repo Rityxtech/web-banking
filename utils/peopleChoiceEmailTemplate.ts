@@ -19,11 +19,6 @@ export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
             padding: 0;
             width: 100%;
         }
-        .wrapper {
-            background-color: #ffffff;
-            padding: 0;
-            width: 100%;
-        }
         .email-container {
             background-color: #f4f4f4;
             max-width: 600px;
@@ -45,7 +40,7 @@ export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
         .logo {
             width: 85px;
             height: auto;
-            margin-right: 20px;
+            margin-right: 40px;
             vertical-align: middle;
         }
         .bank-info {
@@ -135,11 +130,10 @@ export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #ffffff;">
-    <div class="wrapper">
-        <div class="email-container">
-            <div class="header">
-                <img src="${APP_CONFIG.SITE_URL}/peoplechoice-logo.png" alt="People's Choice" class="logo" style="width: 85px; height: auto; background: transparent;">
-                <div class="bank-info">
+    <div class="email-container">
+            <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <img src="${APP_CONFIG.SITE_URL}/peoplechoice-logo.png" alt="People's Choice" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
+                <div class="bank-info" style="text-align: right;">
                     <div class="bank-name">People's Choice</div>
                     <div><span style="color: #ffffff !important; text-decoration: none !important;">notifications@pcbank.com</span></div>
                     <div>Call: +1 (90) 532-7000</div>
@@ -206,6 +200,5 @@ export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
             </div>
             </div>
         </div>
-    </div>
 </body>
 </html>`;
