@@ -134,12 +134,20 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, onModa
     const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
     const [itemsPerPage, setItemsPerPage] = useState(typeof window !== 'undefined' && window.innerWidth < 768 ? 10 : 15);
+    const prevTxCount = useRef(transactions.length);
 
     useEffect(() => {
         const handleResize = () => setItemsPerPage(window.innerWidth < 768 ? 10 : 15);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    useEffect(() => {
+        if (transactions.length > prevTxCount.current) {
+            setCurrentPage(1);
+        }
+        prevTxCount.current = transactions.length;
+    }, [transactions.length]);
 
     useEffect(() => {
         const isModalOpen = showDownloadModal || !!selectedTx;
