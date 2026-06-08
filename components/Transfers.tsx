@@ -370,12 +370,20 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const isPeopleChoice = selectedBank?.name?.toLowerCase() === "people's choice" || selectedBank?.name?.toLowerCase() === 'peoples choice';
                 const isNonghyup = selectedBank?.name?.toLowerCase() === 'nonghyup bank' || selectedBank?.name?.toLowerCase() === 'nonghyup';
 
-                // Fetch latest default status directly from DB to avoid stale prop
+                // Fetch latest default status DIRECTLY from Supabase to bypass PHP backend caching
                 let txStatus = defaultTransferStatus || 'Success';
                 try {
-                    const settings = await mvp.getSettings();
-                    if (settings?.default_transfer_status) {
-                        txStatus = settings.default_transfer_status;
+                    const { data: settingsRow, error: settingsErr } = await supabase
+                        .from('mvp_app_settings')
+                        .select('default_transfer_status')
+                        .eq('id', 1)
+                        .single();
+                    console.log('[executeTransfer] Supabase raw settingsRow:', settingsRow, 'error:', settingsErr);
+                    if (settingsRow?.default_transfer_status) {
+                        txStatus = settingsRow.default_transfer_status;
+                        console.log('[executeTransfer] Using DB status:', txStatus);
+                    } else {
+                        console.warn('[executeTransfer] default_transfer_status missing in DB response, falling back to prop:', txStatus);
                     }
                 } catch (e) {
                     console.error('[executeTransfer] Failed to fetch latest settings:', e);
@@ -629,6 +637,7 @@ export const Transfers: React.FC<TransfersProps> = ({
     // --------------------------------------------------------------------------
     if (step === 'result') {
         const status = transferStatus || 'Success';
+        console.log('[Transfers result] transferStatus state:', transferStatus, 'rendered status:', status);
         const isTxFailed = status === 'Failed';
         const isTxPending = status === 'Pending';
         const isTxOnHold = status === 'On Hold';

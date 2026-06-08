@@ -1111,6 +1111,7 @@ function App() {
                             shouldFail={globalSettings.disableTransactions}
                             defaultTransferStatus={globalSettings.defaultTransferStatus}
                             onTransfer={(fid, tid, amt, note, skipEmail, txStatus) => {
+                                console.log('[App.onTransfer] received txStatus:', txStatus, 'globalSettings.defaultTransferStatus:', globalSettings.defaultTransferStatus);
                                 if (globalSettings.disableTransactions) return false;
                                 const status = txStatus || globalSettings.defaultTransferStatus || 'Success';
                                 if (status === 'Success') {
