@@ -50,6 +50,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
     </style>
     </head>
     <body>
+      <div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
       <div class="container">
         <div class="header">
            <a href="${APP_CONFIG.SITE_URL}" class="brand">${APP_CONFIG.BANK_NAME.toUpperCase()}</a>
@@ -368,6 +369,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
     <title>PayPal Email Template</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f5f7fa; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+    <div style="display:none;font-size:1px;color:#f5f7fa;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #f5f7fa;">
         <tr>
             <td align="center" style="padding: 20px 0 10px 0; font-size: 11px; color: #6c7378;">

@@ -183,6 +183,7 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f0f2f5;">
+<div style="display:none;font-size:1px;color:#f0f2f5;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
 
 <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f0f2f5;">
     <tr>

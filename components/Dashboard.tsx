@@ -226,7 +226,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ accounts, transactions, ca
   );
 
   // Filter transactions
-  const validTransactions = transactions.filter(t => t.status === 'Success' || t.status === 'Pending');
+  const validTransactions = transactions.filter(t => t.status === 'Success' || t.status === 'Pending' || t.status === 'Processing' || t.status === 'On Hold');
   const scheduledTransactions = transactions.filter(t => t.status === 'Scheduled');
 
   const handleCancelClick = () => {
@@ -526,7 +526,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ accounts, transactions, ca
                           <td className="py-3 font-semibold text-slate-900 dark:text-white">{Math.abs(t.amount).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
                           <td className="py-3 hidden sm:table-cell">
                             <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-medium border
-                                    ${t.status === 'Success' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900' : t.status === 'Pending' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-900'}
+                                    ${t.status === 'Success' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900' : t.status === 'Pending' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-100 dark:border-amber-900' : t.status === 'Processing' || t.status === 'On Hold' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900' : t.status === 'Failed' || t.status === 'Cancelled' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-100 dark:border-red-900' : 'bg-slate-50 dark:bg-slate-900/20 text-slate-700 dark:text-slate-400 border-slate-100 dark:border-slate-800'}
                                 `}>
                               {t.status}
                             </span>

