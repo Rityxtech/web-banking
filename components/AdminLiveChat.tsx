@@ -282,13 +282,13 @@ export const AdminLiveChat: React.FC = () => {
                         {/* Input */}
                         <div className="p-3 md:p-4 border-t border-slate-200 dark:border-[#233648] bg-white dark:bg-[#111a22]">
                             <div className="flex gap-2 max-w-4xl mx-auto">
-                                <input
-                                    type="text"
+                                <textarea
                                     value={input}
                                     onChange={e => setInput(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleSend()}
+                                    onKeyDown={e => e.key === 'Enter' && e.ctrlKey && handleSend()}
                                     placeholder="Type your response..."
-                                    className="flex-1 bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400"
+                                    rows={3}
+                                    className="flex-1 bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400 resize-none"
                                 />
                                 <button
                                     onClick={handleSend}
