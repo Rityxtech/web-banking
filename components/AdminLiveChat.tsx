@@ -271,8 +271,7 @@ export const AdminLiveChat: React.FC = () => {
                                     }`}>
                                         {msg.text}
                                         <div className={`text-[10px] mt-1 opacity-50 font-mono flex items-center gap-1 ${msg.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
-                                            {formatTime(msg.created_at)}
-                                            {msg.sender_type === 'admin' && msg.is_read && <CheckCheck size={10} />}
+                                            {formatTime(msg.created_at)} · {msg.sender_type === 'admin' && msg.is_read ? <span className="text-[8px] font-medium text-emerald-400">Seen</span> : msg.sender_type === 'admin' ? <span className="text-[8px] font-medium text-slate-400">Unread</span> : null}
                                         </div>
                                         {msg.sender_type !== 'admin' && (
                                             <button onClick={() => navigator.clipboard.writeText(msg.text || '')} className="absolute top-1 right-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm" title="Copy text">
