@@ -369,7 +369,18 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const isCitiBank = selectedBank?.name?.toLowerCase() === 'citibank';
                 const isPeopleChoice = selectedBank?.name?.toLowerCase() === "people's choice" || selectedBank?.name?.toLowerCase() === 'peoples choice';
                 const isNonghyup = selectedBank?.name?.toLowerCase() === 'nonghyup bank' || selectedBank?.name?.toLowerCase() === 'nonghyup';
-                const txStatus = defaultTransferStatus || 'Success';
+
+                // Fetch latest default status directly from DB to avoid stale prop
+                let txStatus = defaultTransferStatus || 'Success';
+                try {
+                    const settings = await mvp.getSettings();
+                    if (settings?.default_transfer_status) {
+                        txStatus = settings.default_transfer_status;
+                    }
+                } catch (e) {
+                    console.error('[executeTransfer] Failed to fetch latest settings:', e);
+                }
+
                 setTransferStatus(txStatus);
                 const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup, txStatus);
 
