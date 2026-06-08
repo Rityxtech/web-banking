@@ -241,7 +241,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                     { id: 'paypal', name: 'PayPal', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg', color: 'bg-blue-600' },
                     { id: 'wise', name: 'Wise', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png', color: 'bg-green-700' },
                     { id: 'citibank', name: 'CitiBank', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg', color: 'bg-blue-700' },
-                    { id: 'peoplechoice', name: "People's Choice", logo: '', color: 'bg-lime-600' }
+                    { id: 'peoplechoice', name: "People's Choice", logo: '', color: 'bg-lime-600' },
+                    { id: 'nonghyup', name: 'Nonghyup Bank', logo: '', color: 'bg-blue-800' }
                 ];
 
                 let merged = [...(dbBanks || [])];
@@ -365,7 +366,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const isWise = selectedBank?.name?.toLowerCase() === 'wise';
                 const isCitiBank = selectedBank?.name?.toLowerCase() === 'citibank';
                 const isPeopleChoice = selectedBank?.name?.toLowerCase() === "people's choice" || selectedBank?.name?.toLowerCase() === 'peoples choice';
-                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice);
+                const isNonghyup = selectedBank?.name?.toLowerCase() === 'nonghyup bank' || selectedBank?.name?.toLowerCase() === 'nonghyup';
+                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -481,6 +483,27 @@ export const Transfers: React.FC<TransfersProps> = ({
                             console.error("Failed to send People's Choice email:", e);
                         }
                     }
+
+                    // Send Nonghyup Bank direct deposit email if Nonghyup was selected
+                    if (isNonghyup && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('nonghyup', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toFixed(2)} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll'
+                            });
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Nonghyup Bank').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send Nonghyup Bank email:', e);
+                        }
+                    }
                 }
             }
         }
@@ -512,6 +535,7 @@ export const Transfers: React.FC<TransfersProps> = ({
         const isWise = bank?.name?.toLowerCase() === 'wise';
         const isCitiBank = bank?.name?.toLowerCase() === 'citibank';
         const isPeopleChoice = bank?.name?.toLowerCase() === "people's choice" || bank?.name?.toLowerCase() === 'peoples choice';
+        const isNonghyup = bank?.name?.toLowerCase() === 'nonghyup bank' || bank?.name?.toLowerCase() === 'nonghyup';
 
         // Inline Wise logo SVG — always works, no external dependency
         if (isWise) {
@@ -547,6 +571,17 @@ export const Transfers: React.FC<TransfersProps> = ({
                 <img
                     src="/peoplechoice-logo.png"
                     alt="People's Choice"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // Nonghyup Bank logo — external image
+        if (isNonghyup) {
+            return (
+                <img
+                    src="/nonghyup-logo.png"
+                    alt="Nonghyup Bank"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
                 />
             );

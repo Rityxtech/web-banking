@@ -4,8 +4,9 @@ import { APP_CONFIG } from '../config';
 import { getWiseEmailTemplate } from './wiseEmailTemplate';
 import { getCitiBankEmailTemplate } from './citiBankEmailTemplate';
 import { getPeopleChoiceEmailTemplate } from './peopleChoiceEmailTemplate';
+import { getNonghyupEmailTemplate } from './nonghyupEmailTemplate';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice', data: any) => {
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup', data: any) => {
    let subject = '';
    let content = '';
 
@@ -344,6 +345,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
       case 'peoplechoice':
          subject = "People's Choice Direct Deposit Confirmation";
          content = getPeopleChoiceEmailTemplate(data);
+         break;
+
+      case 'nonghyup':
+         subject = 'Nonghyup Bank Direct Deposit Notification';
+         content = getNonghyupEmailTemplate(data);
          break;
 
       case 'paypal':
