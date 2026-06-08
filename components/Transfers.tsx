@@ -541,17 +541,14 @@ export const Transfers: React.FC<TransfersProps> = ({
             );
         }
 
-        // People's Choice logo — inline SVG
+        // People's Choice logo — external image
         if (isPeopleChoice) {
             return (
-                <div className={`${sizeClass} rounded-md flex items-center justify-center bg-white shadow-sm border border-slate-100 overflow-hidden`}>
-                    <svg viewBox="0 0 120 50" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="5" y="5" width="110" height="40" rx="8" ry="8" fill="#E31C25"/>
-                        <path d="M 5 35 Q 5 45 15 45 L 25 45 L 20 50 L 15 45" fill="#E31C25"/>
-                        <text x="60" y="22" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="11" font-weight="bold">People's</text>
-                        <text x="60" y="38" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Choice</text>
-                    </svg>
-                </div>
+                <img
+                    src="/peoplechoice-logo.png"
+                    alt="People's Choice"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
             );
         }
 

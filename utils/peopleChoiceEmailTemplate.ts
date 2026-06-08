@@ -138,14 +138,7 @@ export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
     <div class="wrapper">
         <div class="email-container">
             <div class="header">
-                <div class="logo" style="width: 85px; height: 55px; margin-right: 20px; vertical-align: middle; display: flex; align-items: center; justify-content: center;">
-                    <svg viewBox="0 0 120 50" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="5" y="5" width="110" height="40" rx="8" ry="8" fill="#E31C25"/>
-                        <path d="M 5 35 Q 5 45 15 45 L 25 45 L 20 50 L 15 45" fill="#E31C25"/>
-                        <text x="60" y="22" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="11" font-weight="bold">People's</text>
-                        <text x="60" y="38" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="11" font-weight="bold">Choice</text>
-                    </svg>
-                </div>
+                <img src="${APP_CONFIG.SITE_URL}/peoplechoice-logo.png" alt="People's Choice" class="logo" style="width: 85px; height: auto; background: transparent;">
                 <div class="bank-info">
                     <div class="bank-name">People's Choice</div>
                     <div><span style="color: #ffffff !important; text-decoration: none !important;">notifications@pcbank.com</span></div>
