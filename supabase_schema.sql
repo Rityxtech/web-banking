@@ -34,6 +34,17 @@ CREATE TABLE IF NOT EXISTS mvp_app_settings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Migrations for existing databases (run before seed inserts)
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS site_url TEXT;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS site_logo TEXT;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS enable_daily_limit INTEGER DEFAULT 0;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS enable_weekly_limit INTEGER DEFAULT 0;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS enable_monthly_limit INTEGER DEFAULT 0;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS daily_limit DECIMAL(15,2) DEFAULT 50000.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS weekly_limit DECIMAL(15,2) DEFAULT 250000.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS monthly_limit DECIMAL(15,2) DEFAULT 500000.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS default_transfer_status VARCHAR(50) DEFAULT 'Success';
+
 -- ============================================================
 -- 2. WAITLIST  (Public signup queue)
 --    Used by: Auth.tsx (direct Supabase), HomePage.tsx
