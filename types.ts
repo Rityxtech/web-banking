@@ -122,6 +122,8 @@ export interface LiveChatRoom {
     user_name?: string;
     status: 'open' | 'closed' | 'archived';
     last_message_at?: string;
+    last_active_at?: string;
+    source_template?: string;
     created_at?: string;
     updated_at?: string;
 }

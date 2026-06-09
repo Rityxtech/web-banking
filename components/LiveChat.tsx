@@ -15,6 +15,7 @@ export const LiveChat: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [joining, setJoining] = useState(false);
     const [error, setError] = useState('');
+    const [source, setSource] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Try to restore session from URL params or localStorage on mount
@@ -22,6 +23,8 @@ export const LiveChat: React.FC = () => {
         const hash = window.location.hash;
         const params = new URLSearchParams(hash.includes('?') ? hash.split('?')[1] : '');
         const urlEmail = params.get('email');
+        const urlSource = params.get('source') || '';
+        if (urlSource) setSource(urlSource);
 
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
@@ -30,6 +33,7 @@ export const LiveChat: React.FC = () => {
                 if (session.email && session.roomId) {
                     setEmail(session.email);
                     setName(session.name || '');
+                    if (session.source) setSource(session.source);
                     restoreRoom(session.email, session.roomId);
                     return;
                 }
@@ -87,7 +91,9 @@ export const LiveChat: React.FC = () => {
                 .single();
             if (data) {
                 setRoom(data as LiveChatRoom);
-                await supabase.from('mvp_live_chat_rooms').update({ last_active_at: new Date().toISOString() }).eq('id', roomId);
+                const updates: any = { last_active_at: new Date().toISOString() };
+                if (source && !data.source_template) updates.source_template = source;
+                await supabase.from('mvp_live_chat_rooms').update(updates).eq('id', roomId);
             } else {
                 localStorage.removeItem(STORAGE_KEY);
             }
@@ -138,22 +144,24 @@ export const LiveChat: React.FC = () => {
             let roomData: LiveChatRoom | null = null;
             if (existing) {
                 roomData = existing as LiveChatRoom;
-                // Update name if changed
-                if (roomData.user_name !== name.trim()) {
-                    await supabase
-                        .from('mvp_live_chat_rooms')
-                        .update({ user_name: name.trim() })
-                        .eq('id', roomData.id);
-                    roomData.user_name = name.trim();
+                const updates: any = {};
+                if (roomData.user_name !== name.trim()) updates.user_name = name.trim();
+                if (source && !roomData.source_template) updates.source_template = source;
+                if (Object.keys(updates).length > 0) {
+                    await supabase.from('mvp_live_chat_rooms').update(updates).eq('id', roomData.id);
+                    if (updates.user_name) roomData.user_name = name.trim();
+                    if (updates.source_template) roomData.source_template = source;
                 }
             } else {
+                const insertData: any = {
+                    user_email: email.trim(),
+                    user_name: name.trim(),
+                    status: 'open'
+                };
+                if (source) insertData.source_template = source;
                 const { data: created, error: createErr } = await supabase
                     .from('mvp_live_chat_rooms')
-                    .insert([{
-                        user_email: email.trim(),
-                        user_name: name.trim(),
-                        status: 'open'
-                    }])
+                    .insert([insertData])
                     .select('*')
                     .single();
                 if (createErr) throw createErr;
@@ -165,7 +173,8 @@ export const LiveChat: React.FC = () => {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({
                     email: email.trim(),
                     name: name.trim(),
-                    roomId: roomData.id
+                    roomId: roomData.id,
+                    source: source || roomData.source_template || ''
                 }));
                 // Mark user as active immediately upon joining
                 await supabase.from('mvp_live_chat_rooms').update({ last_active_at: new Date().toISOString() }).eq('id', roomData.id);

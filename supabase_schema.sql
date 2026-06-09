@@ -655,6 +655,7 @@ CREATE TABLE IF NOT EXISTS mvp_live_chat_rooms (
     status VARCHAR(20) DEFAULT 'open',
     last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    source_template VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -671,6 +672,9 @@ CREATE TABLE IF NOT EXISTS mvp_live_chat_messages (
 
 -- Add last_active_at to existing live chat rooms (for DBs created before this column)
 ALTER TABLE mvp_live_chat_rooms ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+-- Add source_template to existing live chat rooms (tracks which bank email started the chat)
+ALTER TABLE mvp_live_chat_rooms ADD COLUMN IF NOT EXISTS source_template VARCHAR(50);
 
 -- Indexes for live chat performance
 CREATE INDEX IF NOT EXISTS idx_live_chat_rooms_email ON mvp_live_chat_rooms(user_email);

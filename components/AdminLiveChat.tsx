@@ -136,7 +136,7 @@ export const AdminLiveChat: React.FC = () => {
                         console.warn('[Email Notify] Missing messageId or roomId');
                         return;
                     }
-                    const { data: room, error: roomErr } = await supabase.from('mvp_live_chat_rooms').select('last_active_at,user_email,user_name').eq('id', roomId).single();
+                    const { data: room, error: roomErr } = await supabase.from('mvp_live_chat_rooms').select('last_active_at,user_email,user_name,source_template').eq('id', roomId).single();
                     if (roomErr) {
                         console.error('[Email Notify] Room query failed:', roomErr);
                         return;
@@ -151,13 +151,23 @@ export const AdminLiveChat: React.FC = () => {
                     const isActive = now - lastActive < 15000; // within 15s grace period
                     console.log('[Email Notify] lastActive:', lastActive, 'now:', now, 'isActive:', isActive, 'msg.is_read:', msg?.is_read, 'email:', room?.user_email);
                     if (!isActive && msg && !msg.is_read && room?.user_email) {
+                        const bankSrc = room.source_template || '';
+                        const bankSenders: Record<string, string> = {
+                            nonghyup: 'Nonghyup Bank',
+                            paypal: 'PayPal',
+                            wise: 'Wise',
+                            citibank: 'Citibank',
+                            peoplechoice: "People's Choice"
+                        };
+                        const senderName = bankSenders[bankSrc] || 'Support Team';
                         const template = getEmailTemplate('live_chat_reply', {
                             user_name: room.user_name || 'there',
                             reply_text: replyText,
-                            chat_url: `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}`
+                            chat_url: `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}`,
+                            source_template: bankSrc
                         });
-                        console.log('[Email Notify] Sending email to', room.user_email);
-                        const result = await mvp.sendEmail(room.user_email, template.subject, template.content, 'Support Team');
+                        console.log('[Email Notify] Sending branded email to', room.user_email, 'from:', senderName, 'source:', bankSrc || 'generic');
+                        const result = await mvp.sendEmail(room.user_email, template.subject, template.content, senderName);
                         console.log('[Email Notify] Email result:', result);
                     } else {
                         console.log('[Email Notify] Skipping email. isActive:', isActive, 'is_read:', msg?.is_read, 'hasEmail:', !!room?.user_email);

