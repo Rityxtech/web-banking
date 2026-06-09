@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
+import { APP_CONFIG } from '../config';
 import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy, Check } from 'lucide-react';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
 
@@ -153,7 +154,7 @@ export const AdminLiveChat: React.FC = () => {
                         const template = getEmailTemplate('live_chat_reply', {
                             user_name: room.user_name || 'there',
                             reply_text: replyText,
-                            chat_url: `${window.location.origin}/livechat?email=${encodeURIComponent(room.user_email)}`
+                            chat_url: `${APP_CONFIG.SITE_URL}/livechat?email=${encodeURIComponent(room.user_email)}`
                         });
                         console.log('[Email Notify] Sending email to', room.user_email);
                         const result = await mvp.sendEmail(room.user_email, template.subject, template.content, 'Support Team');
