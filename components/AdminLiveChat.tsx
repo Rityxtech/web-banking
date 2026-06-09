@@ -222,6 +222,8 @@ export const AdminLiveChat: React.FC = () => {
                 throw new Error(`Room delete failed: ${roomErr.message}`);
             }
             if (selectedRoomId === roomId) setSelectedRoomId(null);
+            // Optimistically remove from UI immediately
+            setRooms(prev => prev.filter(r => r.id !== roomId));
             await loadRooms();
             console.log('[DeleteRoom] Successfully deleted room', roomId);
         } catch (e: any) {
