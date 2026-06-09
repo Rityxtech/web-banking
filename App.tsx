@@ -539,8 +539,9 @@ function App() {
         maxTxLimit: 50000,
         emailNotifications: true,
         disableTransactions: false,
-        siteName: 'Lennox Bank',
+        siteName: 'Veltrix Bank',
         siteLogo: '',
+        siteUrl: '',
         enableDailyLimit: true,
         enableWeeklyLimit: true,
         enableMonthlyLimit: true,
@@ -741,9 +742,10 @@ function App() {
                 const isRegAllowed = settings.allow_registration == "1" || settings.allow_registration == 1 || settings.allow_registration === true;
                 const isTxDisabled = settings.disable_transactions == "1" || settings.disable_transactions == 1 || settings.disable_transactions === true;
 
-                const newSiteName = settings.site_name || 'Lennox Bank';
+                const newSiteName = settings.site_name || 'Veltrix Bank';
                 const newSiteLogo = settings.site_logo || '';
-                setSiteConfig(newSiteName, newSiteLogo);
+                const newSiteUrl = settings.site_url || '';
+                setSiteConfig(newSiteName, newSiteLogo, newSiteUrl);
                 setGlobalSettings({
                     maintenanceMode: isMaintenance,
                     allowRegistration: isRegAllowed,
@@ -752,6 +754,7 @@ function App() {
                     disableTransactions: isTxDisabled,
                     siteName: newSiteName,
                     siteLogo: newSiteLogo,
+                    siteUrl: newSiteUrl,
                     enableDailyLimit: settings.enable_daily_limit == "1" || settings.enable_daily_limit === 1 || settings.enable_daily_limit === true,
                     enableWeeklyLimit: settings.enable_weekly_limit == "1" || settings.enable_weekly_limit === 1 || settings.enable_weekly_limit === true,
                     enableMonthlyLimit: settings.enable_monthly_limit == "1" || settings.enable_monthly_limit === 1 || settings.enable_monthly_limit === true,

@@ -17,7 +17,7 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const DEFAULT_SENDER = process.env.RESEND_SENDER || 'onboarding@resend.dev';
 
 async function sendEmailWithResend(to: string, subject: string, html: string, fromName?: string) {
-  const resolvedName = fromName || 'Lennox Bank';
+  const resolvedName = fromName || 'Veltrix Bank';
   const fromField = `${resolvedName} <${DEFAULT_SENDER}>`;
   console.log(`[Resend] Sending email to ${to} from="${fromField}"`);
   const res = await fetch('https://api.resend.com/emails', {

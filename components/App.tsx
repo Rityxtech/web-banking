@@ -254,7 +254,7 @@ const CompleteRegistration = ({ user, onComplete }: { user: any, onComplete: () 
 
             await mvp.create('profiles', {
                 user_id: user.id,
-                full_name: user.user_metadata?.full_name || 'Lennox Bank',
+                full_name: user.user_metadata?.full_name || 'New User',
                 email: user.email,
                 settings: JSON.stringify({ pinSet: true })
             });
@@ -348,8 +348,9 @@ function App() {
         maxTxLimit: 50000,
         emailNotifications: true,
         disableTransactions: false,
-        siteName: 'Lennox Bank',
+        siteName: 'Veltrix Bank',
         siteLogo: '',
+        siteUrl: '',
         defaultTransferStatus: 'Success'
     });
 
@@ -407,8 +408,9 @@ function App() {
                     maxTxLimit: Number(settings.max_transaction_limit) || 50000,
                     emailNotifications: settings.email_notifications == "1" || settings.email_notifications == 1 || settings.email_notifications === true,
                     disableTransactions: isTxDisabled,
-                    siteName: settings.site_name || 'Lennox Bank',
+                    siteName: settings.site_name || 'Veltrix Bank',
                     siteLogo: settings.site_logo || '',
+                    siteUrl: settings.site_url || '',
                     defaultTransferStatus: settings.default_transfer_status || 'Success'
                 });
             }
@@ -423,8 +425,8 @@ function App() {
 
     // Sync module-level config so APP_CONFIG getters reflect admin changes across the app
     useEffect(() => {
-        setSiteConfig(globalSettings.siteName, globalSettings.siteLogo);
-    }, [globalSettings.siteName, globalSettings.siteLogo]);
+        setSiteConfig(globalSettings.siteName, globalSettings.siteLogo, globalSettings.siteUrl);
+    }, [globalSettings.siteName, globalSettings.siteLogo, globalSettings.siteUrl]);
 
     const refreshMessageCounts = useCallback(async () => {
         if (!currentUser) return;
@@ -880,7 +882,7 @@ function App() {
                 if (session) {
                     setIsAccountIncomplete(false);
                     setRawSessionUser(null);
-                    setCurrentUser({ id: session.user.id, name: session.user.user_metadata?.full_name || 'Lennox Bank', email: session.user.email || '', avatarUrl: '' });
+                    setCurrentUser({ id: session.user.id, name: session.user.user_metadata?.full_name || 'New User', email: session.user.email || '', avatarUrl: '' });
                     initRef.current = null;
                     fetchAllUserData(session.user.id, session.user.user_metadata);
                 }

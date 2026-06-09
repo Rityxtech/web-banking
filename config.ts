@@ -8,25 +8,30 @@
 // ─── Mutable runtime state (updated by admin settings) ─────
 let _siteName = 'Veltrix Bank';
 let _siteLogo = '';
+let _siteUrl = '';
 
 // Try to restore from localStorage on module load
 try {
     const storedName = localStorage.getItem('site_name');
     const storedLogo = localStorage.getItem('site_logo');
+    const storedUrl = localStorage.getItem('site_url');
     if (storedName) _siteName = storedName;
     if (storedLogo) _siteLogo = storedLogo;
+    if (storedUrl) _siteUrl = storedUrl;
 } catch { /* localStorage not available */ }
 
 /**
  * Call this from App.tsx whenever globalSettings changes
  * so the entire app reflects the admin-set site name.
  */
-export function setSiteConfig(name: string, logo?: string) {
+export function setSiteConfig(name: string, logo?: string, url?: string) {
     _siteName = name;
     if (logo !== undefined) _siteLogo = logo;
+    if (url !== undefined) _siteUrl = url;
     try {
         localStorage.setItem('site_name', name);
         if (logo !== undefined) localStorage.setItem('site_logo', logo);
+        if (url !== undefined) localStorage.setItem('site_url', url);
     } catch { /* localStorage not available */ }
 
     // Update Open Graph / Twitter Card meta tags dynamically
@@ -51,7 +56,7 @@ export function setSiteConfig(name: string, logo?: string) {
             updateMeta('meta[name="twitter:image"]', 'content', logo);
         }
 
-        updateMeta('meta[property="og:url"]', 'content', window.location.origin);
+        updateMeta('meta[property="og:url"]', 'content', APP_CONFIG.SITE_URL);
     } catch { /* document not available */ }
 }
 
@@ -77,7 +82,7 @@ export const APP_CONFIG = {
     get COMPANY_NAME() { return firstWord(_siteName) + ' Meridian Holdings'; },
     get LEGAL_ENTITY() { return firstWord(_siteName) + ' Invest LLC'; },
     get SUPPORT_EMAIL() { return 'support@' + derivedDomain(_siteName); },
-    get SITE_URL() { return 'https://' + derivedDomain(_siteName); },
+    get SITE_URL() { return _siteUrl || ('https://' + derivedDomain(_siteName)); },
 
     // ─── Security ────────────────────────────────────────────
     get ADMIN_EMAILS() { return ['admin@' + derivedDomain(_siteName)]; },

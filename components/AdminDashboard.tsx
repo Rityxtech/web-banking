@@ -1548,6 +1548,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         allowRegistration: true,
         siteName: APP_CONFIG.BANK_NAME,
         siteLogo: '',
+        siteUrl: '',
         enableDailyLimit: true,
         enableWeeklyLimit: true,
         enableMonthlyLimit: true,
@@ -1706,6 +1707,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     allowRegistration: settings.allow_registration == "1" || settings.allow_registration == 1 || settings.allow_registration === true,
                     siteName: settings.site_name || APP_CONFIG.BANK_NAME,
                     siteLogo: settings.site_logo || '',
+                    siteUrl: settings.site_url || '',
                     enableDailyLimit: settings.enable_daily_limit == "1" || settings.enable_daily_limit === 1 || settings.enable_daily_limit === true,
                     enableWeeklyLimit: settings.enable_weekly_limit == "1" || settings.enable_weekly_limit === 1 || settings.enable_weekly_limit === true,
                     enableMonthlyLimit: settings.enable_monthly_limit == "1" || settings.enable_monthly_limit === 1 || settings.enable_monthly_limit === true,
@@ -2907,6 +2909,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             if (saveOk) {
                 const extendedPayload = {
                     site_logo: globalConfig.siteLogo,
+                    site_url: globalConfig.siteUrl,
                     enable_daily_limit: globalConfig.enableDailyLimit ? 1 : 0,
                     enable_weekly_limit: globalConfig.enableWeeklyLimit ? 1 : 0,
                     enable_monthly_limit: globalConfig.enableMonthlyLimit ? 1 : 0,
@@ -4653,6 +4656,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Platform Identity</label>
                                                     <input value={globalConfig.siteName} onChange={e => { onEditStart(); setGlobalConfig({ ...globalConfig, siteName: e.target.value }); }} onFocus={onEditStart} className="w-full p-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none" />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Site URL</label>
+                                                    <input value={globalConfig.siteUrl} placeholder="https://yourdomain.com" onChange={e => { onEditStart(); setGlobalConfig({ ...globalConfig, siteUrl: e.target.value }); }} onFocus={onEditStart} className="w-full p-3 bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none" />
+                                                    <p className="text-[10px] text-slate-400 ml-1">Used for email links and live chat redirects. Leave blank to auto-derive from site name.</p>
                                                 </div>
 
                                                 <div className="space-y-2">

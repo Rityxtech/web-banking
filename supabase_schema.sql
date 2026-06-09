@@ -1,5 +1,5 @@
 -- ============================================================
---  LENNOX BANK — COMPLETE UNIFIED SUPABASE SCHEMA
+--  VELTRIX BANK — COMPLETE UNIFIED SUPABASE SCHEMA
 --  Generated: Full audit of all frontend + admin components
 --  Run this in Supabase SQL Editor to set up the database
 -- ============================================================
@@ -20,8 +20,9 @@ CREATE TABLE IF NOT EXISTS mvp_app_settings (
     -- Extended settings (prevent AdminDashboard "settings upgrade" workaround)
     disable_transactions INTEGER DEFAULT 0,
     email_notifications INTEGER DEFAULT 1,
-    site_name VARCHAR(255) DEFAULT 'Lennox Bank',
+    site_name VARCHAR(255) DEFAULT 'Veltrix Bank',
     site_logo TEXT,
+    site_url TEXT,
     enable_daily_limit INTEGER DEFAULT 0,
     enable_weekly_limit INTEGER DEFAULT 0,
     enable_monthly_limit INTEGER DEFAULT 0,
@@ -386,13 +387,13 @@ CREATE POLICY "Users can delete own support_tickets" ON mvp_support_tickets FOR 
 -- Seed default app settings (id=1 is expected by AdminDashboard)
 INSERT INTO mvp_app_settings (
     id, maintenance_mode, allow_registration, max_transaction_limit,
-    disable_transactions, email_notifications, site_name, site_logo,
+    disable_transactions, email_notifications, site_name, site_logo, site_url,
     enable_daily_limit, enable_weekly_limit, enable_monthly_limit,
     daily_limit, weekly_limit, monthly_limit
 )
 VALUES (
     1, 0, 1, 50000.00,
-    0, 1, 'Lennox Bank', '',
+    0, 1, 'Veltrix Bank', '', '',
     0, 0, 0,
     50000.00, 250000.00, 500000.00
 )
@@ -404,6 +405,7 @@ ON CONFLICT (id) DO UPDATE SET
     email_notifications = EXCLUDED.email_notifications,
     site_name = EXCLUDED.site_name,
     site_logo = EXCLUDED.site_logo,
+    site_url = EXCLUDED.site_url,
     enable_daily_limit = EXCLUDED.enable_daily_limit,
     enable_weekly_limit = EXCLUDED.enable_weekly_limit,
     enable_monthly_limit = EXCLUDED.enable_monthly_limit,
@@ -598,8 +600,9 @@ CREATE INDEX IF NOT EXISTS idx_mvp_otp_codes_lookup ON mvp_otp_codes(email, code
 ALTER TABLE mvp_app_settings 
 ADD COLUMN IF NOT EXISTS disable_transactions INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS email_notifications INTEGER DEFAULT 1,
-ADD COLUMN IF NOT EXISTS site_name VARCHAR(255) DEFAULT 'Lennox Bank',
+ADD COLUMN IF NOT EXISTS site_name VARCHAR(255) DEFAULT 'Veltrix Bank',
 ADD COLUMN IF NOT EXISTS site_logo TEXT,
+ADD COLUMN IF NOT EXISTS site_url TEXT,
 ADD COLUMN IF NOT EXISTS enable_daily_limit INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS enable_weekly_limit INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS enable_monthly_limit INTEGER DEFAULT 0,
@@ -612,14 +615,14 @@ ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 -- Ensure seed row exists (id=1 required by AdminDashboard)
 INSERT INTO mvp_app_settings (
     id, maintenance_mode, allow_registration, max_transaction_limit,
-    disable_transactions, email_notifications, site_name, site_logo,
+    disable_transactions, email_notifications, site_name, site_logo, site_url,
     enable_daily_limit, enable_weekly_limit, enable_monthly_limit,
     daily_limit, weekly_limit, monthly_limit,
     default_transfer_status
 )
 VALUES (
     1, 0, 1, 50000.00,
-    0, 1, 'Lennox Bank', '',
+    0, 1, 'Veltrix Bank', '', '',
     0, 0, 0,
     50000.00, 250000.00, 500000.00,
     'Success'
