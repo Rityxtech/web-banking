@@ -127,24 +127,42 @@ export const AdminLiveChat: React.FC = () => {
             // Delayed email notification: wait 10s, check if user became active or read the message
             const messageId = msgData?.id;
             const roomId = selectedRoomId;
+            const replyText = text;
             setTimeout(async () => {
                 try {
-                    // Check if user is still active (last_active_at within last 10s) or message was read
-                    const { data: room } = await supabase.from('mvp_live_chat_rooms').select('last_active_at,user_email,user_name').eq('id', roomId).single();
-                    const { data: msg } = await supabase.from('mvp_live_chat_messages').select('is_read').eq('id', messageId).single();
+                    console.log('[Email Notify] Checking room', roomId, 'msg', messageId);
+                    if (!messageId || !roomId) {
+                        console.warn('[Email Notify] Missing messageId or roomId');
+                        return;
+                    }
+                    const { data: room, error: roomErr } = await supabase.from('mvp_live_chat_rooms').select('last_active_at,user_email,user_name').eq('id', roomId).single();
+                    if (roomErr) {
+                        console.error('[Email Notify] Room query failed:', roomErr);
+                        return;
+                    }
+                    const { data: msg, error: msgErr } = await supabase.from('mvp_live_chat_messages').select('is_read').eq('id', messageId).single();
+                    if (msgErr) {
+                        console.error('[Email Notify] Message query failed:', msgErr);
+                        return;
+                    }
                     const lastActive = room?.last_active_at ? new Date(room.last_active_at).getTime() : 0;
                     const now = Date.now();
                     const isActive = now - lastActive < 15000; // within 15s grace period
+                    console.log('[Email Notify] lastActive:', lastActive, 'now:', now, 'isActive:', isActive, 'msg.is_read:', msg?.is_read, 'email:', room?.user_email);
                     if (!isActive && msg && !msg.is_read && room?.user_email) {
                         const template = getEmailTemplate('live_chat_reply', {
                             user_name: room.user_name || 'there',
-                            reply_text: text,
+                            reply_text: replyText,
                             chat_url: `${window.location.origin}/livechat?email=${encodeURIComponent(room.user_email)}`
                         });
-                        await mvp.sendEmail(room.user_email, template.subject, template.content, 'Support Team');
+                        console.log('[Email Notify] Sending email to', room.user_email);
+                        const result = await mvp.sendEmail(room.user_email, template.subject, template.content, 'Support Team');
+                        console.log('[Email Notify] Email result:', result);
+                    } else {
+                        console.log('[Email Notify] Skipping email. isActive:', isActive, 'is_read:', msg?.is_read, 'hasEmail:', !!room?.user_email);
                     }
                 } catch (err) {
-                    console.error('Delayed email check failed:', err);
+                    console.error('[Email Notify] Delayed email check failed:', err);
                 }
             }, 10000);
         } catch (e: any) {
