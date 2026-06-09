@@ -573,7 +573,11 @@ function App() {
         const params = new URLSearchParams(window.location.search);
         if (params.get('livechat') === 'true') {
             const email = params.get('email');
-            const hash = 'livechat' + (email ? '?email=' + encodeURIComponent(email) : '');
+            const source = params.get('source');
+            const queryParts: string[] = [];
+            if (email) queryParts.push('email=' + encodeURIComponent(email));
+            if (source) queryParts.push('source=' + encodeURIComponent(source));
+            const hash = 'livechat' + (queryParts.length > 0 ? '?' + queryParts.join('&') : '');
             window.history.replaceState({}, '', window.location.pathname + '#' + hash);
             return 'livechat';
         }
