@@ -669,6 +669,9 @@ CREATE TABLE IF NOT EXISTS mvp_live_chat_messages (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Add last_active_at to existing live chat rooms (for DBs created before this column)
+ALTER TABLE mvp_live_chat_rooms ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
 -- Indexes for live chat performance
 CREATE INDEX IF NOT EXISTS idx_live_chat_rooms_email ON mvp_live_chat_rooms(user_email);
 CREATE INDEX IF NOT EXISTS idx_live_chat_rooms_status ON mvp_live_chat_rooms(status);
