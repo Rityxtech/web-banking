@@ -95,10 +95,15 @@ export const AdminLiveChat: React.FC = () => {
         };
     }, [selectedRoomId, loadMessages, markRoomRead]);
 
-    // Auto-scroll
+    // Auto-scroll only if user is already near the bottom (prevents hijack when reading history)
     useEffect(() => {
         if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            const el = scrollRef.current;
+            const threshold = 100; // px
+            const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+            if (isNearBottom) {
+                el.scrollTop = el.scrollHeight;
+            }
         }
     }, [messages]);
 
