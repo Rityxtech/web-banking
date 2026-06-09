@@ -16,6 +16,7 @@ export const AdminLiveChat: React.FC = () => {
     const [sending, setSending] = useState(false);
     const [error, setError] = useState('');
     const [copiedMsgId, setCopiedMsgId] = useState<string | number | null>(null);
+    const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -204,6 +205,23 @@ export const AdminLiveChat: React.FC = () => {
         }
     };
 
+    const handleDeleteRoom = async (roomId: number) => {
+        if (!window.confirm('Delete this chat room and all its messages?')) return;
+        setDeletingRoomId(roomId);
+        try {
+            // Delete messages first (FK cascade handles this, but explicit is safer)
+            await supabase.from('mvp_live_chat_messages').delete().eq('room_id', roomId);
+            // Delete room
+            await supabase.from('mvp_live_chat_rooms').delete().eq('id', roomId);
+            if (selectedRoomId === roomId) setSelectedRoomId(null);
+            await loadRooms();
+        } catch (e) {
+            console.error('Delete room failed:', e);
+        } finally {
+            setDeletingRoomId(null);
+        }
+    };
+
     const unreadCount = (roomId: number) => {
         // Approximate: we can't easily count without querying, so we'll show a dot
         // based on whether the last message is from user and unread
@@ -272,11 +290,16 @@ export const AdminLiveChat: React.FC = () => {
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={(e) => { e.stopPropagation(); handleCloseRoom(room.id); }}
-                                                className="p-1.5 text-slate-400 dark:text-white hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                                title="Close Room"
+                                                onClick={(e) => { e.stopPropagation(); handleDeleteRoom(room.id); }}
+                                                disabled={deletingRoomId === room.id}
+                                                className="p-1.5 text-slate-400 dark:text-white hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all disabled:opacity-50"
+                                                title="Delete Room"
                                             >
-                                                <Trash2 size={14} />
+                                                {deletingRoomId === room.id ? (
+                                                    <Loader2 size={14} className="animate-spin text-red-500" />
+                                                ) : (
+                                                    <Trash2 size={14} />
+                                                )}
                                             </button>
                                         </div>
                                     </div>
