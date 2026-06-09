@@ -165,10 +165,13 @@ export const AdminLiveChat: React.FC = () => {
                             peoplechoice: "People's Choice"
                         };
                         const senderName = bankSenders[bankSrc] || 'Support Team';
+                        const chatUrl = bankSrc
+                            ? `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}&source=${bankSrc}`
+                            : `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}`;
                         const template = getEmailTemplate('live_chat_reply', {
                             user_name: room.user_name || 'there',
                             reply_text: replyText,
-                            chat_url: `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}`,
+                            chat_url: chatUrl,
                             source_template: bankSrc
                         });
                         console.log('[Email Notify] Sending branded email to', room.user_email, 'from:', senderName, 'source:', bankSrc || 'generic');
