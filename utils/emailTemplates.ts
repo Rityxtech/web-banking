@@ -374,11 +374,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
                Click the button below to view the full conversation and continue chatting with our team.
              </p>
              <div class="text-center" style="margin-top: 20px;">
-                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/livechat'}" class="btn" style="background-color: #2563eb;">View Reply & Continue Chat</a>
+                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" class="btn" style="background-color: #2563eb;">View Reply & Continue Chat</a>
              </div>
              <p class="text-center text-muted" style="font-size: 11px; margin-top: 20px; color: #94a3b8;">
                If the button doesn't work, copy and paste this link:<br>
-               <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/livechat'}" style="font-size: 11px;">${data.chat_url || APP_CONFIG.SITE_URL + '/livechat'}</a>
+               <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" style="font-size: 11px;">${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}</a>
              </p>
           </div>
           ${footer}`;
