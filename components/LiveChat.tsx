@@ -116,7 +116,10 @@ export const LiveChat: React.FC = () => {
                 const unreadAdmin = data.filter((m: any) => m.sender_type === 'admin' && !m.is_read);
                 if (unreadAdmin.length > 0) {
                     const ids = unreadAdmin.map((m: any) => m.id);
-                    await supabase.from('mvp_live_chat_messages').update({ is_read: true }).in('id', ids);
+                    const { error: readErr } = await supabase.from('mvp_live_chat_messages').update({ is_read: true }).in('id', ids);
+                    if (readErr) {
+                        console.error('[LiveChat] Failed to mark admin messages as read:', readErr);
+                    }
                 }
             }
         } catch (e) {

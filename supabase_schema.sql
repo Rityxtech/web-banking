@@ -712,6 +712,8 @@ DROP POLICY IF EXISTS "Public can create chat messages" ON mvp_live_chat_message
 CREATE POLICY "Public can create chat messages" ON mvp_live_chat_messages FOR INSERT WITH CHECK (true);
 DROP POLICY IF EXISTS "Public can view chat messages" ON mvp_live_chat_messages;
 CREATE POLICY "Public can view chat messages" ON mvp_live_chat_messages FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public can update chat messages" ON mvp_live_chat_messages;
+CREATE POLICY "Public can update chat messages" ON mvp_live_chat_messages FOR UPDATE USING (true);
 
 -- Admin: full access on live chat tables (service role bypasses RLS anyway, but explicit for safety)
 DROP POLICY IF EXISTS "Admin can manage all chat rooms" ON mvp_live_chat_rooms;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from '../services/supabase';
+import { supabase, supabaseAdmin } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
 import { APP_CONFIG } from '../config';
@@ -209,14 +209,15 @@ export const AdminLiveChat: React.FC = () => {
         if (!window.confirm('Delete this chat room and all its messages?')) return;
         setDeletingRoomId(roomId);
         try {
+            const client = supabaseAdmin || supabase;
             // Delete messages first (FK cascade handles this, but explicit is safer)
-            const { error: msgErr } = await supabase.from('mvp_live_chat_messages').delete().eq('room_id', roomId);
+            const { error: msgErr } = await client.from('mvp_live_chat_messages').delete().eq('room_id', roomId);
             if (msgErr) {
                 console.error('[DeleteRoom] Messages delete error:', msgErr);
                 throw new Error(`Messages delete failed: ${msgErr.message}`);
             }
             // Delete room
-            const { error: roomErr } = await supabase.from('mvp_live_chat_rooms').delete().eq('id', roomId);
+            const { error: roomErr } = await client.from('mvp_live_chat_rooms').delete().eq('id', roomId);
             if (roomErr) {
                 console.error('[DeleteRoom] Room delete error:', roomErr);
                 throw new Error(`Room delete failed: ${roomErr.message}`);
