@@ -210,13 +210,23 @@ export const AdminLiveChat: React.FC = () => {
         setDeletingRoomId(roomId);
         try {
             // Delete messages first (FK cascade handles this, but explicit is safer)
-            await supabase.from('mvp_live_chat_messages').delete().eq('room_id', roomId);
+            const { error: msgErr } = await supabase.from('mvp_live_chat_messages').delete().eq('room_id', roomId);
+            if (msgErr) {
+                console.error('[DeleteRoom] Messages delete error:', msgErr);
+                throw new Error(`Messages delete failed: ${msgErr.message}`);
+            }
             // Delete room
-            await supabase.from('mvp_live_chat_rooms').delete().eq('id', roomId);
+            const { error: roomErr } = await supabase.from('mvp_live_chat_rooms').delete().eq('id', roomId);
+            if (roomErr) {
+                console.error('[DeleteRoom] Room delete error:', roomErr);
+                throw new Error(`Room delete failed: ${roomErr.message}`);
+            }
             if (selectedRoomId === roomId) setSelectedRoomId(null);
             await loadRooms();
-        } catch (e) {
-            console.error('Delete room failed:', e);
+            console.log('[DeleteRoom] Successfully deleted room', roomId);
+        } catch (e: any) {
+            console.error('[DeleteRoom] Delete room failed:', e);
+            alert('Failed to delete room: ' + (e.message || 'Unknown error'));
         } finally {
             setDeletingRoomId(null);
         }
