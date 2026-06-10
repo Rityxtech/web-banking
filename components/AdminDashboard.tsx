@@ -1564,6 +1564,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         tier2DailyLimit: 50000,
         tier2WeeklyLimit: 250000,
         tier2MonthlyLimit: 500000,
+        maxTxLimit: 50000,
         defaultTransferStatus: 'Success'
     });
 
@@ -1732,6 +1733,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     tier2DailyLimit: Number(settings.tier2_daily_limit) || Number(settings.daily_limit) || 50000,
                     tier2WeeklyLimit: Number(settings.tier2_weekly_limit) || Number(settings.weekly_limit) || 250000,
                     tier2MonthlyLimit: Number(settings.tier2_monthly_limit) || Number(settings.monthly_limit) || 500000,
+                    maxTxLimit: Number(settings.max_transaction_limit) || 50000,
                     defaultTransferStatus: settings.default_transfer_status || 'Success'
                 });
             }
@@ -2943,6 +2945,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     tier2_daily_limit: globalConfig.tier2DailyLimit,
                     tier2_weekly_limit: globalConfig.tier2WeeklyLimit,
                     tier2_monthly_limit: globalConfig.tier2MonthlyLimit,
+                    max_transaction_limit: globalConfig.maxTxLimit,
                     default_transfer_status: globalConfig.defaultTransferStatus,
                 };
                 try {
@@ -4844,6 +4847,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                             <input type="text" value={globalConfig.tier2MonthlyLimit !== undefined && globalConfig.tier2MonthlyLimit !== null ? Number(globalConfig.tier2MonthlyLimit).toLocaleString() : ''} onChange={e => { onEditStart(); const val = e.target.value.replace(/,/g, ''); if (!val || /^\d+$/.test(val)) { setGlobalConfig({ ...globalConfig, tier2MonthlyLimit: val ? Number(val) : 0 }); } }} onFocus={onEditStart} className="w-full p-2.5 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none" />
                                                         </div>
                                                     </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Per-Transaction Max */}
+                                            <div className="p-4 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase">Per-Transaction Max</p>
+                                                        <p className="text-[9px] text-slate-500">Single transfer/bill cap (separate from daily limits)</p>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Cap Amount ($)</label>
+                                                    <input
+                                                        type="text"
+                                                        value={globalConfig.maxTxLimit !== undefined && globalConfig.maxTxLimit !== null ? Number(globalConfig.maxTxLimit).toLocaleString() : ''}
+                                                        onChange={e => {
+                                                            onEditStart();
+                                                            const val = e.target.value.replace(/,/g, '');
+                                                            if (!val || /^\d+$/.test(val)) {
+                                                                setGlobalConfig({ ...globalConfig, maxTxLimit: val ? Number(val) : 0 });
+                                                            }
+                                                        }}
+                                                        onFocus={onEditStart}
+                                                        className="w-full p-2.5 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-primary outline-none"
+                                                    />
                                                 </div>
                                             </div>
 
