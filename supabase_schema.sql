@@ -26,9 +26,20 @@ CREATE TABLE IF NOT EXISTS mvp_app_settings (
     enable_daily_limit INTEGER DEFAULT 0,
     enable_weekly_limit INTEGER DEFAULT 0,
     enable_monthly_limit INTEGER DEFAULT 0,
+    -- Legacy single-tier limits (backward compat = Tier 2 defaults)
     daily_limit DECIMAL(15,2) DEFAULT 50000.00,
     weekly_limit DECIMAL(15,2) DEFAULT 250000.00,
     monthly_limit DECIMAL(15,2) DEFAULT 500000.00,
+    -- Per-KYC-tier limits
+    tier0_daily_limit DECIMAL(15,2) DEFAULT 0.00,
+    tier0_weekly_limit DECIMAL(15,2) DEFAULT 0.00,
+    tier0_monthly_limit DECIMAL(15,2) DEFAULT 0.00,
+    tier1_daily_limit DECIMAL(15,2) DEFAULT 1000.00,
+    tier1_weekly_limit DECIMAL(15,2) DEFAULT 5000.00,
+    tier1_monthly_limit DECIMAL(15,2) DEFAULT 10000.00,
+    tier2_daily_limit DECIMAL(15,2) DEFAULT 50000.00,
+    tier2_weekly_limit DECIMAL(15,2) DEFAULT 250000.00,
+    tier2_monthly_limit DECIMAL(15,2) DEFAULT 500000.00,
     default_transfer_status VARCHAR(50) DEFAULT 'Success',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -44,6 +55,16 @@ ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS daily_limit DECIMAL(15,2) 
 ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS weekly_limit DECIMAL(15,2) DEFAULT 250000.00;
 ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS monthly_limit DECIMAL(15,2) DEFAULT 500000.00;
 ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS default_transfer_status VARCHAR(50) DEFAULT 'Success';
+-- Per-KYC-tier limit migrations
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS tier0_daily_limit DECIMAL(15,2) DEFAULT 0.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS tier0_weekly_limit DECIMAL(15,2) DEFAULT 0.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS tier0_monthly_limit DECIMAL(15,2) DEFAULT 0.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS tier1_daily_limit DECIMAL(15,2) DEFAULT 1000.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS tier1_weekly_limit DECIMAL(15,2) DEFAULT 5000.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS tier1_monthly_limit DECIMAL(15,2) DEFAULT 10000.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS tier2_daily_limit DECIMAL(15,2) DEFAULT 50000.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS tier2_weekly_limit DECIMAL(15,2) DEFAULT 250000.00;
+ALTER TABLE mvp_app_settings ADD COLUMN IF NOT EXISTS tier2_monthly_limit DECIMAL(15,2) DEFAULT 500000.00;
 
 -- ============================================================
 -- 2. WAITLIST  (Public signup queue)
@@ -400,12 +421,18 @@ INSERT INTO mvp_app_settings (
     id, maintenance_mode, allow_registration, max_transaction_limit,
     disable_transactions, email_notifications, site_name, site_logo, site_url,
     enable_daily_limit, enable_weekly_limit, enable_monthly_limit,
-    daily_limit, weekly_limit, monthly_limit
+    daily_limit, weekly_limit, monthly_limit,
+    tier0_daily_limit, tier0_weekly_limit, tier0_monthly_limit,
+    tier1_daily_limit, tier1_weekly_limit, tier1_monthly_limit,
+    tier2_daily_limit, tier2_weekly_limit, tier2_monthly_limit
 )
 VALUES (
     1, 0, 1, 50000.00,
     0, 1, 'Veltrix Bank', '', '',
     0, 0, 0,
+    50000.00, 250000.00, 500000.00,
+    0.00, 0.00, 0.00,
+    1000.00, 5000.00, 10000.00,
     50000.00, 250000.00, 500000.00
 )
 ON CONFLICT (id) DO UPDATE SET
@@ -423,6 +450,15 @@ ON CONFLICT (id) DO UPDATE SET
     daily_limit = EXCLUDED.daily_limit,
     weekly_limit = EXCLUDED.weekly_limit,
     monthly_limit = EXCLUDED.monthly_limit,
+    tier0_daily_limit = EXCLUDED.tier0_daily_limit,
+    tier0_weekly_limit = EXCLUDED.tier0_weekly_limit,
+    tier0_monthly_limit = EXCLUDED.tier0_monthly_limit,
+    tier1_daily_limit = EXCLUDED.tier1_daily_limit,
+    tier1_weekly_limit = EXCLUDED.tier1_weekly_limit,
+    tier1_monthly_limit = EXCLUDED.tier1_monthly_limit,
+    tier2_daily_limit = EXCLUDED.tier2_daily_limit,
+    tier2_weekly_limit = EXCLUDED.tier2_weekly_limit,
+    tier2_monthly_limit = EXCLUDED.tier2_monthly_limit,
     updated_at = NOW();
 
 -- ============================================================

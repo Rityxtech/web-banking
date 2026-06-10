@@ -44,13 +44,6 @@ function generateUUID() {
     });
 }
 
-// --- KYC LIMIT CONFIGURATION ---
-const KYC_LIMITS = {
-    0: { daily: 0, weekly: 0, monthly: 0, label: 'Unverified' },
-    1: { daily: 1000, weekly: 5000, monthly: 10000, label: 'Tier 1' },
-    2: { daily: 50000, weekly: 250000, monthly: 500000, label: 'Tier 2' }
-};
-
 const MaintenanceScreen = ({ onAdminLogin, onLogout, isLoggedIn }: { onAdminLogin: () => void, onLogout?: () => void, isLoggedIn: boolean }) => {
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
@@ -548,6 +541,15 @@ function App() {
         dailyLimit: 50000,
         weeklyLimit: 250000,
         monthlyLimit: 500000,
+        tier0DailyLimit: 0,
+        tier0WeeklyLimit: 0,
+        tier0MonthlyLimit: 0,
+        tier1DailyLimit: 1000,
+        tier1WeeklyLimit: 5000,
+        tier1MonthlyLimit: 10000,
+        tier2DailyLimit: 50000,
+        tier2WeeklyLimit: 250000,
+        tier2MonthlyLimit: 500000,
         defaultTransferStatus: 'Success'
     });
 
@@ -703,25 +705,31 @@ function App() {
         calculateUsage();
     }, [calculateUsage, transactions]);
 
-    // Determine Current Limits based on KYC Level
-    // Determine Current Limits based on KYC Level
+    // Determine Current Limits based on KYC Level (admin-configurable per tier)
     const currentLimits = useMemo(() => {
-        if (kycLevel === 2) {
-            return {
-                daily: globalSettings.enableDailyLimit ? (globalSettings.dailyLimit || 50000) : Infinity,
-                weekly: globalSettings.enableWeeklyLimit ? (globalSettings.weeklyLimit || 250000) : Infinity,
-                monthly: globalSettings.enableMonthlyLimit ? (globalSettings.monthlyLimit || 500000) : Infinity,
-                label: 'Tier 2'
-            };
-        }
-        return KYC_LIMITS[kycLevel as 0 | 1 | 2] || KYC_LIMITS[0];
+        const limits = kycLevel === 0 ? {
+            daily: globalSettings.tier0DailyLimit,
+            weekly: globalSettings.tier0WeeklyLimit,
+            monthly: globalSettings.tier0MonthlyLimit
+        } : kycLevel === 1 ? {
+            daily: globalSettings.tier1DailyLimit,
+            weekly: globalSettings.tier1WeeklyLimit,
+            monthly: globalSettings.tier1MonthlyLimit
+        } : {
+            daily: globalSettings.tier2DailyLimit || globalSettings.dailyLimit,
+            weekly: globalSettings.tier2WeeklyLimit || globalSettings.weeklyLimit,
+            monthly: globalSettings.tier2MonthlyLimit || globalSettings.monthlyLimit
+        };
+        return {
+            daily: globalSettings.enableDailyLimit ? (limits.daily ?? 0) : Infinity,
+            weekly: globalSettings.enableWeeklyLimit ? (limits.weekly ?? 0) : Infinity,
+            monthly: globalSettings.enableMonthlyLimit ? (limits.monthly ?? 0) : Infinity,
+            label: `Tier ${kycLevel}`
+        };
     }, [kycLevel, globalSettings]);
 
     const checkTransactionLimit = (amount: number): { allowed: boolean; type?: 'daily' | 'weekly' | 'monthly' } => {
         const absAmount = Math.abs(amount);
-        // STRICT KYC 0 CHECK
-        if (kycLevel === 0) return { allowed: false, type: 'daily' };
-
         if (dailyUsage + absAmount > currentLimits.daily) return { allowed: false, type: 'daily' };
         if (weeklyUsage + absAmount > currentLimits.weekly) return { allowed: false, type: 'weekly' };
         if (monthlyUsage + absAmount > currentLimits.monthly) return { allowed: false, type: 'monthly' };
@@ -765,6 +773,15 @@ function App() {
                     dailyLimit: Number(settings.daily_limit) || 50000,
                     weeklyLimit: Number(settings.weekly_limit) || 250000,
                     monthlyLimit: Number(settings.monthly_limit) || 500000,
+                    tier0DailyLimit: Number(settings.tier0_daily_limit) || 0,
+                    tier0WeeklyLimit: Number(settings.tier0_weekly_limit) || 0,
+                    tier0MonthlyLimit: Number(settings.tier0_monthly_limit) || 0,
+                    tier1DailyLimit: Number(settings.tier1_daily_limit) || 1000,
+                    tier1WeeklyLimit: Number(settings.tier1_weekly_limit) || 5000,
+                    tier1MonthlyLimit: Number(settings.tier1_monthly_limit) || 10000,
+                    tier2DailyLimit: Number(settings.tier2_daily_limit) || Number(settings.daily_limit) || 50000,
+                    tier2WeeklyLimit: Number(settings.tier2_weekly_limit) || Number(settings.weekly_limit) || 250000,
+                    tier2MonthlyLimit: Number(settings.tier2_monthly_limit) || Number(settings.monthly_limit) || 500000,
                     defaultTransferStatus: settings.default_transfer_status || 'Success'
                 });
             }
