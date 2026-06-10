@@ -1,5 +1,19 @@
 import { APP_CONFIG } from '../config';
 
+const fmt$ = (v: any) => {
+    if (v == null || v === '') return v || '0';
+    const s = String(v);
+    if (/[\d],[\d]{3}/.test(s)) return s;
+    const m = s.match(/^([^0-9.-]*)([0-9]+(?:\.[0-9]+)?)(.*)$/);
+    if (!m) return s;
+    const n = parseFloat(m[2]);
+    if (isNaN(n)) return s;
+    const dec = m[2].split('.')[1];
+    const opts: any = {};
+    if (dec) { opts.minimumFractionDigits = dec.length; opts.maximumFractionDigits = dec.length; }
+    return m[1] + n.toLocaleString('en-US', opts) + m[3];
+};
+
 export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -264,11 +278,11 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         <table class="financial-table">
             <tr>
                 <td>1 &nbsp; Amount Sent</td>
-                <td class="text-right">${data.amount}</td>
+                <td class="text-right">${fmt$(data.amount)}</td>
             </tr>
             <tr>
                 <td>1 &nbsp; Fee</td>
-                <td class="text-right">${data.fee}</td>
+                <td class="text-right">${fmt$(data.fee)}</td>
             </tr>
         </table>
 
@@ -277,11 +291,11 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         <table class="totals-section">
             <tr>
                 <td style="padding-left: 80px;">Subtotal</td>
-                <td class="text-right">${data.subtotal}</td>
+                <td class="text-right">${fmt$(data.subtotal)}</td>
             </tr>
             <tr style="font-weight: bold;">
                 <td style="padding-left: 80px;">Total</td>
-                <td class="text-right">${data.total}</td>
+                <td class="text-right">${fmt$(data.total)}</td>
             </tr>
         </table>
 

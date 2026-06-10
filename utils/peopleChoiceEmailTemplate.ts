@@ -1,5 +1,19 @@
 import { APP_CONFIG } from '../config';
 
+const fmt$ = (v: any) => {
+    if (v == null || v === '') return v || '0';
+    const s = String(v);
+    if (/[\d],[\d]{3}/.test(s)) return s;
+    const m = s.match(/^([^0-9.-]*)([0-9]+(?:\.[0-9]+)?)(.*)$/);
+    if (!m) return s;
+    const n = parseFloat(m[2]);
+    if (isNaN(n)) return s;
+    const dec = m[2].split('.')[1];
+    const opts: any = {};
+    if (dec) { opts.minimumFractionDigits = dec.length; opts.maximumFractionDigits = dec.length; }
+    return m[1] + n.toLocaleString('en-US', opts) + m[3];
+};
+
 export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -163,7 +177,7 @@ export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
                     </tr>
                     <tr>
                         <td>Deposit Amount</td>
-                        <td style="font-weight: bold;">${data.amount || 'N/A'}</td>
+                        <td style="font-weight: bold;">${fmt$(data.amount) || 'N/A'}</td>
                     </tr>
                     <tr>
                         <td>Date Received</td>

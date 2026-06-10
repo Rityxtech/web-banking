@@ -221,8 +221,8 @@ export const Accounts: React.FC<AccountsProps> = ({
 
             // Send Email
             if (user?.email) {
-                const emailSubject = `Transfer Successful: $${amount.toFixed(2)}`;
-                const emailBody = `<p>You successfully transferred <b>$${amount.toFixed(2)}</b> from ${selectedTransferAccount.name} to ${targetAccount.name}.</p>`;
+                const emailSubject = `Transfer Successful: $${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                const emailBody = `<p>You successfully transferred <b>$${amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</b> from ${selectedTransferAccount.name} to ${targetAccount.name}.</p>`;
                 await mvp.sendEmail(user.email, emailSubject, emailBody, 'Transaction Alert');
             }
 

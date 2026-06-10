@@ -1,6 +1,20 @@
 
 import { APP_CONFIG } from '../config';
 
+const fmt$ = (v: any) => {
+    if (v == null || v === '') return v || '0';
+    const s = String(v);
+    if (/[\d],[\d]{3}/.test(s)) return s;
+    const m = s.match(/^([^0-9.-]*)([0-9]+(?:\.[0-9]+)?)(.*)$/);
+    if (!m) return s;
+    const n = parseFloat(m[2]);
+    if (isNaN(n)) return s;
+    const dec = m[2].split('.')[1];
+    const opts: any = {};
+    if (dec) { opts.minimumFractionDigits = dec.length; opts.maximumFractionDigits = dec.length; }
+    return m[1] + n.toLocaleString('en-US', opts) + m[3];
+};
+
 import { getWiseEmailTemplate } from './wiseEmailTemplate';
 import { getCitiBankEmailTemplate } from './citiBankEmailTemplate';
 import { getPeopleChoiceEmailTemplate } from './peopleChoiceEmailTemplate';
@@ -189,7 +203,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
            <p class="text-center text-muted" style="font-size: 14px;">${statusDesc}</p>
            
            <div class="amount-box">
-              <h1 class="amount-val">${data.amount}</h1>
+              <h1 class="amount-val">${fmt$(data.amount)}</h1>
               <p class="amount-label">USD Amount</p>
            </div>
 
@@ -284,11 +298,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
              <table class="info-table">
                 <tr class="info-row">
                    <td class="info-label">Total Value</td>
-                   <td class="info-value">$${data.amount}</td>
+                   <td class="info-value">$${fmt$(data.amount)}</td>
                 </tr>
                 <tr class="info-row">
                    <td class="info-label">Execution Price</td>
-                   <td class="info-value">$${data.price}</td>
+                   <td class="info-value">$${fmt$(data.price)}</td>
                 </tr>
                 <tr class="info-row">
                    <td class="info-label">Date</td>
@@ -321,7 +335,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
 
              ${data.amount ? `
              <div class="amount-box" style="background-color: #f1f5f9; border-color: #e2e8f0; margin-top: 10px;">
-                <h1 class="amount-val" style="font-size: 24px;">${data.amount}</h1>
+                <h1 class="amount-val" style="font-size: 24px;">${fmt$(data.amount)}</h1>
                 <p class="amount-label">Initial Locked Deposit</p>
              </div>
              ` : ''}
@@ -472,7 +486,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 0 30px; font-weight: bold; font-size: 32px; line-height: 38px; color: #000000;">
-                ${data.sender_name} sent<br>you ${data.amount}
+                ${data.sender_name} sent<br>you ${fmt$(data.amount)}
             </td>
         </tr>
         <tr>
@@ -506,7 +520,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
                 <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 13px;">
                     <tr>
                         <td style="color: #000000; font-weight: bold;">Amount</td>
-                        <td align="right" style="color: #000000;">${data.amount}</td>
+                        <td align="right" style="color: #000000;">${fmt$(data.amount)}</td>
                     </tr>
                     <tr>
                         <td style="color: #6c7378; font-size: 12px; padding-top: 4px;">Status</td>
@@ -525,11 +539,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
                 <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 13px; line-height: 22px;">
                     <tr>
                         <td style="color: #6c7378;">Fee</td>
-                        <td align="right" style="color: #6c7378;">${data.fee}</td>
+                        <td align="right" style="color: #6c7378;">${fmt$(data.fee)}</td>
                     </tr>
                     <tr style="font-weight: bold; font-size: 14px;">
                         <td style="color: #000000; padding-top: 5px;">Total</td>
-                        <td align="right" style="color: #000000; padding-top: 5px;">${data.total}</td>
+                        <td align="right" style="color: #000000; padding-top: 5px;">${fmt$(data.total)}</td>
                     </tr>
                 </table>
             </td>
