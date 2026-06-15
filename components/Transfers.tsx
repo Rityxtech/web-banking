@@ -1041,9 +1041,9 @@ export const Transfers: React.FC<TransfersProps> = ({
 
                 {/* Currency Selection Modal */}
                 {showCurrencyModal && (
-                    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center px-0 md:px-4">
+                    <div className="fixed inset-0 z-[70] flex items-center justify-center px-2 md:px-4">
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowCurrencyModal(false); setCurrencySearch(''); }}></div>
-                        <div className="relative bg-white dark:bg-slate-800 w-full md:max-w-md md:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[60vh] md:max-h-[480px]">
+                        <div className="relative bg-white dark:bg-slate-800 w-full md:max-w-md rounded-2xl md:rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[80dvh] md:max-h-[480px]">
                             <div className="p-3 md:p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800">
                                 <div>
                                     <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Select Currency</h3>
@@ -1103,9 +1103,9 @@ export const Transfers: React.FC<TransfersProps> = ({
 
                 {/* Language Selection Modal */}
                 {showLanguageModal && (
-                    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center px-0 md:px-4">
+                    <div className="fixed inset-0 z-[70] flex items-center justify-center px-2 md:px-4">
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowLanguageModal(false); setLanguageSearch(''); }}></div>
-                        <div className="relative bg-white dark:bg-slate-800 w-full md:max-w-md md:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[60vh] md:max-h-[480px]">
+                        <div className="relative bg-white dark:bg-slate-800 w-full md:max-w-md rounded-2xl md:rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[80dvh] md:max-h-[480px]">
                             <div className="p-3 md:p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800">
                                 <div>
                                     <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Select Language</h3>
@@ -1166,9 +1166,9 @@ export const Transfers: React.FC<TransfersProps> = ({
 
                 {/* Bank Selection Modal */}
                 {showBankModal && (
-                    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center px-0 md:px-4">
+                    <div className="fixed inset-0 z-[70] flex items-center justify-center px-2 md:px-4">
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowBankModal(false); setBankSearch(''); }}></div>
-                        <div className="relative bg-white dark:bg-slate-800 w-full md:max-w-md md:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[60vh] md:max-h-[480px] md:-translate-y-[60px]">
+                        <div className="relative bg-white dark:bg-slate-800 w-full md:max-w-md rounded-2xl md:rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[80dvh] md:max-h-[480px] md:-translate-y-[60px]">
                             <div className="p-3 md:p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800">
                                 <div>
                                     <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Select Bank</h3>
