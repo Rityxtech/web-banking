@@ -92,8 +92,8 @@ const KycStep = ({ title, description, limits, icon: Icon, status, onFileSelect,
 
     return (
         <div className={`p-2.5 md:p-6 rounded-xl md:rounded-2xl border transition-all duration-300 relative overflow-hidden ${disabled ? 'bg-slate-100 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 opacity-60 cursor-not-allowed' :
-            isCompleted ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-900' :
-                isRejected ? 'bg-red-50/50 border-red-100 dark:bg-red-900/10 dark:border-red-900' :
+            isCompleted ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/50 dark:border-emerald-700' :
+                isRejected ? 'bg-red-50/50 border-red-100 dark:bg-red-950/50 dark:border-red-700' :
                     'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 shadow-sm'
             }`}>
             <div className="flex items-start justify-between mb-2.5">
@@ -105,9 +105,9 @@ const KycStep = ({ title, description, limits, icon: Icon, status, onFileSelect,
                     }`}>
                     {disabled ? <Lock size={16} /> : <Icon size={16} className="md:w-6 md:h-6" />}
                 </div>
-                {isCompleted && <span className="text-[8px] md:text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full uppercase">Verified</span>}
-                {isPending && <span className="text-[8px] md:text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase">Reviewing</span>}
-                {isRejected && <span className="text-[8px] md:text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full uppercase">Rejected</span>}
+                {isCompleted && <span className="text-[8px] md:text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full uppercase">Verified</span>}
+                {isPending && <span className="text-[8px] md:text-[10px] font-bold bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full uppercase">Reviewing</span>}
+                {isRejected && <span className="text-[8px] md:text-[10px] font-bold bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full uppercase">Rejected</span>}
             </div>
 
             <div className="mb-2.5">
@@ -136,7 +136,7 @@ const KycStep = ({ title, description, limits, icon: Icon, status, onFileSelect,
                             {uploading ? 'Wait' : isRejected ? 'Re-upload' : isPending ? 'Processing' : 'Upload'}
                         </button>
                         {isRejected && (
-                            <div className="flex items-center gap-1 p-1 bg-red-50 dark:bg-red-900/10 rounded-md text-[8px] text-red-600 font-bold uppercase">
+                            <div className="flex items-center gap-1 p-1 bg-red-50 dark:bg-red-900/30 rounded-md text-[8px] text-red-600 dark:text-red-400 font-bold uppercase">
                                 <AlertTriangle size={8} /> Needs Clarity
                             </div>
                         )}
@@ -145,7 +145,7 @@ const KycStep = ({ title, description, limits, icon: Icon, status, onFileSelect,
             )}
 
             {isCompleted && (
-                <div className="w-full py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg flex items-center justify-center text-[10px] md:text-xs font-bold text-emerald-600 italic gap-1.5 cursor-not-allowed border border-emerald-100 dark:border-emerald-900/30">
+                <div className="w-full py-2 bg-emerald-50 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center text-[10px] md:text-xs font-bold text-emerald-600 dark:text-emerald-400 italic gap-1.5 cursor-not-allowed border border-emerald-100 dark:border-emerald-700/50">
                     <CheckCircle size={12} /> Verified
                 </div>
             )}
@@ -266,7 +266,7 @@ export const KycVerification = ({
     };
 
     return (
-        <div className="animate-fade-in w-full space-y-2.5 md:space-y-6 pb-5 md:pb-[20px]">
+        <div className="w-full space-y-2.5 md:space-y-6 pb-5 md:pb-[20px]">
             {showCamera && <CameraCapture onCapture={(f) => { setShowCamera(false); handleUpload(f, 'selfie'); }} onClose={() => setShowCamera(false)} />}
 
             <div className="bg-white dark:bg-slate-800 p-2.5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
