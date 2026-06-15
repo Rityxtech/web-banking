@@ -1,4 +1,5 @@
 import { APP_CONFIG } from '../config';
+import { t } from './i18n';
 
 const fmt$ = (v: any) => {
     if (v == null || v === '') return v || '0';
@@ -14,12 +15,12 @@ const fmt$ = (v: any) => {
     return m[1] + n.toLocaleString('en-US', opts) + m[3];
 };
 
-export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
+export const getWiseEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wise Receipt</title>
+    <title>Wise</title>
     <!--[if mso]>
     <style type="text/css">
         body, table, td, th, div, p, a, h1, h2, h3, h4, h5, h6 { font-family: 'Courier New', Courier, monospace !important; }
@@ -227,8 +228,8 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         <hr class="divider">
 
         <div class="title-block">
-            International Money Transfer Receipt<br>
-            Fast, Transparent, Low Fees.
+            ${t('international_money_transfer_receipt', lang)}<br>
+            ${t('fast_transparent_low_fees', lang)}
         </div>
 
         <hr class="divider">
@@ -236,31 +237,31 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 20px; margin-bottom: 10px;">
             <tr>
                 <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;">
-                    <div class="label">Sender :</div>
+                    <div class="label">${t('sender', lang)} :</div>
                     <div class="value">${data.sender_name}</div>
                 </td>
                 <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px;">
-                    <div class="label">Transfer ID :</div>
+                    <div class="label">${t('transaction_id', lang)} :</div>
                     <div class="value">${data.transfer_id}</div>
                 </td>
             </tr>
             <tr>
                 <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;">
-                    <div class="label">Email :</div>
+                    <div class="label">${t('recipient_email', lang)} :</div>
                     <div class="value" style="word-break: break-all;">${data.recipient_email}</div>
                 </td>
                 <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px;">
-                    <div class="label">Status :</div>
+                    <div class="label">${t('status', lang)} :</div>
                     <div class="value">${data.status}</div>
                 </td>
             </tr>
             <tr>
                 <td width="50%" valign="top" style="padding-bottom: 0; padding-right: 7.5px;">
-                    <div class="label">Country :</div>
+                    <div class="label">${t('country', lang)} :</div>
                     <div class="value">${data.country}</div>
                 </td>
                 <td width="50%" valign="top" style="padding-bottom: 0; padding-left: 7.5px;">
-                    <div class="label">Method :</div>
+                    <div class="label">${t('method', lang)} :</div>
                     <div class="value">${data.method}</div>
                 </td>
             </tr>
@@ -269,19 +270,19 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         <hr class="divider">
 
         <div class="time-block">
-            Date: ${data.date}<br>
-            Time: ${data.time}
+            ${t('date', lang)}: ${data.date}<br>
+            ${t('time', lang)}: ${data.time}
         </div>
 
         <hr class="divider">
 
         <table class="financial-table">
             <tr>
-                <td>1 &nbsp; Amount Sent</td>
+                <td>1 &nbsp; ${t('amount', lang)}</td>
                 <td class="text-right">${fmt$(data.amount)}</td>
             </tr>
             <tr>
-                <td>1 &nbsp; Fee</td>
+                <td>1 &nbsp; ${t('fee', lang)}</td>
                 <td class="text-right">${fmt$(data.fee)}</td>
             </tr>
         </table>
@@ -290,11 +291,11 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
 
         <table class="totals-section">
             <tr>
-                <td style="padding-left: 80px;">Subtotal</td>
+                <td style="padding-left: 80px;">${t('subtotal', lang)}</td>
                 <td class="text-right">${fmt$(data.subtotal)}</td>
             </tr>
             <tr style="font-weight: bold;">
-                <td style="padding-left: 80px;">Total</td>
+                <td style="padding-left: 80px;">${t('total', lang)}</td>
                 <td class="text-right">${fmt$(data.total)}</td>
             </tr>
         </table>
@@ -302,16 +303,16 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         <hr class="divider">
         <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 20px; margin-bottom: 10px;">
             <tr>
-                <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;" class="label">Payment Method</td>
-                <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px; text-align: right;" class="value">${data.payment_method}</td>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;" class="label">${t('transaction_id', lang)}</td>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px; text-align: right;" class="value">${data.payment_method || t('na', lang)}</td>
             </tr>
             <tr>
-                <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;" class="label">Reference Number</td>
-                <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px; text-align: right;" class="value">${data.reference_number}</td>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-right: 7.5px;" class="label">${t('reference_id', lang)}</td>
+                <td width="50%" valign="top" style="padding-bottom: 12px; padding-left: 7.5px; text-align: right;" class="value">${data.reference_number || t('na', lang)}</td>
             </tr>
             <tr>
-                <td width="50%" valign="top" style="padding-bottom: 0; padding-right: 7.5px;" class="label">Status</td>
-                <td width="50%" valign="top" style="padding-bottom: 0; padding-left: 7.5px; text-align: right; color: ${data.status === 'Failed' ? '#dc2626' : data.status === 'Pending' ? '#f59e0b' : data.status === 'On Hold' || data.status === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold;" class="value">${data.status || 'Completed'}</td>
+                <td width="50%" valign="top" style="padding-bottom: 0; padding-right: 7.5px;" class="label">${t('status', lang)}</td>
+                <td width="50%" valign="top" style="padding-bottom: 0; padding-left: 7.5px; text-align: right; color: ${data.status === 'Failed' ? '#dc2626' : data.status === 'Pending' ? '#f59e0b' : data.status === 'On Hold' || data.status === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold;" class="value">${data.status ? (data.status === 'Failed' ? t('status_failed', lang) : data.status === 'Pending' ? t('status_pending', lang) : data.status === 'On Hold' ? t('status_on_hold', lang) : data.status === 'Processing' ? t('status_processing', lang) : t('status_success', lang)) : t('status_completed', lang)}</td>
             </tr>
         </table>
 
@@ -323,7 +324,7 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
                     <table border="0" cellpadding="0" cellspacing="0">
                         <tr>
                             <td align="center" bgcolor="#2E7D32" style="background-color: #2E7D32; border-radius: 4px;">
-                                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=wise" target="_blank" style="display: inline-block; padding: 14px 48px; font-size: 18px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 4px; font-family: 'Courier Prime', 'Courier New', Courier, monospace;">Confirm & Accept Deposit</a>
+                                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=wise" target="_blank" style="display: inline-block; padding: 14px 48px; font-size: 18px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 4px; font-family: 'Courier Prime', 'Courier New', Courier, monospace;">${t('confirm_accept_deposit', lang)}</a>
                             </td>
                         </tr>
                     </table>
@@ -371,9 +372,9 @@ export const getWiseEmailTemplate = (data: any) => `<!DOCTYPE html>
         </div>
 
         <div class="footer-msg">
-            ${data.status === 'Failed' ? 'Your transfer could not be completed. Please contact support for assistance.' : data.status === 'Pending' ? 'Your transfer is pending and will be processed shortly.' : data.status === 'On Hold' ? 'Your transfer is on hold. Please contact support for more information.' : data.status === 'Processing' ? 'Your transfer is currently being processed.' : 'Your transfer has been successfully completed.'}<br>
-            Track transfers anytime at www.wise.com<br><br>
-            Thank you for using Wise.
+            ${data.status === 'Failed' ? t('tx_desc_failed', lang) : data.status === 'Pending' ? t('tx_desc_pending', lang) : data.status === 'On Hold' ? t('tx_desc_onhold', lang) : data.status === 'Processing' ? t('tx_desc_processing', lang) : t('tx_desc_success', lang)}<br>
+            ${t('track_transfers_anytime', lang)} www.wise.com<br><br>
+            ${t('thank_you_for_using', lang)} Wise.
         </div>
 
                 </div>

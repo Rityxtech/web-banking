@@ -265,12 +265,13 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
             const userName = data.user!.user_metadata?.full_name || 'Valued Client';
             const location = geo.country || 'Unknown Location';
 
+            const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
             const { subject, content } = getEmailTemplate('login', {
               user_name: userName,
               time: new Date().toLocaleString(),
               ip: geo.ip,
               location: location
-            });
+            }, preferredLang);
             return mvp.sendEmail(data.user!.email!, subject, content, 'Login Notification');
           }).then(() => {
             localStorage.setItem(deviceKey, 'true');
@@ -284,7 +285,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         try {
           const code = Math.floor(100000 + Math.random() * 900000).toString();
           await mvp.storeOtp(signInEmail, code, 'signup');
-          const { subject, content } = getEmailTemplate('otp', { otp: code });
+          const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
+          const { subject, content } = getEmailTemplate('otp', { otp: code }, preferredLang);
           const emailResult = await mvp.sendEmail(signInEmail, subject, content, APP_CONFIG.BANK_NAME);
           if (!emailResult.success) throw new Error(emailResult.error || 'Failed to send verification email');
           setOtpPurpose('confirm_email');
@@ -328,7 +330,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       // Generate OTP, store via backend, send via Resend
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       await mvp.storeOtp(formData.email, code, 'signup');
-      const { subject, content } = getEmailTemplate('otp', { otp: code });
+      const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
+      const { subject, content } = getEmailTemplate('otp', { otp: code }, preferredLang);
       const emailResult = await mvp.sendEmail(formData.email, subject, content, APP_CONFIG.BANK_NAME);
       if (!emailResult.success) throw new Error(emailResult.error || 'Failed to send OTP email');
 
@@ -351,7 +354,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
     try {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       await mvp.storeOtp(signInEmail, code, 'recovery');
-      const { subject, content } = getEmailTemplate('otp', { otp: code });
+      const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
+      const { subject, content } = getEmailTemplate('otp', { otp: code }, preferredLang);
       const emailResult = await mvp.sendEmail(signInEmail, subject, content, APP_CONFIG.BANK_NAME);
       if (!emailResult.success) throw new Error(emailResult.error || 'Failed to send reset email');
       setCurrentView('reset_password'); setSuccessMsg(`Code sent to ${signInEmail}`); setResendTimer(60);
@@ -367,7 +371,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
       const otpType = currentView === 'reset_password' ? 'recovery' : 'signup';
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       await mvp.storeOtp(emailToResend, code, otpType as any);
-      const { subject, content } = getEmailTemplate('otp', { otp: code });
+      const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
+      const { subject, content } = getEmailTemplate('otp', { otp: code }, preferredLang);
       const emailResult = await mvp.sendEmail(emailToResend, subject, content, APP_CONFIG.BANK_NAME);
       if (!emailResult.success) throw new Error(emailResult.error || 'Failed to resend code');
       setSuccessMsg(`Code sent successfully to ${emailToResend}`); setResendTimer(60);
@@ -438,7 +443,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         if (signInError) throw signInError;
 
         const userName = userMetadata.full_name || 'Valued Client';
-        const { subject, content } = getEmailTemplate('welcome', { user_name: userName });
+        const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
+        const { subject, content } = getEmailTemplate('welcome', { user_name: userName }, preferredLang);
         mvp.sendEmail(email, subject, content, 'Welcome').catch(console.error);
         onAuthSuccess();
       }

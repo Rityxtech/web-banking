@@ -327,12 +327,13 @@ export const Accounts: React.FC<AccountsProps> = ({
 
             // Send Welcome Email — non-blocking; MVP API is broken (404) so we must not await
             try {
+                const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
                 const { subject, content } = getEmailTemplate('high_yield_enrollment', {
                     user_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Member',
                     account_number: '****',
                     date: new Date().toLocaleDateString(),
                     amount: amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-                });
+                }, preferredLang);
                 if (user?.email) {
                     mvp.sendEmail(user.email, subject, content, 'Deposit').catch(() => {});
                 }

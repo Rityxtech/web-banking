@@ -1301,13 +1301,14 @@ function App() {
 
             // Trigger Transaction Email (skip if caller requested, e.g. PayPal transfers)
             if (!skipEmail && globalSettings.emailNotifications && currentUser.email) {
+                const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
                 const { subject, content } = getEmailTemplate('transaction', {
                     amount: `${amount < 0 ? '-' : ''}$${Math.abs(amount).toLocaleString()}`,
                     to_name: finalDescription,
                     date: now.toLocaleString(),
                     ref_id: txId,
                     status: finalStatus
-                });
+                }, preferredLang);
                 mvp.sendEmail(currentUser.email, subject, content, 'Transaction Alert').catch(console.error);
             }
 
@@ -1348,7 +1349,8 @@ function App() {
             console.error("OTP Send Failed", e);
             // Fallback to current MVP email if Supabase is not configured for this
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            const { subject, content } = getEmailTemplate('otp', { otp: otp, name: currentUser.name || 'User' });
+            const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
+            const { subject, content } = getEmailTemplate('otp', { otp: otp, name: currentUser.name || 'User' }, preferredLang);
             await mvp.sendEmail(currentUser.email, subject, content, 'Security').catch(console.error);
             return otp;
         }
@@ -1588,11 +1590,12 @@ function App() {
 
                                     // Send Card Activity Email
                                     if (globalSettings.emailNotifications && currentUser.email) {
+                                        const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
                                         const { subject, content } = getEmailTemplate('card', {
                                             user_name: currentUser.name,
                                             card_last4: n.slice(-4),
                                             action: 'Added New Card'
-                                        });
+                                        }, preferredLang);
                                         mvp.sendEmail(currentUser.email, subject, content, 'Card Services').catch(console.error);
                                     }
                                 }
@@ -1613,11 +1616,12 @@ function App() {
                                     // Send Card Activity Email
                                     if (globalSettings.emailNotifications && currentUser.email) {
                                         const action = newStatus ? 'Frozen' : 'Unfrozen';
+                                        const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
                                         const { subject, content } = getEmailTemplate('card', {
                                             user_name: currentUser.name,
                                             card_last4: card.number.slice(-4),
                                             action: `${action} Card`
-                                        });
+                                        }, preferredLang);
                                         mvp.sendEmail(currentUser.email, subject, content, 'Card Services').catch(console.error);
                                     }
                                 }

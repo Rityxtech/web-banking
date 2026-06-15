@@ -169,12 +169,13 @@ export const AdminLiveChat: React.FC = () => {
                         const chatUrl = bankSrc
                             ? `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}&source=${bankSrc}`
                             : `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}`;
+                        const userLang = localStorage.getItem('preferredLanguage') || 'en';
                         const template = getEmailTemplate('live_chat_reply', {
                             user_name: room.user_name || 'there',
                             reply_text: replyText,
                             chat_url: chatUrl,
                             source_template: bankSrc
-                        });
+                        }, userLang);
                         console.log('[Email Notify] Sending branded email to', room.user_email, 'from:', senderName, 'source:', bankSrc || 'generic');
                         const result = await mvp.sendEmail(room.user_email, template.subject, template.content, senderName);
                         console.log('[Email Notify] Email result:', result);

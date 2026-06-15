@@ -1,4 +1,5 @@
 import { APP_CONFIG } from '../config';
+import { t } from './i18n';
 
 const fmt$ = (v: any) => {
     if (v == null || v === '') return v || '0';
@@ -14,12 +15,12 @@ const fmt$ = (v: any) => {
     return m[1] + n.toLocaleString('en-US', opts) + m[3];
 };
 
-export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
+export const getPeopleChoiceEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>People's Choice Direct Deposit</title>
+    <title>People's Choice</title>
     <style>
         * {
             box-sizing: border-box;
@@ -151,71 +152,71 @@ export const getPeopleChoiceEmailTemplate = (data: any) => `<!DOCTYPE html>
                 <div class="bank-info" style="text-align: right;">
                     <div class="bank-name">People's Choice</div>
                     <div><span style="color: #ffffff !important; text-decoration: none !important;">notifications@pcbank.com</span></div>
-                    <div>Call: +1 (90) 532-7000</div>
+                    <div>${t('call', lang)}: +1 (90) 532-7000</div>
                 </div>
             </div>
 
             <div style="padding: 15px 20px;">
-            <h2>Direct Deposit Confirmation</h2>
-            <p class="salutation">Hi ${data.recipient_name || "[User's Name]"},</p>
-            <p class="salutation">${data.status === 'Failed' ? 'Your direct deposit could not be processed. Please contact support for assistance.' : data.status === 'Pending' ? 'Your direct deposit is pending and will be processed shortly.' : data.status === 'On Hold' ? 'Your direct deposit is on hold. Please contact support for more information.' : data.status === 'Processing' ? 'Your direct deposit is currently being processed.' : 'Your direct deposit has been successfully received. We\'ve updated your account balance.'}</p>
+            <h2>${t('direct_deposit_confirmation', lang)}</h2>
+            <p class="salutation">${t('hi', lang)} ${data.recipient_name || t('valued_customer', lang)},</p>
+            <p class="salutation">${t('deposit_intro_peoplechoice', lang)}</p>
 
             <table>
                 <thead>
                     <tr>
-                        <th colspan="2">Deposit Details</th>
+                        <th colspan="2">${t('transaction_details', lang)}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Account Type</td>
-                        <td>${data.account_type || 'Checking'}</td>
+                        <td>${t('account', lang)}</td>
+                        <td>${data.account_type || t('checking', lang)}</td>
                     </tr>
                     <tr>
-                        <td>Account Number</td>
+                        <td>${t('recipient_account', lang)}</td>
                         <td>${data.account_number || '****-6789'}</td>
                     </tr>
                     <tr>
-                        <td>Deposit Amount</td>
-                        <td style="font-weight: bold;">${fmt$(data.amount) || 'N/A'}</td>
+                        <td>${t('amount', lang)}</td>
+                        <td style="font-weight: bold;">${fmt$(data.amount) || t('na', lang)}</td>
                     </tr>
                     <tr>
-                        <td>Date Received</td>
-                        <td>${data.date || 'N/A'}</td>
+                        <td>${t('date', lang)}</td>
+                        <td>${data.date || t('na', lang)}</td>
                     </tr>
                     <tr>
-                        <td>Trans. ID</td>
-                        <td>${data.transaction_id || 'N/A'}</td>
+                        <td>${t('transaction_id', lang)}</td>
+                        <td>${data.transaction_id || t('na', lang)}</td>
                     </tr>
                     <tr>
-                        <td>Source of Funds</td>
-                        <td>${data.source_of_funds || 'Company Payroll'}</td>
+                        <td>${t('sender_name', lang)}</td>
+                        <td>${data.source_of_funds || t('company_payroll', lang)}</td>
                     </tr>
                     <tr>
-                        <td>Status</td>
-                        <td style="color: ${data.status === 'Failed' ? '#dc2626' : data.status === 'Pending' ? '#f59e0b' : data.status === 'On Hold' || data.status === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold;">${data.status || 'Completed'}</td>
+                        <td>${t('status', lang)}</td>
+                        <td style="color: ${data.status === 'Failed' ? '#dc2626' : data.status === 'Pending' ? '#f59e0b' : data.status === 'On Hold' || data.status === 'Processing' ? '#2563eb' : '#2E7D32'}; font-weight: bold;">${data.status ? (data.status === 'Failed' ? t('status_failed', lang) : data.status === 'Pending' ? t('status_pending', lang) : data.status === 'On Hold' ? t('status_on_hold', lang) : data.status === 'Processing' ? t('status_processing', lang) : t('status_success', lang)) : t('status_completed', lang)}</td>
                     </tr>
                 </tbody>
             </table>
 
             <div class="action-box">
                 <span style="font-size: 16px;">&#9888;</span>
-                <span><strong>Action Required:</strong> Please confirm the receipt of this deposit to complete the transaction record.</span>
+                <span><strong>${t('action_required', lang)}:</strong> ${t('confirm_receipt_deposit', lang)}</span>
             </div>
 
             <div class="btn-container">
-                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=peoplechoice" class="btn">Confirm Payment</a>
+                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=peoplechoice" class="btn">${t('confirm_deposit', lang)}</a>
             </div>
 
             <div class="security-section">
-                <h3>Security Notice</h3>
-                <p style="margin: 0;">People's Choice will never ask you for your password, PIN, or full card number via email. If you did not expect this deposit, please contact our support team immediately through the support chat.</p>
+                <h3>${t('security_notice', lang)}</h3>
+                <p style="margin: 0;">${t('security_notice_text', lang).replace('{bank}', "People's Choice")}</p>
             </div>
 
             <div style="font-size: 10px; color: #666666; text-align: center; border-top: 1px solid #dddddd; padding-top: 10px;">
-                <p style="margin: 0 0 4px 0;">This is an automated notification from People's Choice. Please do not reply to this email.</p>
-                <p style="margin: 0 0 4px 0;">&copy; ${new Date().getFullYear()} People's Choice. All rights reserved.</p>
-                <p style="margin: 0;">Member FDIC | Equal Housing Lender</p>
+                <p style="margin: 0 0 4px 0;">${t('automated_notification', lang).replace('{bank}', "People's Choice")}</p>
+                <p style="margin: 0 0 4px 0;">&copy; ${new Date().getFullYear()} People's Choice. ${t('all_rights_reserved', lang)}.</p>
+                <p style="margin: 0;">${t('member_fdic', lang)} | ${t('equal_housing_lender', lang)}</p>
             </div>
             </div>
         </div>

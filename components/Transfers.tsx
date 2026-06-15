@@ -4,6 +4,7 @@ import { Account } from '../types';
 import { Wallet, CheckCircle, ChevronRight, ChevronDown, User, AtSign, DollarSign, ArrowLeft, FileText, ShieldCheck, Clock, Share2, Download, Calendar, Globe, AlertCircle, Loader2, XCircle, X } from 'lucide-react';
 import { shareReceipt } from '../utils/receipt';
 import { getEmailTemplate } from '../utils/emailTemplates';
+import { SUPPORTED_LANGUAGES, getLanguageByCode } from '../utils/i18n';
 import { APP_CONFIG } from '../config';
 import { supabase } from '../services/supabase';
 import { mvp } from '../services/mvpService';
@@ -210,6 +211,12 @@ export const Transfers: React.FC<TransfersProps> = ({
     const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]); // Default USD
     const [showCurrencyModal, setShowCurrencyModal] = useState(false);
     const [currencySearch, setCurrencySearch] = useState('');
+    const [selectedLanguage, setSelectedLanguage] = useState(() => {
+        const saved = localStorage.getItem('preferredLanguage');
+        return getLanguageByCode(saved || 'en') || SUPPORTED_LANGUAGES[0];
+    });
+    const [showLanguageModal, setShowLanguageModal] = useState(false);
+    const [languageSearch, setLanguageSearch] = useState('');
 
     // Dynamic Banks State
     const [banks, setBanks] = useState<any[]>([]);
@@ -281,6 +288,16 @@ export const Transfers: React.FC<TransfersProps> = ({
         }
         return () => { document.body.style.overflow = ''; };
     }, [showCurrencyModal]);
+
+    // Lock body scroll when language modal is open
+    useEffect(() => {
+        if (showLanguageModal) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [showLanguageModal]);
 
     // Lock body scroll when bank modal is open
     useEffect(() => {
@@ -418,7 +435,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 status: txStatus
-                            });
+                            }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'PayPal').catch(console.error);
                         } catch (e) {
                             console.error('Failed to send PayPal email:', e);
@@ -454,7 +471,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 reference_number: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
                                 payment_status: 'Successful',
                                 barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`
-                            });
+                            }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Wise').catch(console.error);
                         } catch (e) {
                             console.error('Failed to send Wise email:', e);
@@ -481,7 +498,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 status: txStatus
-                            });
+                            }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Citibank').catch(console.error);
                         } catch (e) {
                             console.error('Failed to send CitiBank email:', e);
@@ -503,7 +520,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
                                 status: txStatus
-                            });
+                            }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, "People's Choice").catch(console.error);
                         } catch (e) {
                             console.error("Failed to send People's Choice email:", e);
@@ -525,7 +542,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
                                 status: txStatus
-                            });
+                            }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Nonghyup Bank').catch(console.error);
                         } catch (e) {
                             console.error('Failed to send Nonghyup Bank email:', e);
@@ -991,6 +1008,21 @@ export const Transfers: React.FC<TransfersProps> = ({
                             </div>
 
                             <div className="space-y-1 md:space-y-2">
+                                <label className="text-[10px] md:text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Email Language</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowLanguageModal(true)}
+                                    className="w-full p-2.5 md:p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm md:text-base font-medium flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all dark:text-white"
+                                >
+                                    <div className="flex items-center gap-2.5 md:gap-3">
+                                        <Globe size={18} className="text-slate-500 md:w-5 md:h-5" />
+                                        <span className="truncate">{selectedLanguage.name} ({selectedLanguage.native})</span>
+                                    </div>
+                                    <ChevronDown size={16} className="text-slate-400" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-1 md:space-y-2">
                                 <label className="text-[10px] md:text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Reference (Optional)</label>
                                 <div className="relative">
                                     <FileText size={14} className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-slate-400 md:w-5 md:h-5" />
@@ -1062,6 +1094,69 @@ export const Transfers: React.FC<TransfersProps> = ({
                                             <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 truncate">{currency.name}</p>
                                         </div>
                                         <span className="font-bold text-xs md:text-sm text-slate-700 dark:text-slate-300">{currency.symbol}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Language Selection Modal */}
+                {showLanguageModal && (
+                    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center px-0 md:px-4">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setShowLanguageModal(false); setLanguageSearch(''); }}></div>
+                        <div className="relative bg-white dark:bg-slate-800 w-full md:max-w-md md:rounded-3xl rounded-t-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[60vh] md:max-h-[480px]">
+                            <div className="p-3 md:p-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-slate-800">
+                                <div>
+                                    <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Select Language</h3>
+                                    <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400">Choose email receipt language</p>
+                                </div>
+                                <button onClick={() => { setShowLanguageModal(false); setLanguageSearch(''); }} className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
+                                    <X size={18} className="md:w-5 md:h-5" />
+                                </button>
+                            </div>
+                            <div className="px-3 md:px-4 pb-2 pt-1 md:pt-2">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search language..."
+                                        value={languageSearch}
+                                        onChange={(e) => setLanguageSearch(e.target.value)}
+                                        className="w-full pl-8 pr-3 py-1.5 md:py-2 bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-700 rounded-lg text-xs md:text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                                    />
+                                    <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 md:w-4 md:h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                </div>
+                            </div>
+                            <div className="overflow-y-auto p-2 md:p-3 space-y-0.5 flex-1">
+                                {SUPPORTED_LANGUAGES.filter(l =>
+                                    l.name.toLowerCase().includes(languageSearch.toLowerCase()) ||
+                                    l.native.toLowerCase().includes(languageSearch.toLowerCase()) ||
+                                    l.code.toLowerCase().includes(languageSearch.toLowerCase())
+                                ).map((language) => (
+                                    <button
+                                        key={language.code}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedLanguage(language);
+                                            localStorage.setItem('preferredLanguage', language.code);
+                                            setShowLanguageModal(false);
+                                            setLanguageSearch('');
+                                        }}
+                                        className={`w-full flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg transition-colors text-left ${
+                                            selectedLanguage.code === language.code
+                                                ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700 border border-transparent'
+                                        }`}
+                                    >
+                                        <span className="text-xl md:text-2xl">{language.flag}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="font-bold text-xs md:text-sm text-slate-900 dark:text-white">{language.name}</span>
+                                                {selectedLanguage.code === language.code && <CheckCircle size={14} className="text-blue-600 dark:text-blue-400" />}
+                                            </div>
+                                            <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 truncate">{language.native}</p>
+                                        </div>
+                                        <span className="font-bold text-xs md:text-sm text-slate-700 dark:text-slate-300">{language.code.toUpperCase()}</span>
                                     </button>
                                 ))}
                             </div>
