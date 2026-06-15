@@ -91,9 +91,9 @@ const KycStep = ({ title, description, limits, icon: Icon, status, onFileSelect,
     };
 
     return (
-        <div className={`p-2.5 md:p-6 rounded-xl md:rounded-2xl border transition-all duration-300 relative overflow-hidden ${disabled ? 'bg-slate-100 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 opacity-60 cursor-not-allowed' :
-            isCompleted ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-950/50 dark:border-emerald-700' :
-                isRejected ? 'bg-red-50/50 border-red-100 dark:bg-red-950/50 dark:border-red-700' :
+        <div className={`p-2.5 md:p-6 rounded-xl md:rounded-2xl border transition-colors duration-300 relative overflow-hidden transform-gpu ${disabled ? 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 opacity-60 cursor-not-allowed' :
+            isCompleted ? 'bg-emerald-50/50 border-emerald-100 dark:bg-emerald-900 dark:border-emerald-600' :
+                isRejected ? 'bg-red-50/50 border-red-100 dark:bg-red-900 dark:border-red-600' :
                     'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 shadow-sm'
             }`}>
             <div className="flex items-start justify-between mb-2.5">
@@ -136,7 +136,7 @@ const KycStep = ({ title, description, limits, icon: Icon, status, onFileSelect,
                             {uploading ? 'Wait' : isRejected ? 'Re-upload' : isPending ? 'Processing' : 'Upload'}
                         </button>
                         {isRejected && (
-                            <div className="flex items-center gap-1 p-1 bg-red-50 dark:bg-red-900/30 rounded-md text-[8px] text-red-600 dark:text-red-400 font-bold uppercase">
+                            <div className="flex items-center gap-1 p-1 bg-red-50 dark:bg-red-950 rounded-md text-[8px] text-red-600 dark:text-red-300 font-bold uppercase">
                                 <AlertTriangle size={8} /> Needs Clarity
                             </div>
                         )}
@@ -145,7 +145,7 @@ const KycStep = ({ title, description, limits, icon: Icon, status, onFileSelect,
             )}
 
             {isCompleted && (
-                <div className="w-full py-2 bg-emerald-50 dark:bg-emerald-900/40 rounded-lg flex items-center justify-center text-[10px] md:text-xs font-bold text-emerald-600 dark:text-emerald-400 italic gap-1.5 cursor-not-allowed border border-emerald-100 dark:border-emerald-700/50">
+                <div className="w-full py-2 bg-emerald-50 dark:bg-emerald-950 rounded-lg flex items-center justify-center text-[10px] md:text-xs font-bold text-emerald-600 dark:text-emerald-300 italic gap-1.5 cursor-not-allowed border border-emerald-100 dark:border-emerald-700">
                     <CheckCircle size={12} /> Verified
                 </div>
             )}
