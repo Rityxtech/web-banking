@@ -881,7 +881,7 @@ export const Transfers: React.FC<TransfersProps> = ({
 
     // FORM VIEW
     return (
-        <div className="min-h-full flex flex-col animate-fade-in relative">
+        <div className="min-h-full flex flex-col relative">
             {showDisruptionModal && (
                 <NetworkDisruptionModal isOpen={showDisruptionModal} onClose={() => setShowDisruptionModal(false)} />
             )}
