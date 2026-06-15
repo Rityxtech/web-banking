@@ -671,7 +671,7 @@ export const Transfers: React.FC<TransfersProps> = ({
         const cfg = statusMeta[status] || statusMeta.Success;
 
         return (
-            <div className="min-h-full flex items-center justify-center animate-fade-in p-2">
+            <div className="min-h-full flex items-center justify-center p-2">
                 <div id="transfer-receipt" className="bg-white dark:bg-slate-800 w-full max-w-[420px] md:max-w-none rounded-2xl md:rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col relative">
                     {/* Decorative background circle */}
                     <div className={`absolute top-0 left-0 w-full h-20 md:h-20 rounded-b-[50%] scale-x-150 z-0 ${isScheduling ? 'bg-blue-600' : cfg.bg}`}></div>
@@ -792,7 +792,7 @@ export const Transfers: React.FC<TransfersProps> = ({
     // REVIEW VIEW
     if (step === 'review') {
         return (
-            <div className="min-h-full flex flex-col animate-fade-in">
+            <div className="min-h-full flex flex-col">
                 <div className="bg-white dark:bg-slate-800 w-full rounded-none md:rounded-3xl md:shadow-xl md:border border-slate-100 dark:border-slate-700 md:overflow-hidden flex flex-col h-auto">
                     <div className="p-3 md:p-5 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10 flex items-center gap-3 md:gap-4">
                         <button onClick={() => setStep('form')} className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors">
