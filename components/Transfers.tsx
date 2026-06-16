@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Account } from '../types';
 import { Wallet, CheckCircle, ChevronRight, ChevronDown, User, AtSign, DollarSign, ArrowLeft, FileText, ShieldCheck, Clock, Share2, Download, Calendar, Globe, AlertCircle, Loader2, XCircle, X } from 'lucide-react';
 import { shareReceipt } from '../utils/receipt';
@@ -240,53 +240,70 @@ export const Transfers: React.FC<TransfersProps> = ({
 
     const remainingDaily = Math.max(0, dailyLimit - dailyUsage);
 
-    useEffect(() => {
-        // Fetch Banks on Mount
-        const loadBanks = async () => {
-            try {
-                // Pass false to read globally (no user filter)
-                const { data: dbBanks } = await supabase.from('mvp_banks').select('*');
+    // Fetch Banks — reusable so it can be called from event listeners too
+    const loadBanks = useCallback(async () => {
+        try {
+            // Pass false to read globally (no user filter)
+            const { data: dbBanks } = await supabase.from('mvp_banks').select('*');
 
-                // Hardcoded fallback banks — merged with DB so they always appear
-                const fallbackBanks = [
-                    { id: 'paypal', name: 'PayPal', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg', color: 'bg-blue-600' },
-                    { id: 'wise', name: 'Wise', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png', color: 'bg-green-700' },
-                    { id: 'citibank', name: 'CitiBank', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg', color: 'bg-blue-700' },
-                    { id: 'peoplechoice', name: "People's Choice", logo: '', color: 'bg-lime-600' },
-                    { id: 'nonghyup', name: 'Nonghyup Bank', logo: '', color: 'bg-blue-800' }
-                ];
+            // Hardcoded fallback banks — merged with DB so they always appear
+            const fallbackBanks = [
+                { id: 'paypal', name: 'PayPal', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg', color: 'bg-blue-600' },
+                { id: 'wise', name: 'Wise', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png', color: 'bg-green-700' },
+                { id: 'citibank', name: 'CitiBank', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg', color: 'bg-blue-700' },
+                { id: 'peoplechoice', name: "People's Choice", logo: '', color: 'bg-lime-600' },
+                { id: 'nonghyup', name: 'Nonghyup Bank', logo: '', color: 'bg-blue-800' }
+            ];
 
-                let merged = [...(dbBanks || [])];
-                for (const fb of fallbackBanks) {
-                    if (!merged.some((b: any) => b.name?.toLowerCase() === fb.name.toLowerCase())) {
-                        merged.push(fb);
-                    }
+            let merged = [...(dbBanks || [])];
+            for (const fb of fallbackBanks) {
+                if (!merged.some((b: any) => b.name?.toLowerCase() === fb.name.toLowerCase())) {
+                    merged.push(fb);
                 }
-
-                // Add custom cloned templates as banks
-                const customTemplates = getCustomTemplates();
-                for (const ct of customTemplates) {
-                    if (!merged.some((b: any) => b.name?.toLowerCase() === ct.name.toLowerCase())) {
-                        merged.push({ id: ct.id, name: ct.name, logo: ct.logo, color: ct.color, isCustom: true, parentId: ct.parentId });
-                    }
-                }
-
-                if (merged.length > 0) {
-                    // Sort banks alphabetically (A-Z)
-                    merged.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
-
-                    setBanks(merged);
-                    setFormData(prev => ({ ...prev, bankId: String(merged[0].id) }));
-                } else {
-                    // Fallback if DB is empty to prevent crash
-                    setBanks([{ id: 'mock', name: 'Standard Bank', logo: '', color: 'bg-slate-500' }]);
-                }
-            } catch (e) {
-                console.error("Failed to load banks", e);
             }
-        };
-        loadBanks();
+
+            // Add custom cloned templates as banks
+            const customTemplates = getCustomTemplates();
+            for (const ct of customTemplates) {
+                if (!merged.some((b: any) => b.name?.toLowerCase() === ct.name.toLowerCase())) {
+                    merged.push({ id: ct.id, name: ct.name, logo: ct.logo, color: ct.color, isCustom: true, parentId: ct.parentId });
+                }
+            }
+
+            if (merged.length > 0) {
+                // Sort banks alphabetically (A-Z)
+                merged.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+
+                setBanks(merged);
+                setFormData(prev => ({ ...prev, bankId: String(merged[0].id) }));
+            } else {
+                // Fallback if DB is empty to prevent crash
+                setBanks([{ id: 'mock', name: 'Standard Bank', logo: '', color: 'bg-slate-500' }]);
+            }
+        } catch (e) {
+            console.error("Failed to load banks", e);
+        }
     }, []);
+
+    useEffect(() => {
+        loadBanks();
+    }, [loadBanks]);
+
+    // Re-fetch banks when tab becomes visible or localStorage changes (e.g. admin created a new template)
+    useEffect(() => {
+        const onVisible = () => {
+            if (!document.hidden) loadBanks();
+        };
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'veltrix_custom_templates') loadBanks();
+        };
+        document.addEventListener('visibilitychange', onVisible);
+        window.addEventListener('storage', onStorage);
+        return () => {
+            document.removeEventListener('visibilitychange', onVisible);
+            window.removeEventListener('storage', onStorage);
+        };
+    }, [loadBanks]);
 
     // Lock body scroll when currency modal is open
     useEffect(() => {

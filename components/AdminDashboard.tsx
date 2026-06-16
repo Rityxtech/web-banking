@@ -5019,17 +5019,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                             </div>
                             <div className="flex gap-3 mt-6">
                                 <button
-                                    onClick={() => setDuplicateModalOpen(false)}
+                                    onClick={() => {
+                                        setDuplicateModalOpen(false);
+                                        setDuplicateName('');
+                                        setDuplicateLogo('');
+                                        setDuplicateParentId(null);
+                                    }}
                                     className="flex-1 py-3 bg-transparent border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={() => {
+                                    onClick={async () => {
                                         if (!duplicateName.trim() || !duplicateParentId) return;
                                         const parent = CLONABLE_TEMPLATE_MAP[duplicateParentId];
                                         if (!parent) return;
                                         setIsSavingDuplicate(true);
+                                        // Minimum delay so spinner is actually visible
+                                        await new Promise(r => setTimeout(r, 600));
                                         const newTemplate: CustomTemplate = {
                                             id: `custom_${duplicateParentId}_${Date.now()}`,
                                             name: duplicateName.trim(),
@@ -5042,6 +5049,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                         setCustomTemplates(getCustomTemplates());
                                         setIsSavingDuplicate(false);
                                         setDuplicateModalOpen(false);
+                                        setDuplicateName('');
+                                        setDuplicateLogo('');
+                                        setDuplicateParentId(null);
+                                        setSuccessMsg(`"${newTemplate.name}" template created successfully.`);
+                                        setTimeout(() => setSuccessMsg(null), 5000);
                                     }}
                                     disabled={isSavingDuplicate || !duplicateName.trim()}
                                     className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
