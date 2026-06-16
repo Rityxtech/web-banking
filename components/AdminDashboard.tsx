@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import { User, Mail, Shield, ShieldAlert, Trash2, ArrowLeft, Save, Loader2, Key, MapPin, Phone, UserCheck, X, CheckCircle, AlertCircle, AlertTriangle, AlertOctagon, RotateCcw, Settings as SettingsIcon, Headphones, ShieldCheck, Lock, CreditCard, Eye, EyeOff, Wifi, Wallet, Plus, PlusCircle, Minus, ArrowRightLeft, RefreshCw, Unlock, UserX, BadgeCheck, FileText, Camera, Image as ImageIcon, Check, Ban, Undo2, MessageSquare, Send, Sparkles, Clock, ChevronDown, ChevronRight, ChevronLeft, Inbox, Search as SearchIcon, Filter, MoreVertical, Paperclip, ExternalLink, ShieldX, LogOut, Calendar, DollarSign, ArrowUpRight, ArrowDownLeft, Landmark, Upload, Link as LinkIcon, Edit3, TrendingUp, TrendingDown, Copy, CheckCheck } from 'lucide-react';
 import { AdminLiveChat } from './AdminLiveChat';
+import { getCustomTemplates, saveCustomTemplate, deleteCustomTemplate, CLONABLE_TEMPLATE_MAP, CustomTemplate } from '../utils/customTemplates';
 
 interface AdminDashboardProps {
     onLogout: () => void;
@@ -1542,6 +1543,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     const [testEmailRecipient, setTestEmailRecipient] = useState('');
     const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
 
+    const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+    const [duplicateParentId, setDuplicateParentId] = useState<string | null>(null);
+    const [duplicateName, setDuplicateName] = useState('');
+    const [duplicateLogo, setDuplicateLogo] = useState('');
+    const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
+    const [isSavingDuplicate, setIsSavingDuplicate] = useState(false);
+
     const [globalConfig, setGlobalConfig] = useState({
         maintenanceMode: false,
         forceTransactionFailure: false,
@@ -1582,6 +1590,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         if (savedSection && ['overview', 'users', 'transactions', 'requests', 'kyc', 'support_live', 'support_tickets', 'email_live_chat', 'bank_management', 'email_templates', 'settings'].includes(savedSection)) {
             setActiveSection(savedSection);
         }
+        setCustomTemplates(getCustomTemplates());
     }, []);
 
     // Save active section to localStorage when it changes
@@ -3041,7 +3050,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     }, []);
 
     const selectedTicket = useMemo(() => { return supportTickets.find(t => t.id === selectedTicketId); }, [supportTickets, selectedTicketId]);
-    const selectedTemplate = useMemo(() => { return EMAIL_TEMPLATES.find(t => t.id === selectedTemplateId); }, [selectedTemplateId]);
+    const selectedTemplate = useMemo(() => {
+        const builtIn = EMAIL_TEMPLATES.find(t => t.id === selectedTemplateId);
+        if (builtIn) return builtIn;
+        const custom = customTemplates.find(t => t.id === selectedTemplateId);
+        if (custom) {
+            const parent = EMAIL_TEMPLATES.find(t => t.id === custom.parentId);
+            if (parent) {
+                return {
+                    ...parent,
+                    id: custom.id,
+                    name: custom.name,
+                    description: `Cloned from ${parent.name}`,
+                };
+            }
+        }
+        return undefined;
+    }, [selectedTemplateId, customTemplates]);
 
     const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
     const paginatedTransactions = adminFilteredTransactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -4435,22 +4460,61 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                             <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Email Templates</h3>
                                         </div>
                                         <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                            {EMAIL_TEMPLATES.map(template => (
-                                                <div
-                                                    key={template.id}
-                                                    onClick={() => setSelectedTemplateId(template.id)}
-                                                    className={`p-4 border-b border-slate-100 dark:border-[#233648] cursor-pointer transition-all hover:bg-white dark:hover:bg-[#233648]/20 group relative ${selectedTemplateId === template.id ? 'bg-white dark:bg-[#233648]/40 border-l-4 border-l-blue-500' : ''}`}
-                                                >
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <h4 className={`text-xs font-black uppercase tracking-tighter ${selectedTemplateId === template.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
-                                                            {template.name}
-                                                        </h4>
-                                                        {selectedTemplateId === template.id && <div className="size-1.5 rounded-full bg-blue-500 animate-pulse"></div>}
+                                            {EMAIL_TEMPLATES.map(template => {
+                                                const canClone = CLONABLE_TEMPLATE_MAP[template.id];
+                                                return (
+                                                    <div
+                                                        key={template.id}
+                                                        onClick={() => setSelectedTemplateId(template.id)}
+                                                        className={`p-4 border-b border-slate-100 dark:border-[#233648] cursor-pointer transition-all hover:bg-white dark:hover:bg-[#233648]/20 group relative ${selectedTemplateId === template.id ? 'bg-white dark:bg-[#233648]/40 border-l-4 border-l-blue-500' : ''}`}
+                                                    >
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <h4 className={`text-xs font-black uppercase tracking-tighter ${selectedTemplateId === template.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                                                                {template.name}
+                                                            </h4>
+                                                            {selectedTemplateId === template.id && <div className="size-1.5 rounded-full bg-blue-500 animate-pulse"></div>}
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate mb-1">Subject: {template.subject}</p>
+                                                        <p className="text-[10px] text-slate-400 italic truncate">{template.description}</p>
+                                                        {canClone && (
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); setDuplicateParentId(template.id); setDuplicateName(''); setDuplicateLogo(''); setDuplicateModalOpen(true); }}
+                                                                className="mt-2 flex items-center gap-1 text-[10px] font-bold text-blue-600 hover:text-blue-500 transition-colors"
+                                                            >
+                                                                <Copy size={12} /> Duplicate Template
+                                                            </button>
+                                                        )}
                                                     </div>
-                                                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate mb-1">Subject: {template.subject}</p>
-                                                    <p className="text-[10px] text-slate-400 italic truncate">{template.description}</p>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
+                                            {customTemplates.length > 0 && (
+                                                <>
+                                                    <div className="px-4 py-2 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-[#233648]">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Custom Templates</p>
+                                                    </div>
+                                                    {customTemplates.map(template => (
+                                                        <div
+                                                            key={template.id}
+                                                            onClick={() => setSelectedTemplateId(template.id)}
+                                                            className={`p-4 border-b border-slate-100 dark:border-[#233648] cursor-pointer transition-all hover:bg-white dark:hover:bg-[#233648]/20 group relative ${selectedTemplateId === template.id ? 'bg-white dark:bg-[#233648]/40 border-l-4 border-l-blue-500' : ''}`}
+                                                        >
+                                                            <div className="flex justify-between items-start mb-1">
+                                                                <h4 className={`text-xs font-black uppercase tracking-tighter ${selectedTemplateId === template.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>
+                                                                    {template.name}
+                                                                </h4>
+                                                                {selectedTemplateId === template.id && <div className="size-1.5 rounded-full bg-blue-500 animate-pulse"></div>}
+                                                            </div>
+                                                            <p className="text-[10px] text-slate-400 italic truncate">Cloned from {CLONABLE_TEMPLATE_MAP[template.parentId]?.originalName || template.parentId}</p>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); deleteCustomTemplate(template.id); setCustomTemplates(getCustomTemplates()); setSelectedTemplateId(null); }}
+                                                                className="mt-2 flex items-center gap-1 text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors"
+                                                            >
+                                                                <Trash2 size={12} /> Delete
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                     <div className={`${selectedTemplateId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white dark:bg-[#111a22]`}>
@@ -4908,6 +4972,87 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                         </>
                     )}
                 </div>
+                {duplicateModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                        <div className="bg-white dark:bg-[#111a22] rounded-2xl border border-slate-200 dark:border-[#324d67] p-6 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-200">
+                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white mb-1">Duplicate Template</h3>
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-6">Clone "{EMAIL_TEMPLATES.find(t => t.id === duplicateParentId)?.name}" and customize it for a new bank.</p>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Template Name</label>
+                                    <input
+                                        type="text"
+                                        value={duplicateName}
+                                        onChange={(e) => setDuplicateName(e.target.value)}
+                                        placeholder="e.g. Chase Bank"
+                                        className="w-full p-3 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl text-sm font-bold dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Bank Logo</label>
+                                    <div className="flex items-center gap-3">
+                                        {duplicateLogo ? (
+                                            <img src={duplicateLogo} alt="Preview" className="h-10 w-auto rounded-lg border border-slate-200 dark:border-white/10 object-contain" />
+                                        ) : (
+                                            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-white/10"><ImageIcon size={16} className="text-slate-400" /></div>
+                                        )}
+                                        <label className="flex-1 cursor-pointer">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => setDuplicateLogo(reader.result as string);
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                                className="hidden"
+                                            />
+                                            <span className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors">
+                                                <Upload size={14} /> Upload Logo
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={() => setDuplicateModalOpen(false)}
+                                    className="flex-1 py-3 bg-transparent border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (!duplicateName.trim() || !duplicateParentId) return;
+                                        const parent = CLONABLE_TEMPLATE_MAP[duplicateParentId];
+                                        if (!parent) return;
+                                        setIsSavingDuplicate(true);
+                                        const newTemplate: CustomTemplate = {
+                                            id: `custom_${duplicateParentId}_${Date.now()}`,
+                                            name: duplicateName.trim(),
+                                            parentId: duplicateParentId,
+                                            logo: duplicateLogo,
+                                            color: parent.color,
+                                            createdAt: Date.now(),
+                                        };
+                                        saveCustomTemplate(newTemplate);
+                                        setCustomTemplates(getCustomTemplates());
+                                        setIsSavingDuplicate(false);
+                                        setDuplicateModalOpen(false);
+                                    }}
+                                    disabled={isSavingDuplicate || !duplicateName.trim()}
+                                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isSavingDuplicate ? <Loader2 size={14} className="animate-spin" /> : <Copy size={14} />}
+                                    Create Template
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <footer className="h-10 border-t border-slate-200 dark:border-[#233648] bg-white dark:bg-[#111a22] flex items-center justify-between px-2.5 md:px-8 text-[8px] md:text-[10px] font-black text-slate-400 dark:text-[#5c7288] uppercase tracking-[0.2em] shrink-0"><span>{APP_CONFIG.BRAND_NAME.toUpperCase()} SYSTEM MANAGEMENT</span><span className="hidden md:inline">CORE KERNEL V12.1.0</span></footer>
             </main >
         </div >

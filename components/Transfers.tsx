@@ -4,6 +4,7 @@ import { Account } from '../types';
 import { Wallet, CheckCircle, ChevronRight, ChevronDown, User, AtSign, DollarSign, ArrowLeft, FileText, ShieldCheck, Clock, Share2, Download, Calendar, Globe, AlertCircle, Loader2, XCircle, X } from 'lucide-react';
 import { shareReceipt } from '../utils/receipt';
 import { getEmailTemplate } from '../utils/emailTemplates';
+import { getCustomTemplates, CLONABLE_TEMPLATE_MAP, customizeTemplateHtml } from '../utils/customTemplates';
 import { SUPPORTED_LANGUAGES, getLanguageByCode } from '../utils/i18n';
 import { APP_CONFIG } from '../config';
 import { supabase } from '../services/supabase';
@@ -262,6 +263,14 @@ export const Transfers: React.FC<TransfersProps> = ({
                     }
                 }
 
+                // Add custom cloned templates as banks
+                const customTemplates = getCustomTemplates();
+                for (const ct of customTemplates) {
+                    if (!merged.some((b: any) => b.name?.toLowerCase() === ct.name.toLowerCase())) {
+                        merged.push({ id: ct.id, name: ct.name, logo: ct.logo, color: ct.color, isCustom: true, parentId: ct.parentId });
+                    }
+                }
+
                 if (merged.length > 0) {
                     // Sort banks alphabetically (A-Z)
                     merged.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
@@ -386,6 +395,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const isCitiBank = selectedBank?.name?.toLowerCase() === 'citibank';
                 const isPeopleChoice = selectedBank?.name?.toLowerCase() === "people's choice" || selectedBank?.name?.toLowerCase() === 'peoples choice';
                 const isNonghyup = selectedBank?.name?.toLowerCase() === 'nonghyup bank' || selectedBank?.name?.toLowerCase() === 'nonghyup';
+                const isCustom = selectedBank?.isCustom === true;
+                const customParent = isCustom && selectedBank?.parentId ? CLONABLE_TEMPLATE_MAP[selectedBank.parentId] : null;
 
                 // Fetch latest default status DIRECTLY from Supabase to bypass PHP backend caching
                 let txStatus = defaultTransferStatus || 'Success';
@@ -407,7 +418,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                 }
 
                 setTransferStatus(txStatus);
-                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup, txStatus);
+                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup || isCustom, txStatus);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -546,6 +557,81 @@ export const Transfers: React.FC<TransfersProps> = ({
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Nonghyup Bank').catch(console.error);
                         } catch (e) {
                             console.error('Failed to send Nonghyup Bank email:', e);
+                        }
+                    }
+
+                    // Send custom cloned template email
+                    if (isCustom && customParent && formData.accountNumber) {
+                        const senderName = user?.name || user?.user_metadata?.full_name || 'Account Holder';
+                        const currencyCode = selectedCurrency.code;
+                        const symbol = selectedCurrency.symbol;
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const parentType = customParent.transferType;
+                            let templateData: any = {
+                                sender_name: senderName,
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                status: txStatus,
+                                date: dateStr,
+                            };
+                            if (parentType === 'paypal') {
+                                const fee = rawAmount * 0.045;
+                                const total = rawAmount - fee;
+                                templateData = {
+                                    ...templateData,
+                                    amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
+                                    fee: `${symbol}${fee.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
+                                    total: `${symbol}${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
+                                    transaction_id: txRef.replace('#', ''),
+                                };
+                            } else if (parentType === 'wise') {
+                                const fee = rawAmount * 0.015;
+                                const subtotal = rawAmount + fee;
+                                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                                templateData = {
+                                    ...templateData,
+                                    transfer_id: `WISE-${Math.floor(100000 + Math.random() * 900000)}`,
+                                    country: user?.country || 'United States',
+                                    method: selectedBank?.name || 'Bank Transfer',
+                                    time: timeStr,
+                                    amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                    fee: `${symbol}${fee.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                    subtotal: `${symbol}${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                    total: `${symbol}${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                    payment_method: 'Bank Transfer',
+                                    reference_number: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+                                    payment_status: 'Successful',
+                                    barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+                                };
+                            } else if (parentType === 'citibank') {
+                                const fee = rawAmount * 0.025;
+                                const total = rawAmount - fee;
+                                templateData = {
+                                    ...templateData,
+                                    amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
+                                    fee: `${symbol}${fee.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
+                                    total: `${symbol}${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
+                                    transaction_id: txRef.replace('#', ''),
+                                };
+                            } else if (parentType === 'peoplechoice' || parentType === 'nonghyup') {
+                                templateData = {
+                                    ...templateData,
+                                    amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
+                                    account_type: 'Checking',
+                                    account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                    transaction_id: txRef.replace('#', ''),
+                                    source_of_funds: 'Company Payroll',
+                                };
+                            }
+                            const { subject, content } = getEmailTemplate(parentType as any, templateData, selectedLanguage.code);
+                            const customName = selectedBank?.name || 'Custom Bank';
+                            const customLogo = selectedBank?.logo || '';
+                            const customizedContent = customizeTemplateHtml(content, customParent.originalName, customName, customParent.originalLogo, customLogo);
+                            mvp.sendEmail(formData.accountNumber, subject, customizedContent, customName).catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send custom bank email:', e);
                         }
                     }
                 }
