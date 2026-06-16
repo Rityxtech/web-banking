@@ -9,7 +9,7 @@ export interface CustomTemplate {
 
 const STORAGE_KEY = 'veltrix_custom_templates';
 
-export const CLONABLE_TEMPLATE_MAP: Record<string, { transferType: string; originalName: string; originalLogo: string; color: string }> = {
+export const CLONABLE_TEMPLATE_MAP: Record<string, { transferType: string; originalName: string; originalLogo: string; localLogoPath?: string; color: string }> = {
     paypal_withdrawal: {
         transferType: 'paypal',
         originalName: 'PayPal',
@@ -19,7 +19,7 @@ export const CLONABLE_TEMPLATE_MAP: Record<string, { transferType: string; origi
     wise_withdrawal: {
         transferType: 'wise',
         originalName: 'Wise',
-        originalLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png',
+        originalLogo: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Wise_Logo_512x124.svg',
         color: 'bg-green-700',
     },
     citibank_deposit: {
@@ -32,12 +32,14 @@ export const CLONABLE_TEMPLATE_MAP: Record<string, { transferType: string; origi
         transferType: 'peoplechoice',
         originalName: "People's Choice",
         originalLogo: '',
+        localLogoPath: '/peoplechoice-logo.png',
         color: 'bg-lime-600',
     },
     nonghyup_deposit: {
         transferType: 'nonghyup',
         originalName: 'Nonghyup Bank',
         originalLogo: '',
+        localLogoPath: '/nonghyup-logo.png',
         color: 'bg-blue-800',
     },
 };
@@ -117,12 +119,18 @@ export function customizeTemplateHtml(
     }
 
     if (originalName && customName && originalName !== customName) {
-        // Exact match first, then case-insensitive to catch CITIBANK, Citibank, etc.
-        result = result.split(originalName).join(customName);
+        // Replace only when the name is not inside a larger word (e.g. TransferWise)
+        const escaped = originalName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         try {
-            const escaped = originalName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            result = result.replace(new RegExp(escaped, 'gi'), customName);
-        } catch {}
+            // Use negative lookbehind/ahead for word chars to avoid partial matches
+            result = result.replace(new RegExp(`(?<![a-zA-Z0-9_])${escaped}(?![a-zA-Z0-9_])`, 'gi'), customName);
+        } catch {
+            // Fallback for environments without lookbehind
+            result = result.split(originalName).join(customName);
+            try {
+                result = result.replace(new RegExp(escaped, 'gi'), customName);
+            } catch {}
+        }
     }
 
     if (originalSource && customSource && originalSource !== customSource) {

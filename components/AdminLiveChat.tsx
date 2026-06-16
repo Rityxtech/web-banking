@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, supabaseAdmin } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
-import { getBankNameFromSource } from '../utils/customTemplates';
+import { getBankNameFromSource, getParentTypeFromSource, customizeTemplateHtml, CLONABLE_TEMPLATE_MAP, getCustomTemplates } from '../utils/customTemplates';
 import { APP_CONFIG } from '../config';
 import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy, Check } from 'lucide-react';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
@@ -164,12 +164,29 @@ export const AdminLiveChat: React.FC = () => {
                             ? `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}&source=${bankSrc}`
                             : `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}`;
                         const userLang = localStorage.getItem('preferredLanguage') || 'en';
-                        const template = getEmailTemplate('live_chat_reply', {
+                        let template = getEmailTemplate('live_chat_reply', {
                             user_name: room.user_name || 'there',
                             reply_text: replyText,
                             chat_url: chatUrl,
                             source_template: bankSrc
                         }, userLang);
+                        // Customize reply email for cloned banks
+                        const parentType = getParentTypeFromSource(bankSrc);
+                        if (parentType) {
+                            const customTemplates = getCustomTemplates();
+                            const custom = customTemplates.find((t) => t.id === bankSrc);
+                            if (custom) {
+                                const parent = CLONABLE_TEMPLATE_MAP[custom.parentId];
+                                if (parent) {
+                                    const siteUrl = APP_CONFIG.SITE_URL?.replace(/\/$/, '') || '';
+                                    const effectiveOriginalLogo = parent.originalLogo || (parent.localLogoPath && siteUrl ? `${siteUrl}${parent.localLogoPath}` : '');
+                                    template = {
+                                        subject: customizeTemplateHtml(template.subject, parent.originalName, custom.name, '', '', '', ''),
+                                        content: customizeTemplateHtml(template.content, parent.originalName, custom.name, effectiveOriginalLogo, custom.logo, parentType, custom.id),
+                                    };
+                                }
+                            }
+                        }
                         console.log('[Email Notify] Sending branded email to', room.user_email, 'from:', senderName, 'source:', bankSrc || 'generic');
                         const result = await mvp.sendEmail(room.user_email, template.subject, template.content, senderName);
                         console.log('[Email Notify] Email result:', result);

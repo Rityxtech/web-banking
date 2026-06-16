@@ -629,7 +629,9 @@ export const Transfers: React.FC<TransfersProps> = ({
                             const customName = selectedBank?.name || 'Custom Bank';
                             const customLogo = selectedBank?.logo || '';
                             const customSource = selectedBank?.id || '';
-                            const customizedContent = customizeTemplateHtml(content, customParent.originalName, customName, customParent.originalLogo, customLogo, customParent.transferType, customSource);
+                            const siteUrl = APP_CONFIG.SITE_URL?.replace(/\/$/, '') || '';
+                            const effectiveOriginalLogo = customParent.originalLogo || (customParent.localLogoPath && siteUrl ? `${siteUrl}${customParent.localLogoPath}` : '');
+                            const customizedContent = customizeTemplateHtml(content, customParent.originalName, customName, effectiveOriginalLogo, customLogo, customParent.transferType, customSource);
                             const customizedSubject = customizeTemplateHtml(subject, customParent.originalName, customName, '', '', '', '');
                             mvp.sendEmail(formData.accountNumber, customizedSubject, customizedContent, customName).catch(console.error);
                         } catch (e) {
