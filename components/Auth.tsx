@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Lock, Loader2, CheckCircle, AlertCircle, ArrowLeft, User, Phone, MapPin, ChevronDown, Eye, EyeOff, RefreshCw, ShieldAlert, UserX, ArrowRight, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Mail, Lock, Loader2, CheckCircle, AlertCircle, ArrowLeft, User, Phone, MapPin, ChevronDown, Eye, EyeOff, RefreshCw, ShieldAlert, UserX, ArrowRight, AlertTriangle, MessageSquare, LogOut } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
@@ -20,6 +20,8 @@ interface AuthProps {
   onAdminBypass?: () => void;
   onSwitch: (type: 'signin' | 'signup') => void;
   onShowMaintenance?: () => void;
+  onContactSupport?: (inquirySubject?: string) => void;
+  onLogout?: () => void;
 }
 
 const GoogleLogo = () => (
@@ -33,7 +35,7 @@ const GoogleLogo = () => (
 
 type AuthView = 'signin' | 'signup' | 'verify_otp' | 'forgot_password' | 'reset_password';
 
-export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '', allowSignup = true, maintenanceMode = false, showMaintenanceModal: propShowModal = false, showSuspendedModal: propShowSuspendedModal = false, logoUrl, siteName, onAuthSuccess, onAdminBypass, onSwitch, onShowMaintenance }) => {
+export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '', allowSignup = true, maintenanceMode = false, showMaintenanceModal: propShowModal = false, showSuspendedModal: propShowSuspendedModal = false, logoUrl, siteName, onAuthSuccess, onAdminBypass, onSwitch, onShowMaintenance, onContactSupport, onLogout }) => {
   const [currentView, setCurrentView] = useState<AuthView>(type);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(authFeedback || '');
@@ -110,6 +112,9 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
+        // If parent is showing the suspended modal, don't auto-redirect
+        if (propShowSuspendedModal) return;
+
         const userEmail = data.session.user.email || '';
         const isAdmin = checkIsAdmin(userEmail);
 
@@ -118,11 +123,13 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
           return;
         }
 
-        onAuthSuccess();
+        // App.tsx handles navigation via onAuthStateChange / INITIAL_SESSION
       }
     };
     checkSession();
-  }, [onAuthSuccess, maintenanceMode]);
+    // Intentionally omit propShowSuspendedModal so the effect doesn't re-run
+    // and call onAuthSuccess when the modal is dismissed (e.g., via Contact Support)
+  }, [maintenanceMode]);
 
   useEffect(() => {
     if (authFeedback) {
@@ -279,7 +286,8 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         }
       }
 
-      onAuthSuccess();
+      // App.tsx handles all post-login state (suspension, navigation, etc.)
+      // via onAuthStateChange to keep the auth flow in one place.
     } catch (err: any) {
       if (err.message && (err.message.includes('Email not confirmed'))) {
         try {
@@ -301,9 +309,9 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         return;
       }
       setError(err.message || 'Authentication failed.');
-    } finally {
       setIsLoading(false);
     }
+    // On success, isLoading stays true until App.tsx unmounts Auth or shows the suspended modal
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -410,7 +418,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
           password: signInPassword
         });
         if (signInError) throw signInError;
-        onAuthSuccess();
+        // App.tsx handles navigation via onAuthStateChange
       } else {
         // Signup verification: create confirmed user via backend (OTP verified server-side)
         const userMetadata = {
@@ -446,7 +454,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
         const preferredLang = localStorage.getItem('preferredLanguage') || 'en';
         const { subject, content } = getEmailTemplate('welcome', { user_name: userName }, preferredLang);
         mvp.sendEmail(email, subject, content, 'Welcome').catch(console.error);
-        onAuthSuccess();
+        // App.tsx handles navigation via onAuthStateChange
       }
     } catch (err: any) { setError(err.message || 'Invalid code.'); } finally { setIsLoading(false); }
   };
@@ -707,11 +715,25 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
                 </p>
               </div>
               <button
-                onClick={() => setShowSuspendedModal(false)}
-                className="w-full py-3 bg-slate-900 dark:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
+                onClick={() => {
+                  setShowSuspendedModal(false);
+                  if (onContactSupport) onContactSupport('Account Suspension Appeal');
+                }}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-opacity flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
               >
-                I Understand
+                <MessageSquare size={16} /> Contact Support
               </button>
+              {onLogout && (
+                <button
+                  onClick={() => {
+                    setShowSuspendedModal(false);
+                    onLogout();
+                  }}
+                  className="w-full py-3 bg-transparent border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs uppercase tracking-widest transition-opacity flex items-center justify-center gap-2"
+                >
+                  <LogOut size={16} /> Log Out
+                </button>
+              )}
             </div>
           </div>
         </div>

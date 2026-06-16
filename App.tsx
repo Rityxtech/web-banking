@@ -32,6 +32,7 @@ import { HomePage } from './components/HomePage';
 import { Auth } from './components/Auth';
 import { AdminDashboard } from './components/AdminDashboard';
 import { LiveChat } from './components/LiveChat';
+import { PublicSupport } from './components/PublicSupport';
 
 
 function generateUUID() {
@@ -489,14 +490,15 @@ function App() {
     const [forceMaintenance, setForceMaintenance] = useState(false);
     const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
     const [showSuspendedModal, setShowSuspendedModal] = useState(false);
+    const [supportInitialSubject, setSupportInitialSubject] = useState('General Inquiry');
 
-    const [currentView, setCurrentView] = useState<'home' | 'signin' | 'signup' | 'admin_login'>(() => {
+    const [currentView, setCurrentView] = useState<'home' | 'signin' | 'signup' | 'admin_login' | 'support'>(() => {
         const hash = window.location.hash.substring(1);
         if (hash === 'admin-login') return 'admin_login';
-        if (hash === 'signin' || hash === 'signup') return hash;
+        if (hash === 'signin' || hash === 'signup' || hash === 'support') return hash;
         const saved = localStorage.getItem(APP_CONFIG.STORAGE_PREFIX + 'view');
         if (saved === 'admin_login') return 'admin_login';
-        return (saved === 'signin' || saved === 'signup') ? saved : 'home';
+        return (saved === 'signin' || saved === 'signup' || saved === 'support') ? saved : 'home';
     });
 
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -601,7 +603,7 @@ function App() {
             if (hash === 'admin-login') {
                 setCurrentView('admin_login');
                 localStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'view', 'admin_login');
-            } else if (hash === 'signin' || hash === 'signup') {
+            } else if (hash === 'signin' || hash === 'signup' || hash === 'support') {
                 setCurrentView(hash);
                 localStorage.setItem(APP_CONFIG.STORAGE_PREFIX + 'view', hash);
             } else {
@@ -996,6 +998,9 @@ function App() {
     // Tracks user IDs that have already passed the maintenance admin check
     const maintenanceVerifiedRef = useRef<string | null>(null);
 
+    // Tracks when we are signing out a suspended user so SIGNED_OUT doesn't reset the view
+    const suspendingRef = useRef<string | null>(null);
+
     useEffect(() => {
         const handleSession = async (session: any, event?: string) => {
             if (isLoggingOut.current) return;
@@ -1076,6 +1081,8 @@ function App() {
                     const suspProfile = suspProfiles?.[0];
                     const isUserSuspended = suspProfile?.is_suspended == "1" || suspProfile?.is_suspended == 1 || suspProfile?.is_suspended === true;
                     if (isUserSuspended) {
+                        // Sign out cleanly; suspendingRef prevents SIGNED_OUT from resetting the view
+                        suspendingRef.current = session.user.id;
                         await supabase.auth.signOut();
                         setShowSuspendedModal(true);
                         setCurrentView('signin');
@@ -1108,6 +1115,10 @@ function App() {
                 setIsAdminMode(isAdmin);
                 if (currentView === 'signin' || currentView === 'signup') setCurrentView('home');
                 setLoadingAuth(false);
+                if (event === 'SIGNED_IN') {
+                    window.location.hash = 'dashboard';
+                    setRoute('dashboard');
+                }
                 fetchAllUserData(session.user.id, session.user.user_metadata);
             } else {
                 if (!currentUser && !isAdminMode) setLoadingAuth(false);
@@ -1116,6 +1127,14 @@ function App() {
         supabase.auth.getSession().then(({ data: { session } }) => handleSession(session, 'INITIAL_SESSION'));
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_OUT') {
+                if (suspendingRef.current) {
+                    // Suspension sign-out: clear auth state but preserve hash/view so the modal stays visible
+                    suspendingRef.current = null;
+                    setCurrentUser(null);
+                    setIsPinVerified(false);
+                    maintenanceVerifiedRef.current = null;
+                    return;
+                }
                 setCurrentUser(null);
                 setLoadingAuth(false);
                 setIsPinVerified(false);
@@ -1422,8 +1441,9 @@ function App() {
             window.location.hash = p;
             if (e) setPrefilledEmail(e);
         }} />;
+        if (currentView === 'support') return <PublicSupport onBack={() => setCurrentView('signin')} initialSubject={supportInitialSubject} />;
         // Pass authErrorMessage to Auth component so it can display "Account not found..."
-        return <Auth logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} showMaintenanceModal={showMaintenanceModal} showSuspendedModal={showSuspendedModal} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => { setShowMaintenanceModal(false); setShowSuspendedModal(false); window.location.hash = view; }} onShowMaintenance={() => { setShowMaintenanceModal(true); }} />;
+        return <Auth logoUrl={globalSettings.siteLogo} siteName={globalSettings.siteName} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} showMaintenanceModal={showMaintenanceModal} showSuspendedModal={showSuspendedModal} onAuthSuccess={() => navigate('dashboard')} onSwitch={(view) => { setShowMaintenanceModal(false); setShowSuspendedModal(false); window.location.hash = view; }} onShowMaintenance={() => { setShowMaintenanceModal(true); }} onContactSupport={(subject) => { setSupportInitialSubject(subject || 'General Inquiry'); setCurrentView('support'); window.location.hash = 'support'; }} onLogout={handleLogout} />;
     }
 
     if (isAdminMode) return (

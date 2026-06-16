@@ -30,6 +30,7 @@ import { Settings } from './components/Settings';
 import { HomePage } from './components/HomePage';
 import { Auth } from './components/Auth';
 import { AdminDashboard } from './components/AdminDashboard';
+import { PublicSupport } from './components/PublicSupport';
 
 function generateUUID() {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -224,6 +225,11 @@ const SuspendedScreen = ({ user, onLogout }: { user: User, onLogout: () => void 
                             </div>
                         )}
                     </div>
+                    <div className="mb-6">
+                        <button onClick={() => { window.location.hash = 'support'; setCurrentView('support'); }} className="text-xs font-bold text-blue-500 hover:text-blue-400 transition-colors uppercase tracking-widest flex items-center justify-center gap-2 mx-auto">
+                            <MessageSquare size={14} /> Full Support Center
+                        </button>
+                    </div>
                     <button onClick={onLogout} className="flex items-center gap-2 mx-auto text-slate-500 hover:text-white font-black text-xs transition-colors uppercase tracking-[0.2em]">
                         <LogOut size={14} /> Disconnect Node
                     </button>
@@ -321,13 +327,14 @@ function App() {
     const [loadingData, setLoadingData] = useState(false);
     const [notificationsSynced, setNotificationsSynced] = useState(false); // Controls Badge Visibility
     const [isSuspended, setIsSuspended] = useState(false);
+    const [authSuspendedModal, setAuthSuspendedModal] = useState(false);
     const [forceMaintenance, setForceMaintenance] = useState(false);
 
-    const [currentView, setCurrentView] = useState<'home' | 'signin' | 'signup'>(() => {
+    const [currentView, setCurrentView] = useState<'home' | 'signin' | 'signup' | 'support'>(() => {
         const hash = window.location.hash.substring(1);
-        if (hash === 'signin' || hash === 'signup') return hash;
+        if (hash === 'signin' || hash === 'signup' || hash === 'support') return hash;
         const saved = localStorage.getItem('lennox_view');
-        return (saved === 'signin' || saved === 'signup') ? saved : 'home';
+        return (saved === 'signin' || saved === 'signup' || saved === 'support') ? saved : 'home';
     });
 
     const [isDarkMode, setIsDarkMode] = useState(false);
@@ -395,7 +402,8 @@ function App() {
 
     const fetchGlobalSettings = useCallback(async () => {
         try {
-            const settings = await mvp.getSettings();
+            const { data: settings, error } = await supabase.from('mvp_app_settings').select('*').limit(1).single();
+            if (error) throw error;
             console.log('[App.fetchGlobalSettings] fetched settings:', settings);
             if (settings) {
                 const isMaintenance = settings.maintenance_mode == "1" || settings.maintenance_mode == 1 || settings.maintenance_mode === true;
@@ -613,12 +621,28 @@ function App() {
                 const email = session.user.email?.toLowerCase();
                 let isAdmin = email === 'admin@lennox.bank' || email === 'akugbof@gmail.com';
 
+                let isSuspendedProfile = false;
                 if (!isAdmin) {
                     try {
-                        const profiles = await mvp.read('profiles', false, { columns: 'id,user_id,role', limit: 1000 });
-                        const profile = profiles.find((p: any) => p.user_id === session.user.id);
+                        console.log('[App] Checking profile for user:', session.user.id);
+                        const { data: profile, error: profileError } = await supabase.from('mvp_profiles').select('id,user_id,role,is_suspended').eq('user_id', session.user.id).maybeSingle();
+                        console.log('[App] Profile query result:', { profile, profileError });
+                        if (profileError) {
+                            console.error('[App] Profile query error:', profileError);
+                        }
                         if (profile?.role === 'admin') isAdmin = true;
-                    } catch (err) { }
+                        isSuspendedProfile = profile?.is_suspended == "1" || profile?.is_suspended == 1 || profile?.is_suspended === true;
+                        console.log('[App] isSuspendedProfile:', isSuspendedProfile, 'isAdmin:', isAdmin);
+                    } catch (err) {
+                        console.error('[App] Profile check exception:', err);
+                    }
+                }
+
+                if (isSuspendedProfile && !isAdmin) {
+                    console.log('[App] User is suspended — showing modal');
+                    setAuthSuspendedModal(true);
+                    setLoadingAuth(false);
+                    return;
                 }
 
                 if (isMaintenance && !isAdmin) {
@@ -704,6 +728,19 @@ function App() {
         document.addEventListener('visibilitychange', handleVisible);
         return () => document.removeEventListener('visibilitychange', handleVisible);
     }, [currentUser, fetchGlobalSettings]);
+
+    useEffect(() => {
+        const handleHash = () => {
+            const hash = window.location.hash.substring(1);
+            if (hash === 'signin' || hash === 'signup' || hash === 'support') {
+                setCurrentView(hash as any);
+            } else if (!hash) {
+                setCurrentView('home');
+            }
+        };
+        window.addEventListener('hashchange', handleHash);
+        return () => window.removeEventListener('hashchange', handleHash);
+    }, []);
 
     useEffect(() => {
         if (isDarkMode || isAdminMode) document.documentElement.classList.add('dark');
@@ -874,7 +911,12 @@ function App() {
         }
     };
 
-    if (isSuspended && currentUser && !isAdminMode) return <SuspendedScreen user={currentUser} onLogout={handleLogout} />;
+    if (isSuspended && currentUser && !isAdminMode) {
+        if (currentView === 'support' || window.location.hash.substring(1) === 'support') {
+            return <PublicSupport onBack={() => { window.location.hash = ''; }} />;
+        }
+        return <SuspendedScreen user={currentUser} onLogout={handleLogout} />;
+    }
 
     if (isAccountIncomplete && rawSessionUser) {
         return <CompleteRegistration user={rawSessionUser} onComplete={() => {
@@ -892,8 +934,10 @@ function App() {
 
     if (!currentUser) {
         if (currentView === 'home') return <HomePage logoUrl={globalSettings.siteLogo} onNavigate={(p, e) => { setCurrentView(p); if (e) setPrefilledEmail(e); }} />;
+        if (currentView === 'support') return <PublicSupport onBack={() => setCurrentView('signin')} />;
         // Pass authErrorMessage to Auth component so it can display "Account not found..."
-        return <Auth logoUrl={globalSettings.siteLogo} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} onAuthSuccess={() => navigate('dashboard')} onSwitch={setCurrentView} onShowMaintenance={() => { setForceMaintenance(true); setCurrentView('home'); }} />;
+        console.log('[App] Rendering Auth. currentUser:', currentUser, 'authSuspendedModal:', authSuspendedModal, 'currentView:', currentView);
+        return <Auth logoUrl={globalSettings.siteLogo} type={currentView as 'signin' | 'signup'} authFeedback={authErrorMessage} initialEmail={prefilledEmail} allowSignup={globalSettings.allowRegistration} maintenanceMode={globalSettings.maintenanceMode} showSuspendedModal={authSuspendedModal} onAuthSuccess={() => navigate('dashboard')} onSwitch={setCurrentView} onShowMaintenance={() => { setForceMaintenance(true); setCurrentView('home'); }} onContactSupport={() => { setCurrentView('support'); window.location.hash = 'support'; }} />;
     }
 
     if (isAdminMode) return (
