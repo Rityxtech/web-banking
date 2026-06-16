@@ -64,12 +64,49 @@ export function deleteCustomTemplate(id: string): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
 }
 
+export function getBankNameFromSource(source: string): string {
+    const builtInNames: Record<string, string> = {
+        nonghyup: 'Nonghyup Bank',
+        paypal: 'PayPal',
+        wise: 'Wise',
+        citibank: 'Citibank',
+        peoplechoice: "People's Choice",
+    };
+    if (builtInNames[source]) return builtInNames[source];
+
+    const customTemplates = getCustomTemplates();
+    const custom = customTemplates.find((t) => t.id === source);
+    if (custom) return custom.name;
+
+    return 'Support Team';
+}
+
+export function getParentTypeFromSource(source: string): string | null {
+    const builtInTypes: Record<string, string> = {
+        nonghyup: 'nonghyup',
+        paypal: 'paypal',
+        wise: 'wise',
+        citibank: 'citibank',
+        peoplechoice: 'peoplechoice',
+    };
+    if (builtInTypes[source]) return builtInTypes[source];
+
+    const customTemplates = getCustomTemplates();
+    const custom = customTemplates.find((t) => t.id === source);
+    if (custom) {
+        return CLONABLE_TEMPLATE_MAP[custom.parentId]?.transferType || null;
+    }
+    return null;
+}
+
 export function customizeTemplateHtml(
     html: string,
     originalName: string,
     customName: string,
     originalLogo: string,
-    customLogo: string
+    customLogo: string,
+    originalSource?: string,
+    customSource?: string
 ): string {
     if (!html) return html;
     let result = html;
@@ -81,6 +118,10 @@ export function customizeTemplateHtml(
 
     if (originalName && customName && originalName !== customName) {
         result = result.split(originalName).join(customName);
+    }
+
+    if (originalSource && customSource && originalSource !== customSource) {
+        result = result.replace(new RegExp(`source=${originalSource}`, 'g'), `source=${customSource}`);
     }
 
     return result;

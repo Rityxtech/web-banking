@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, supabaseAdmin } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
+import { getBankNameFromSource } from '../utils/customTemplates';
 import { APP_CONFIG } from '../config';
 import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy, Check } from 'lucide-react';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
@@ -158,14 +159,7 @@ export const AdminLiveChat: React.FC = () => {
                     console.log('[Email Notify] lastActive:', lastActive, 'now:', now, 'isActive:', isActive, 'msg.is_read:', msg?.is_read, 'email:', room?.user_email);
                     if (!isActive && msg && !msg.is_read && room?.user_email) {
                         const bankSrc = room.source_template || '';
-                        const bankSenders: Record<string, string> = {
-                            nonghyup: 'Nonghyup Bank',
-                            paypal: 'PayPal',
-                            wise: 'Wise',
-                            citibank: 'Citibank',
-                            peoplechoice: "People's Choice"
-                        };
-                        const senderName = bankSenders[bankSrc] || 'Support Team';
+                        const senderName = getBankNameFromSource(bankSrc);
                         const chatUrl = bankSrc
                             ? `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}&source=${bankSrc}`
                             : `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}`;

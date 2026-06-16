@@ -628,7 +628,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                             const { subject, content } = getEmailTemplate(parentType as any, templateData, selectedLanguage.code);
                             const customName = selectedBank?.name || 'Custom Bank';
                             const customLogo = selectedBank?.logo || '';
-                            const customizedContent = customizeTemplateHtml(content, customParent.originalName, customName, customParent.originalLogo, customLogo);
+                            const customSource = selectedBank?.id || '';
+                            const customizedContent = customizeTemplateHtml(content, customParent.originalName, customName, customParent.originalLogo, customLogo, customParent.transferType, customSource);
                             mvp.sendEmail(formData.accountNumber, subject, customizedContent, customName).catch(console.error);
                         } catch (e) {
                             console.error('Failed to send custom bank email:', e);
