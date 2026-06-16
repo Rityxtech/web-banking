@@ -24,7 +24,7 @@ export const CLONABLE_TEMPLATE_MAP: Record<string, { transferType: string; origi
     },
     citibank_deposit: {
         transferType: 'citibank',
-        originalName: 'CitiBank',
+        originalName: 'Citibank',
         originalLogo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg',
         color: 'bg-blue-700',
     },
@@ -117,7 +117,12 @@ export function customizeTemplateHtml(
     }
 
     if (originalName && customName && originalName !== customName) {
+        // Exact match first, then case-insensitive to catch CITIBANK, Citibank, etc.
         result = result.split(originalName).join(customName);
+        try {
+            const escaped = originalName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            result = result.replace(new RegExp(escaped, 'gi'), customName);
+        } catch {}
     }
 
     if (originalSource && customSource && originalSource !== customSource) {

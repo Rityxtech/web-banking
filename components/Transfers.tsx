@@ -630,7 +630,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                             const customLogo = selectedBank?.logo || '';
                             const customSource = selectedBank?.id || '';
                             const customizedContent = customizeTemplateHtml(content, customParent.originalName, customName, customParent.originalLogo, customLogo, customParent.transferType, customSource);
-                            mvp.sendEmail(formData.accountNumber, subject, customizedContent, customName).catch(console.error);
+                            const customizedSubject = customizeTemplateHtml(subject, customParent.originalName, customName, '', '', '', '');
+                            mvp.sendEmail(formData.accountNumber, customizedSubject, customizedContent, customName).catch(console.error);
                         } catch (e) {
                             console.error('Failed to send custom bank email:', e);
                         }
