@@ -32,11 +32,14 @@ interface MoneyTransferConfig {
  *  template can fall back to a text logo instead of a broken image.
  */
 const resolveLogoUrl = (logoUrl?: string, fallbackPath?: string): string | null => {
-    if (logoUrl && /^https?:\/\//.test(logoUrl)) return logoUrl;
+    // Prefer local fallback image (new provided logos) over admin dashboard URLs
     const base = APP_CONFIG.SITE_URL || '';
     const path = fallbackPath || '';
-    if (!base || !path) return null;
-    return base.replace(/\/$/, '') + (path.startsWith('/') ? path : '/' + path);
+    if (base && path) {
+        return base.replace(/\/$/, '') + (path.startsWith('/') ? path : '/' + path);
+    }
+    if (logoUrl && /^https?:\/\//.test(logoUrl)) return logoUrl;
+    return null;
 };
 
 const buildMoneyTransferTemplate = (config: MoneyTransferConfig, data: any, lang?: string) => {
