@@ -183,10 +183,19 @@ export const mvp = {
         }
     },
     sendEmail: async (to: string, subject: string, htmlBody: string, fromName?: string) => {
+        // Validate recipient looks like an email address
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(to)) {
+            console.warn(`[MVP Email] Skipped: recipient "${to}" is not a valid email address.`);
+            return { success: false, skipped: true, error: `Invalid email address: ${to}` };
+        }
         try {
-            return await request({ op: 'send_email', to, subject, body: htmlBody, from_name: fromName || APP_CONFIG.BANK_NAME, _timeout: 12000, _retries: 1 });
+            const payload = { op: 'send_email', to, subject, body: htmlBody, from_name: fromName || APP_CONFIG.BANK_NAME, _timeout: 12000, _retries: 1 };
+            const res = await request(payload);
+            console.log(`[MVP Email] Response for ${to}:`, res);
+            return res;
         } catch (error: any) {
-            console.warn("MVP Service: Email failed to send", error);
+            console.warn("[MVP Email] Failed to send:", error);
             return { success: false, error: error?.message || 'Failed to send email' };
         }
     },

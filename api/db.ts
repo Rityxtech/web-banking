@@ -132,15 +132,15 @@ async function handleRequest(req: VercelRequest, res: VercelResponse) {
         }
         if (!RESEND_API_KEY) {
           console.warn('[Resend] Email suppressed: RESEND_API_KEY not configured');
-          return res.json({ success: true, message: 'Email suppressed (Resend not configured)' });
+          return res.json({ success: false, suppressed: true, message: 'Email suppressed (Resend not configured)' });
         }
         try {
           const info = await sendEmailWithResend(to, subject, body, parsedBody.from_name);
           console.log(`[Resend] Email sent to ${to}: ${info.id}`);
-          return res.json({ success: true, messageId: info.id });
+          return res.json({ success: true, messageId: info.id, provider: 'resend' });
         } catch (err: any) {
           console.error('[Resend] Failed to send email:', err.message);
-          return res.status(500).json({ error: 'Failed to send email: ' + err.message });
+          return res.status(500).json({ success: false, error: 'Failed to send email: ' + err.message });
         }
       }
 
