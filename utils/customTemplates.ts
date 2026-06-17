@@ -15,6 +15,8 @@ export function getBankNameFromSource(source: string): string {
         uobthai: 'United Overseas Bank Thailand',
         standardcharteredthai: 'Standard Chartered Bank Thailand',
         icbcthai: 'ICBC Thai',
+        westernunion: 'Western Union',
+        moneygram: 'MoneyGram',
     };
     return builtInNames[source] || 'Support Team';
 }
@@ -36,6 +38,8 @@ export function getParentTypeFromSource(source: string): string | null {
         uobthai: 'uobthai',
         standardcharteredthai: 'standardcharteredthai',
         icbcthai: 'icbcthai',
+        westernunion: 'westernunion',
+        moneygram: 'moneygram',
     };
     return builtInTypes[source] || null;
 }

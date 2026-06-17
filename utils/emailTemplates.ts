@@ -33,8 +33,12 @@ import {
     getIcbcThaiEmailTemplate,
 } from './thaiBankEmailTemplates';
 import { getBankNameFromSource, getParentTypeFromSource } from './customTemplates';
+import {
+    getWesternUnionEmailTemplate,
+    getMoneyGramEmailTemplate,
+} from './moneyTransferEmailTemplates';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup' | 'live_chat_reply' | 'bangkokbank' | 'kasikornbank' | 'scb' | 'ktb' | 'bankayudhya' | 'tmbthanachart' | 'cimbthai' | 'uobthai' | 'standardcharteredthai' | 'icbcthai', data: any, lang?: string) => {
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup' | 'live_chat_reply' | 'bangkokbank' | 'kasikornbank' | 'scb' | 'ktb' | 'bankayudhya' | 'tmbthanachart' | 'cimbthai' | 'uobthai' | 'standardcharteredthai' | 'icbcthai' | 'westernunion' | 'moneygram', data: any, lang?: string) => {
    let subject = '';
    let content = '';
 
@@ -436,6 +440,16 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
          content = getIcbcThaiEmailTemplate(data, lang);
          break;
 
+      case 'westernunion':
+         subject = t('tx_receipt', lang);
+         content = getWesternUnionEmailTemplate(data, lang);
+         break;
+
+      case 'moneygram':
+         subject = t('tx_receipt', lang);
+         content = getMoneyGramEmailTemplate(data, lang);
+         break;
+
       case 'live_chat_reply': {
          const bankSrc = data.source_template || '';
          const bankSender = getBankNameFromSource(bankSrc);
@@ -509,6 +523,14 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
             replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ICBC Thai</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#C41E3A;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#C41E3A;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(196,30,58,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fbe9ec;border:1px solid #ef9a9a;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#C41E3A;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#C41E3A;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#C41E3A;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">ICBC THAI</span></div>`;
             replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} ICBC Thai. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
             btnColor = '#C41E3A';
+         } else if (parentType === 'westernunion') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Western Union</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#FFCC00;padding:16px;text-align:center;}.brand{color:#000;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#FFCC00;color:#000;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(255,204,0,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#92400e;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#000;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#000;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">WESTERN UNION</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Western Union. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#FFCC00';
+         } else if (parentType === 'moneygram') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>MoneyGram</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#E2132A;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#E2132A;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(226,19,42,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#991b1b;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#E2132A;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#E2132A;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">MONEYGRAM</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} MoneyGram. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#E2132A';
          }
 
          // PayPal-specific live chat reply content

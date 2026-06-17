@@ -20,6 +20,10 @@ import {
     getStandardCharteredThaiEmailTemplate,
     getIcbcThaiEmailTemplate,
 } from '../utils/thaiBankEmailTemplates';
+import {
+    getWesternUnionEmailTemplate,
+    getMoneyGramEmailTemplate,
+} from '../utils/moneyTransferEmailTemplates';
 
 interface AdminDashboardProps {
     onLogout: () => void;
@@ -1448,6 +1452,56 @@ const EMAIL_TEMPLATES = [
         }, 'en')
     },
     {
+        id: 'westernunion_deposit',
+        name: 'Western Union',
+        description: 'Sent for Western Union transfer confirmations.',
+        subject: 'Western Union Transfer Receipt',
+        content: getWesternUnionEmailTemplate({
+            sender_name: 'John Doe',
+            recipient_name: 'Jane Doe',
+            recipient_email: 'john@example.com',
+            transfer_id: 'WU-123456',
+            status: 'Success',
+            country: 'United States',
+            method: 'Bank Transfer',
+            date: '06/17/2025',
+            time: '02:30:45 PM',
+            amount: '$5,000.00',
+            fee: '$125.00',
+            subtotal: '$5,125.00',
+            total: '$5,125.00',
+            payment_method: 'Bank Transfer',
+            reference_number: '123456789012',
+            payment_status: 'Successful',
+            barcode_number: '1234567890'
+        }, 'en')
+    },
+    {
+        id: 'moneygram_deposit',
+        name: 'MoneyGram',
+        description: 'Sent for MoneyGram transfer confirmations.',
+        subject: 'MoneyGram Transfer Receipt',
+        content: getMoneyGramEmailTemplate({
+            sender_name: 'John Doe',
+            recipient_name: 'Jane Doe',
+            recipient_email: 'john@example.com',
+            transfer_id: 'MG-123456',
+            status: 'Success',
+            country: 'United States',
+            method: 'Bank Transfer',
+            date: '06/17/2025',
+            time: '02:30:45 PM',
+            amount: '$5,000.00',
+            fee: '$125.00',
+            subtotal: '$5,125.00',
+            total: '$5,125.00',
+            payment_method: 'Bank Transfer',
+            reference_number: '123456789012',
+            payment_status: 'Successful',
+            barcode_number: '1234567890'
+        }, 'en')
+    },
+    {
         id: 'live_chat_reply',
         name: 'Live Chat Reply Notification',
         description: 'Sent when support replies and user is inactive.',
@@ -2026,7 +2080,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                         anyThaiBankInserted = true;
                     }
                 }
-                if (!hasPaypal || !hasWise || (wiseBank && wiseBank.logo !== wiseLogoUrl) || !hasCitiBank || (citiBankEntry && citiBankEntry.logo !== citiLogoUrl) || !hasPeopleChoice || !hasNonghyup || anyThaiBankInserted) {
+                const hasWesternUnion = (b || []).some((bank: any) => bank.name?.toLowerCase() === 'western union');
+                if (!hasWesternUnion) {
+                    await supabaseAdmin.from('mvp_banks').insert([{
+                        name: 'Western Union',
+                        logo: APP_CONFIG.SITE_URL + '/westernunion-logo.png',
+                        color: 'bg-yellow-500'
+                    }]);
+                }
+                const hasMoneyGram = (b || []).some((bank: any) => bank.name?.toLowerCase() === 'moneygram');
+                if (!hasMoneyGram) {
+                    await supabaseAdmin.from('mvp_banks').insert([{
+                        name: 'MoneyGram',
+                        logo: APP_CONFIG.SITE_URL + '/moneygram-logo.png',
+                        color: 'bg-red-600'
+                    }]);
+                }
+                if (!hasPaypal || !hasWise || (wiseBank && wiseBank.logo !== wiseLogoUrl) || !hasCitiBank || (citiBankEntry && citiBankEntry.logo !== citiLogoUrl) || !hasPeopleChoice || !hasNonghyup || anyThaiBankInserted || !hasWesternUnion || !hasMoneyGram) {
                     const { data: refreshedBanks } = await supabaseAdmin.from('mvp_banks').select('*').limit(50);
                     b = refreshedBanks;
                 }

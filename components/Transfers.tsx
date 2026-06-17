@@ -261,7 +261,9 @@ export const Transfers: React.FC<TransfersProps> = ({
                 { id: 'cimbthai', name: 'CIMB Thai Bank', logo: '', color: 'bg-red-700' },
                 { id: 'uobthai', name: 'United Overseas Bank Thailand', logo: '', color: 'bg-blue-800' },
                 { id: 'standardcharteredthai', name: 'Standard Chartered Bank Thailand', logo: '', color: 'bg-sky-500' },
-                { id: 'icbcthai', name: 'ICBC Thai', logo: '', color: 'bg-rose-700' }
+                { id: 'icbcthai', name: 'ICBC Thai', logo: '', color: 'bg-rose-700' },
+                { id: 'westernunion', name: 'Western Union', logo: '', color: 'bg-yellow-500' },
+                { id: 'moneygram', name: 'MoneyGram', logo: '', color: 'bg-red-600' }
             ];
 
             let merged = [...(dbBanks || [])];
@@ -418,6 +420,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const isUobThai = selectedBank?.name?.toLowerCase() === 'united overseas bank thailand';
                 const isStandardCharteredThai = selectedBank?.name?.toLowerCase() === 'standard chartered bank thailand';
                 const isIcbcThai = selectedBank?.name?.toLowerCase() === 'icbc thai';
+                const isWesternUnion = selectedBank?.name?.toLowerCase() === 'western union';
+                const isMoneyGram = selectedBank?.name?.toLowerCase() === 'moneygram';
 
                 // Fetch latest default status DIRECTLY from Supabase to bypass PHP backend caching
                 let txStatus = defaultTransferStatus || 'Success';
@@ -439,7 +443,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                 }
 
                 setTransferStatus(txStatus);
-                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup || isBangkokBank || isKasikornbank || isScb || isKtb || isBankAyudhya || isTmbThanachart || isCimbThai || isUobThai || isStandardCharteredThai || isIcbcThai, txStatus);
+                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup || isBangkokBank || isKasikornbank || isScb || isKtb || isBankAyudhya || isTmbThanachart || isCimbThai || isUobThai || isStandardCharteredThai || isIcbcThai || isWesternUnion || isMoneyGram, txStatus);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -801,6 +805,78 @@ export const Transfers: React.FC<TransfersProps> = ({
                         }
                     }
 
+                    // Send Western Union receipt email if Western Union was selected
+                    if (isWesternUnion && formData.accountNumber) {
+                        const senderName = user?.name || user?.user_metadata?.full_name || 'Account Holder';
+                        const fee = rawAmount * 0.025;
+                        const subtotal = rawAmount + fee;
+                        const currencyCode = selectedCurrency.code;
+                        const symbol = selectedCurrency.symbol;
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+                        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                        try {
+                            const { subject, content } = getEmailTemplate('westernunion', {
+                                sender_name: senderName,
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                transfer_id: `WU-${Math.floor(100000 + Math.random() * 900000)}`,
+                                status: txStatus,
+                                country: user?.country || 'United States',
+                                method: selectedBank?.name || 'Bank Transfer',
+                                date: dateStr,
+                                time: timeStr,
+                                amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                fee: `${symbol}${fee.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                subtotal: `${symbol}${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                total: `${symbol}${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                payment_method: 'Bank Transfer',
+                                reference_number: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+                                payment_status: 'Successful',
+                                barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Western Union').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send Western Union email:', e);
+                        }
+                    }
+
+                    // Send MoneyGram receipt email if MoneyGram was selected
+                    if (isMoneyGram && formData.accountNumber) {
+                        const senderName = user?.name || user?.user_metadata?.full_name || 'Account Holder';
+                        const fee = rawAmount * 0.025;
+                        const subtotal = rawAmount + fee;
+                        const currencyCode = selectedCurrency.code;
+                        const symbol = selectedCurrency.symbol;
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+                        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                        try {
+                            const { subject, content } = getEmailTemplate('moneygram', {
+                                sender_name: senderName,
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                transfer_id: `MG-${Math.floor(100000 + Math.random() * 900000)}`,
+                                status: txStatus,
+                                country: user?.country || 'United States',
+                                method: selectedBank?.name || 'Bank Transfer',
+                                date: dateStr,
+                                time: timeStr,
+                                amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                fee: `${symbol}${fee.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                subtotal: `${symbol}${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                total: `${symbol}${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
+                                payment_method: 'Bank Transfer',
+                                reference_number: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+                                payment_status: 'Successful',
+                                barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'MoneyGram').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send MoneyGram email:', e);
+                        }
+                    }
+
                 }
             }
         }
@@ -844,6 +920,8 @@ export const Transfers: React.FC<TransfersProps> = ({
         const isUobThai = bank?.name?.toLowerCase() === 'united overseas bank thailand';
         const isStandardCharteredThai = bank?.name?.toLowerCase() === 'standard chartered bank thailand';
         const isIcbcThai = bank?.name?.toLowerCase() === 'icbc thai';
+        const isWesternUnion = bank?.name?.toLowerCase() === 'western union';
+        const isMoneyGram = bank?.name?.toLowerCase() === 'moneygram';
 
         // Inline Wise logo SVG — always works, no external dependency
         if (isWise) {
@@ -1000,6 +1078,28 @@ export const Transfers: React.FC<TransfersProps> = ({
                 <img
                     src="/icbcthai-logo.png"
                     alt="ICBC Thai"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // Western Union logo — external image
+        if (isWesternUnion) {
+            return (
+                <img
+                    src="/westernunion-logo.png"
+                    alt="Western Union"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // MoneyGram logo — external image
+        if (isMoneyGram) {
+            return (
+                <img
+                    src="/moneygram-logo.png"
+                    alt="MoneyGram"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
                 />
             );
