@@ -50,7 +50,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 const PUBLIC_TABLES = ['mvp_app_settings', 'mvp_waitlist'];
 
@@ -128,6 +128,9 @@ app.all('/api/db', async (req, res) => {
 
       case 'send_email': {
         const { to, subject, body } = params;
+        const bodySize = body ? Buffer.byteLength(body, 'utf8') : 0;
+        const totalPayloadSize = req.body ? Buffer.byteLength(JSON.stringify(req.body), 'utf8') : 0;
+        console.log(`[API send_email] body=${bodySize}B total=${totalPayloadSize}B to=${to} subject=${subject?.substring(0, 40)}`);
         if (!to || !subject || !body) {
           return res.status(400).json({ error: 'Missing required fields: to, subject, body' });
         }
