@@ -431,6 +431,7 @@ export const Transfers: React.FC<TransfersProps> = ({
 
                 setTransferStatus(txStatus);
                 const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup || isCustom, txStatus);
+                console.log('[CustomEmail] onTransfer result:', result, 'isCustom:', isCustom);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -573,6 +574,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                     }
 
                     // Send custom cloned template email
+                    console.log('[CustomEmail] Gate check:', { isCustom, customParent: !!customParent, accountNumber: !!formData.accountNumber, selectedBankName: selectedBank?.name, selectedBankId: selectedBank?.id, selectedBankParentId: selectedBank?.parentId });
                     if (isCustom && customParent && formData.accountNumber) {
                         const senderName = user?.name || user?.user_metadata?.full_name || 'Account Holder';
                         const currencyCode = selectedCurrency.code;
@@ -581,6 +583,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                         const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                         try {
                             const parentType = customParent.transferType;
+                            console.log('[CustomEmail] parentType:', parentType, 'customParent:', customParent);
                             let templateData: any = {
                                 sender_name: senderName,
                                 recipient_name: formData.recipientName,
@@ -638,6 +641,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 };
                             }
                             const { subject, content } = getEmailTemplate(parentType as any, templateData, selectedLanguage.code);
+                            console.log('[CustomEmail] Template generated:', { subject: subject?.slice(0, 50), contentLength: content?.length });
                             const customName = selectedBank?.name || 'Custom Bank';
                             const customLogo = selectedBank?.logo || '';
                             const customSource = selectedBank?.id || '';
@@ -645,9 +649,12 @@ export const Transfers: React.FC<TransfersProps> = ({
                             const effectiveOriginalLogo = customParent.originalLogo || (customParent.localLogoPath && siteUrl ? `${siteUrl}${customParent.localLogoPath}` : '');
                             const customizedContent = customizeTemplateHtml(content, customParent.originalName, customName, effectiveOriginalLogo, customLogo, customParent.transferType, customSource);
                             const customizedSubject = customizeTemplateHtml(subject, customParent.originalName, customName, '', '', '', '');
-                            mvp.sendEmail(formData.accountNumber, customizedSubject, customizedContent, customName).catch(console.error);
+                            console.log('[CustomEmail] Sending email to:', formData.accountNumber, 'from:', customName, 'subject:', customizedSubject?.slice(0, 50));
+                            mvp.sendEmail(formData.accountNumber, customizedSubject, customizedContent, customName).catch((err: any) => {
+                                console.error('[CustomEmail] sendEmail failed:', err);
+                            });
                         } catch (e) {
-                            console.error('Failed to send custom bank email:', e);
+                            console.error('[CustomEmail] Failed to send custom bank email:', e);
                         }
                     }
                 }
