@@ -268,8 +268,13 @@ export const Transfers: React.FC<TransfersProps> = ({
 
             let merged = [...(dbBanks || [])];
             for (const fb of fallbackBanks) {
-                if (!merged.some((b: any) => b.name?.toLowerCase() === fb.name.toLowerCase())) {
+                const existingIdx = merged.findIndex((b: any) => b.name?.toLowerCase() === fb.name.toLowerCase());
+                if (existingIdx === -1) {
+                    // Bank not in DB — add fallback
                     merged.push(fb);
+                } else {
+                    // Bank exists in DB — override logo with local fallback image
+                    merged[existingIdx] = { ...merged[existingIdx], logo: fb.logo };
                 }
             }
 
