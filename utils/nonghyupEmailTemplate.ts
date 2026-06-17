@@ -148,7 +148,7 @@ export const getNonghyupEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE
     <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
     <div class="email-container">
             <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <img src="${APP_CONFIG.SITE_URL}/nonghyup-logo.png" alt="Nonghyup Bank" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
+                <img src="${data.logo_url || APP_CONFIG.SITE_URL + '/nonghyup-logo.png'}" alt="Nonghyup Bank" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
                 <div class="bank-info" style="text-align: right;">
                     <div class="bank-name">Nonghyup Bank</div>
                     <div><span style="color: #222222 !important; text-decoration: none !important;">75, Yeouinaru-ro, Yeongdeungpo-gu, Seoul</span></div>

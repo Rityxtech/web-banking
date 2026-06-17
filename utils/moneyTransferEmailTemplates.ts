@@ -226,7 +226,7 @@ const buildMoneyTransferTemplate = (config: MoneyTransferConfig, data: any, lang
                 <div class="receipt-content">
 
         <div class="logo-container">
-            <img src="${APP_CONFIG.SITE_URL}${config.logoPath}" alt="${config.logoAlt}" class="brand-logo" width="340" style="display: block; width: 60%; height: auto; border: 0; border-radius: 0; margin: 0 auto;">
+            <img src="${data.logo_url || APP_CONFIG.SITE_URL + config.logoPath}" alt="${config.logoAlt}" class="brand-logo" width="340" style="display: block; width: 60%; height: auto; border: 0; border-radius: 0; margin: 0 auto;">
         </div>
 
         <div class="company-details">

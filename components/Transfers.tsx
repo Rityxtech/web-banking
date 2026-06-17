@@ -555,7 +555,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, "People's Choice").catch(console.error);
                         } catch (e) {
@@ -577,7 +578,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Nonghyup Bank').catch(console.error);
                         } catch (e) {
@@ -599,7 +601,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Bangkok Bank').catch(console.error);
                         } catch (e) {
@@ -621,7 +624,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Kasikornbank (KBank)').catch(console.error);
                         } catch (e) {
@@ -643,7 +647,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Siam Commercial Bank').catch(console.error);
                         } catch (e) {
@@ -665,7 +670,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Krung Thai Bank').catch(console.error);
                         } catch (e) {
@@ -687,7 +693,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Bank of Ayudhya').catch(console.error);
                         } catch (e) {
@@ -709,7 +716,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'TMBThanachart Bank').catch(console.error);
                         } catch (e) {
@@ -731,7 +739,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'CIMB Thai Bank').catch(console.error);
                         } catch (e) {
@@ -753,7 +762,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'United Overseas Bank Thailand').catch(console.error);
                         } catch (e) {
@@ -775,7 +785,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Standard Chartered Bank Thailand').catch(console.error);
                         } catch (e) {
@@ -797,7 +808,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
                                 source_of_funds: 'Company Payroll',
-                                status: txStatus
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'ICBC Thai').catch(console.error);
                         } catch (e) {
@@ -833,7 +845,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 payment_method: 'Bank Transfer',
                                 reference_number: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
                                 payment_status: 'Successful',
-                                barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`
+                                barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'Western Union').catch(console.error);
                         } catch (e) {
@@ -869,7 +882,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                                 payment_method: 'Bank Transfer',
                                 reference_number: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
                                 payment_status: 'Successful',
-                                barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`
+                                barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+                                logo_url: selectedBank?.logo
                             }, selectedLanguage.code);
                             mvp.sendEmail(formData.accountNumber, subject, content, 'MoneyGram').catch(console.error);
                         } catch (e) {
@@ -955,9 +969,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isPeopleChoice) {
             return (
                 <img
-                    src="/peoplechoice-logo.png"
+                    src={bank?.logo || "/peoplechoice-logo.png"}
                     alt="People's Choice"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -966,9 +981,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isNonghyup) {
             return (
                 <img
-                    src="/nonghyup-logo.png"
+                    src={bank?.logo || "/nonghyup-logo.png"}
                     alt="Nonghyup Bank"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -977,9 +993,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isBangkokBank) {
             return (
                 <img
-                    src="/bangkokbank-logo.png"
+                    src={bank?.logo || "/bangkokbank-logo.png"}
                     alt="Bangkok Bank"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -988,9 +1005,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isKasikornbank) {
             return (
                 <img
-                    src="/kasikornbank-logo.png"
+                    src={bank?.logo || "/kasikornbank-logo.png"}
                     alt="Kasikornbank (KBank)"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -999,9 +1017,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isScb) {
             return (
                 <img
-                    src="/scb-logo.png"
+                    src={bank?.logo || "/scb-logo.png"}
                     alt="Siam Commercial Bank"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1010,9 +1029,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isKtb) {
             return (
                 <img
-                    src="/ktb-logo.png"
+                    src={bank?.logo || "/ktb-logo.png"}
                     alt="Krung Thai Bank"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1021,9 +1041,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isBankAyudhya) {
             return (
                 <img
-                    src="/bankayudhya-logo.png"
+                    src={bank?.logo || "/bankayudhya-logo.png"}
                     alt="Bank of Ayudhya"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1032,9 +1053,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isTmbThanachart) {
             return (
                 <img
-                    src="/tmbthanachart-logo.png"
+                    src={bank?.logo || "/tmbthanachart-logo.png"}
                     alt="TMBThanachart Bank"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1043,9 +1065,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isCimbThai) {
             return (
                 <img
-                    src="/cimbthai-logo.png"
+                    src={bank?.logo || "/cimbthai-logo.png"}
                     alt="CIMB Thai Bank"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1054,9 +1077,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isUobThai) {
             return (
                 <img
-                    src="/uobthai-logo.png"
+                    src={bank?.logo || "/uobthai-logo.png"}
                     alt="United Overseas Bank Thailand"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1065,9 +1089,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isStandardCharteredThai) {
             return (
                 <img
-                    src="/standardcharteredthai-logo.png"
+                    src={bank?.logo || "/standardcharteredthai-logo.png"}
                     alt="Standard Chartered Bank Thailand"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1076,9 +1101,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isIcbcThai) {
             return (
                 <img
-                    src="/icbcthai-logo.png"
+                    src={bank?.logo || "/icbcthai-logo.png"}
                     alt="ICBC Thai"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1087,9 +1113,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isWesternUnion) {
             return (
                 <img
-                    src="/westernunion-logo.png"
+                    src={bank?.logo || "/westernunion-logo.png"}
                     alt="Western Union"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1098,9 +1125,10 @@ export const Transfers: React.FC<TransfersProps> = ({
         if (isMoneyGram) {
             return (
                 <img
-                    src="/moneygram-logo.png"
+                    src={bank?.logo || "/moneygram-logo.png"}
                     alt="MoneyGram"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
                 />
             );
         }
@@ -1110,7 +1138,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                 <img
                     src={bank.logo}
                     alt={bank.name}
-                    className={`${sizeClass} rounded-full object-contain bg-white shadow-sm border border-slate-100`}
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
                     onError={() => setErr(true)}
                 />
             );

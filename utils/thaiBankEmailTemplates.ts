@@ -62,7 +62,7 @@ const buildThaiBankTemplate = (config: ThaiBankConfig, data: any, lang?: string)
     <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
     <div class="email-container">
         <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <img src="${APP_CONFIG.SITE_URL}${config.logoPath}" alt="${config.bankName}" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
+            <img src="${data.logo_url || APP_CONFIG.SITE_URL + config.logoPath}" alt="${config.bankName}" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
             <div class="bank-info" style="text-align: right;">
                 <div class="bank-name">${config.bankName}</div>
                 <div><span style="color: #ffffff !important; text-decoration: none !important;">${config.email}</span></div>

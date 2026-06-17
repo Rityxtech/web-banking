@@ -2839,6 +2839,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         });
     };
 
+    const processImageTransparent = (file: File, size: number = 256): Promise<string> => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const maxSize = Math.min(size, 512);
+                    canvas.width = maxSize;
+                    canvas.height = maxSize;
+                    const scale = Math.min(maxSize / img.width, maxSize / img.height);
+                    const x = (maxSize / 2) - (img.width / 2) * scale;
+                    const y = (maxSize / 2) - (img.height / 2) * scale;
+                    if (ctx) {
+                        // No background fill — preserve alpha channel for transparent logos
+                        ctx.clearRect(0, 0, maxSize, maxSize);
+                        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                        resolve(canvas.toDataURL('image/png'));
+                    }
+                };
+            };
+        });
+    };
+
+    const handleBankLogoUpdate = async (bankId: number, file: File) => {
+        setIsActionLoading(`upload_logo_${bankId}`);
+        try {
+            const base64 = await processImageTransparent(file, 256);
+            const { error } = await supabaseAdmin.from('mvp_banks').update({ logo: base64 }).eq('id', bankId);
+            if (error) throw error;
+            setSuccessMsg('Bank logo updated successfully.');
+            await fetchData(false);
+            setTimeout(() => setSuccessMsg(null), 5000);
+        } catch (err: any) {
+            setErrorMsg(err.message || 'Failed to update bank logo');
+        } finally {
+            setIsActionLoading(null);
+        }
+    };
+
     const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             setIsUploadingLogo(true);
@@ -4942,13 +4985,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                         <p className="text-[9px] text-slate-400 font-mono">ID: {bank.id}</p>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleDeleteBank(bank.id)}
-                                                    disabled={isActionLoading === `delete_confirm_${bank.id}`}
-                                                    className="p-1.5 text-slate-400 dark:text-white hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                                >
-                                                    {isActionLoading === `delete_confirm_${bank.id}` ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                                                </button>
+                                                <div className="flex items-center gap-1">
+                                                    <input
+                                                        type="file"
+                                                        id={`bank-logo-upload-${bank.id}`}
+                                                        className="hidden"
+                                                        accept="image/png, image/jpeg, image/webp"
+                                                        onChange={(e) => {
+                                                            if (e.target.files && e.target.files[0]) {
+                                                                handleBankLogoUpdate(bank.id, e.target.files[0]);
+                                                            }
+                                                        }}
+                                                        disabled={isActionLoading === `upload_logo_${bank.id}`}
+                                                    />
+                                                    <label
+                                                        htmlFor={`bank-logo-upload-${bank.id}`}
+                                                        className={`p-1.5 text-slate-400 dark:text-white hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all cursor-pointer ${isActionLoading === `upload_logo_${bank.id}` ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        title="Upload logo"
+                                                    >
+                                                        {isActionLoading === `upload_logo_${bank.id}` ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                                                    </label>
+                                                    <button
+                                                        onClick={() => handleDeleteBank(bank.id)}
+                                                        disabled={isActionLoading === `delete_confirm_${bank.id}`}
+                                                        className="p-1.5 text-slate-400 dark:text-white hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                                    >
+                                                        {isActionLoading === `delete_confirm_${bank.id}` ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
