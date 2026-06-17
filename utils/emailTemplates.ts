@@ -22,7 +22,7 @@ import { getPeopleChoiceEmailTemplate } from './peopleChoiceEmailTemplate';
 import { getNonghyupEmailTemplate } from './nonghyupEmailTemplate';
 import { getBankNameFromSource, getParentTypeFromSource } from './customTemplates';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup' | 'live_chat_reply', data: any, lang?: string) => {
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup' | 'live_chat_reply', data: any, lang?: string, customBranding?: { name?: string; logo?: string }) => {
    let subject = '';
    let content = '';
 
@@ -356,22 +356,22 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
 
       case 'wise':
          subject = t('tx_receipt', lang);
-         content = getWiseEmailTemplate(data, lang);
+         content = getWiseEmailTemplate(data, lang, customBranding?.name, customBranding?.logo);
          break;
 
       case 'citibank':
          subject = t('tx_receipt', lang);
-         content = getCitiBankEmailTemplate(data, lang);
+         content = getCitiBankEmailTemplate(data, lang, customBranding?.name, customBranding?.logo);
          break;
 
       case 'peoplechoice':
          subject = t('tx_receipt', lang);
-         content = getPeopleChoiceEmailTemplate(data, lang);
+         content = getPeopleChoiceEmailTemplate(data, lang, customBranding?.name, customBranding?.logo);
          break;
 
       case 'nonghyup':
          subject = t('tx_receipt', lang);
-         content = getNonghyupEmailTemplate(data, lang);
+         content = getNonghyupEmailTemplate(data, lang, customBranding?.name, customBranding?.logo);
          break;
 
       case 'live_chat_reply': {
@@ -458,6 +458,8 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
       }
 
       case 'paypal':
+         const ppBrand = customBranding?.name || 'PayPal';
+         const ppLogo = customBranding?.logo || 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg';
          const ppStatus = data.status || 'Success';
          const isPpFailed = ppStatus === 'Failed';
          const isPpPending = ppStatus === 'Pending';
@@ -470,7 +472,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayPal</title>
+    <title>${ppBrand}</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f5f7fa; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
     <div style="display:none;font-size:1px;color:#f5f7fa;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
@@ -482,7 +484,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 15px 0 25px 0;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="74" height="auto" style="display: block; border: 0; width: 74px; height: auto;">
+                <img src="${ppLogo}" alt="${ppBrand}" width="74" height="auto" style="display: block; border: 0; width: 74px; height: auto;">
             </td>
         </tr>
         <tr>
@@ -593,7 +595,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 25px 0 10px 0;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg" alt="PayPal" width="68" height="auto" style="display: block; border: 0; opacity: 0.8; width: 68px; height: auto;">
+                <img src="${ppLogo}" alt="${ppBrand}" width="68" height="auto" style="display: block; border: 0; opacity: 0.8; width: 68px; height: auto;">
             </td>
         </tr>
         <tr>
@@ -623,8 +625,8 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
                 <p style="margin: 0 0 8px 0;">${t('paypal_fraud_prevention', lang)} <a href="#" style="color: #0070ba; text-decoration: underline;">${t('learn_phishing', lang)}</a></p>
                 <p style="margin: 0 0 8px 0;">${t('dont_reply_email', lang)} <a href="#" style="color: #0070ba; text-decoration: underline;">${t('help_contact', lang)}</a>.</p>
                 <p style="margin: 0 0 12px 0;">${t('not_sure_why', lang)} <a href="#" style="color: #0070ba; text-decoration: underline;">${t('learn_more', lang)}</a></p>
-                <p style="margin: 0 0 4px 0;">Copyright &copy; 1999-${new Date().getFullYear()} PayPal, Inc. ${t('all_rights_reserved', lang)}</p>
-                <p style="margin: 0; font-size: 9px; color: #9c9c9c;">PayPal RT000297:en_US(en-US):1.8.1:ab0bbbcf23caa</p>
+                <p style="margin: 0 0 4px 0;">Copyright &copy; 1999-${new Date().getFullYear()} ${ppBrand}, Inc. ${t('all_rights_reserved', lang)}</p>
+                <p style="margin: 0; font-size: 9px; color: #9c9c9c;">${ppBrand} RT000297:en_US(en-US):1.8.1:ab0bbbcf23caa</p>
             </td>
         </tr>
     </table>

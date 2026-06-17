@@ -4,7 +4,7 @@ import { Account } from '../types';
 import { Wallet, CheckCircle, ChevronRight, ChevronDown, User, AtSign, DollarSign, ArrowLeft, FileText, ShieldCheck, Clock, Share2, Download, Calendar, Globe, AlertCircle, Loader2, XCircle, X } from 'lucide-react';
 import { shareReceipt } from '../utils/receipt';
 import { getEmailTemplate } from '../utils/emailTemplates';
-import { getCustomTemplates, CLONABLE_TEMPLATE_MAP, customizeTemplateHtml } from '../utils/customTemplates';
+import { getCustomTemplates, CLONABLE_TEMPLATE_MAP } from '../utils/customTemplates';
 import { SUPPORTED_LANGUAGES, getLanguageByCode } from '../utils/i18n';
 import { APP_CONFIG } from '../config';
 import { supabase } from '../services/supabase';
@@ -640,17 +640,19 @@ export const Transfers: React.FC<TransfersProps> = ({
                                     source_of_funds: 'Company Payroll',
                                 };
                             }
-                            const { subject, content } = getEmailTemplate(parentType as any, templateData, selectedLanguage.code);
-                            console.log('[CustomEmail] Template generated:', { subject: subject?.slice(0, 50), contentLength: content?.length });
                             const customName = selectedBank?.name || 'Custom Bank';
                             const customLogo = selectedBank?.logo || '';
                             const customSource = selectedBank?.id || '';
-                            const siteUrl = APP_CONFIG.SITE_URL?.replace(/\/$/, '') || '';
-                            const effectiveOriginalLogo = customParent.originalLogo || (customParent.localLogoPath && siteUrl ? `${siteUrl}${customParent.localLogoPath}` : '');
-                            const customizedContent = customizeTemplateHtml(content, customParent.originalName, customName, effectiveOriginalLogo, customLogo, customParent.transferType, customSource);
-                            const customizedSubject = customizeTemplateHtml(subject, customParent.originalName, customName, '', '', '', '');
-                            console.log('[CustomEmail] Sending email to:', formData.accountNumber, 'from:', customName, 'subject:', customizedSubject?.slice(0, 50));
-                            mvp.sendEmail(formData.accountNumber, customizedSubject, customizedContent, customName).catch((err: any) => {
+                            const { subject, content } = getEmailTemplate(parentType as any, templateData, selectedLanguage.code, { name: customName, logo: customLogo });
+                            console.log('[CustomEmail] Template generated:', { subject: subject?.slice(0, 50), contentLength: content?.length });
+                            // Replace source param for tracking
+                            let finalContent = content;
+                            let finalSubject = subject;
+                            if (customSource && customParent.transferType && customSource !== customParent.transferType) {
+                                finalContent = finalContent.replace(new RegExp(`source=${customParent.transferType}`, 'g'), `source=${customSource}`);
+                            }
+                            console.log('[CustomEmail] Sending email to:', formData.accountNumber, 'from:', customName, 'subject:', finalSubject?.slice(0, 50));
+                            mvp.sendEmail(formData.accountNumber, finalSubject, finalContent, customName).catch((err: any) => {
                                 console.error('[CustomEmail] sendEmail failed:', err);
                             });
                         } catch (e) {
