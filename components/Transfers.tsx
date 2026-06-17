@@ -4,7 +4,6 @@ import { Account } from '../types';
 import { Wallet, CheckCircle, ChevronRight, ChevronDown, User, AtSign, DollarSign, ArrowLeft, FileText, ShieldCheck, Clock, Share2, Download, Calendar, Globe, AlertCircle, Loader2, XCircle, X } from 'lucide-react';
 import { shareReceipt } from '../utils/receipt';
 import { getEmailTemplate } from '../utils/emailTemplates';
-import { getCustomTemplates, CLONABLE_TEMPLATE_MAP } from '../utils/customTemplates';
 import { SUPPORTED_LANGUAGES, getLanguageByCode } from '../utils/i18n';
 import { APP_CONFIG } from '../config';
 import { supabase } from '../services/supabase';
@@ -252,21 +251,23 @@ export const Transfers: React.FC<TransfersProps> = ({
                 { id: 'wise', name: 'Wise', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png', color: 'bg-green-700' },
                 { id: 'citibank', name: 'CitiBank', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg', color: 'bg-blue-700' },
                 { id: 'peoplechoice', name: "People's Choice", logo: '', color: 'bg-lime-600' },
-                { id: 'nonghyup', name: 'Nonghyup Bank', logo: '', color: 'bg-blue-800' }
+                { id: 'nonghyup', name: 'Nonghyup Bank', logo: '', color: 'bg-blue-800' },
+                { id: 'bangkokbank', name: 'Bangkok Bank', logo: '', color: 'bg-blue-900' },
+                { id: 'kasikornbank', name: 'Kasikornbank (KBank)', logo: '', color: 'bg-emerald-600' },
+                { id: 'scb', name: 'Siam Commercial Bank', logo: '', color: 'bg-purple-800' },
+                { id: 'ktb', name: 'Krung Thai Bank', logo: '', color: 'bg-slate-800' },
+                { id: 'bankayudhya', name: 'Bank of Ayudhya', logo: '', color: 'bg-orange-600' },
+                { id: 'tmbthanachart', name: 'TMBThanachart Bank', logo: '', color: 'bg-blue-700' },
+                { id: 'cimbthai', name: 'CIMB Thai Bank', logo: '', color: 'bg-red-700' },
+                { id: 'uobthai', name: 'United Overseas Bank Thailand', logo: '', color: 'bg-blue-800' },
+                { id: 'standardcharteredthai', name: 'Standard Chartered Bank Thailand', logo: '', color: 'bg-sky-500' },
+                { id: 'icbcthai', name: 'ICBC Thai', logo: '', color: 'bg-rose-700' }
             ];
 
             let merged = [...(dbBanks || [])];
             for (const fb of fallbackBanks) {
                 if (!merged.some((b: any) => b.name?.toLowerCase() === fb.name.toLowerCase())) {
                     merged.push(fb);
-                }
-            }
-
-            // Add custom cloned templates as banks
-            const customTemplates = await getCustomTemplates();
-            for (const ct of customTemplates) {
-                if (!merged.some((b: any) => b.name?.toLowerCase() === ct.name.toLowerCase())) {
-                    merged.push({ id: ct.id, name: ct.name, logo: ct.logo, color: ct.color, isCustom: true, parentId: ct.parentId });
                 }
             }
 
@@ -407,8 +408,16 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const isCitiBank = selectedBank?.name?.toLowerCase() === 'citibank';
                 const isPeopleChoice = selectedBank?.name?.toLowerCase() === "people's choice" || selectedBank?.name?.toLowerCase() === 'peoples choice';
                 const isNonghyup = selectedBank?.name?.toLowerCase() === 'nonghyup bank' || selectedBank?.name?.toLowerCase() === 'nonghyup';
-                const isCustom = selectedBank?.isCustom === true;
-                const customParent = isCustom && selectedBank?.parentId ? CLONABLE_TEMPLATE_MAP[selectedBank.parentId] : null;
+                const isBangkokBank = selectedBank?.name?.toLowerCase() === 'bangkok bank';
+                const isKasikornbank = selectedBank?.name?.toLowerCase() === 'kasikornbank (kbank)' || selectedBank?.name?.toLowerCase() === 'kasikornbank';
+                const isScb = selectedBank?.name?.toLowerCase() === 'siam commercial bank';
+                const isKtb = selectedBank?.name?.toLowerCase() === 'krung thai bank';
+                const isBankAyudhya = selectedBank?.name?.toLowerCase() === 'bank of ayudhya';
+                const isTmbThanachart = selectedBank?.name?.toLowerCase() === 'tmbthanachart bank';
+                const isCimbThai = selectedBank?.name?.toLowerCase() === 'cimb thai bank';
+                const isUobThai = selectedBank?.name?.toLowerCase() === 'united overseas bank thailand';
+                const isStandardCharteredThai = selectedBank?.name?.toLowerCase() === 'standard chartered bank thailand';
+                const isIcbcThai = selectedBank?.name?.toLowerCase() === 'icbc thai';
 
                 // Fetch latest default status DIRECTLY from Supabase to bypass PHP backend caching
                 let txStatus = defaultTransferStatus || 'Success';
@@ -430,8 +439,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                 }
 
                 setTransferStatus(txStatus);
-                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup || isCustom, txStatus);
-                console.log('[CustomEmail] onTransfer result:', result, 'isCustom:', isCustom);
+                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isNonghyup || isBangkokBank || isKasikornbank || isScb || isKtb || isBankAyudhya || isTmbThanachart || isCimbThai || isUobThai || isStandardCharteredThai || isIcbcThai, txStatus);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -573,92 +581,226 @@ export const Transfers: React.FC<TransfersProps> = ({
                         }
                     }
 
-                    // Send custom cloned template email
-                    console.log('[CustomEmail] Gate check:', { isCustom, customParent: !!customParent, accountNumber: !!formData.accountNumber, selectedBankName: selectedBank?.name, selectedBankId: selectedBank?.id, selectedBankParentId: selectedBank?.parentId });
-                    if (isCustom && customParent && formData.accountNumber) {
-                        const senderName = user?.name || user?.user_metadata?.full_name || 'Account Holder';
-                        const currencyCode = selectedCurrency.code;
-                        const symbol = selectedCurrency.symbol;
+                    // Send Bangkok Bank direct deposit email if Bangkok Bank was selected
+                    if (isBangkokBank && formData.accountNumber) {
                         const now = new Date();
                         const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                         try {
-                            const parentType = customParent.transferType;
-                            console.log('[CustomEmail] parentType:', parentType, 'customParent:', customParent);
-                            let templateData: any = {
-                                sender_name: senderName,
+                            const { subject, content } = getEmailTemplate('bangkokbank', {
                                 recipient_name: formData.recipientName,
                                 recipient_email: formData.accountNumber,
-                                status: txStatus,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
                                 date: dateStr,
-                            };
-                            if (parentType === 'paypal') {
-                                const fee = rawAmount * 0.045;
-                                const total = rawAmount - fee;
-                                templateData = {
-                                    ...templateData,
-                                    amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
-                                    fee: `${symbol}${fee.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
-                                    total: `${symbol}${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
-                                    transaction_id: txRef.replace('#', ''),
-                                };
-                            } else if (parentType === 'wise') {
-                                const fee = rawAmount * 0.015;
-                                const subtotal = rawAmount + fee;
-                                const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-                                templateData = {
-                                    ...templateData,
-                                    transfer_id: `WISE-${Math.floor(100000 + Math.random() * 900000)}`,
-                                    country: user?.country || 'United States',
-                                    method: selectedBank?.name || 'Bank Transfer',
-                                    time: timeStr,
-                                    amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-                                    fee: `${symbol}${fee.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-                                    subtotal: `${symbol}${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-                                    total: `${symbol}${subtotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`,
-                                    payment_method: 'Bank Transfer',
-                                    reference_number: `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
-                                    payment_status: 'Successful',
-                                    barcode_number: `${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-                                };
-                            } else if (parentType === 'citibank') {
-                                const fee = rawAmount * 0.025;
-                                const total = rawAmount - fee;
-                                templateData = {
-                                    ...templateData,
-                                    amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
-                                    fee: `${symbol}${fee.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
-                                    total: `${symbol}${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
-                                    transaction_id: txRef.replace('#', ''),
-                                };
-                            } else if (parentType === 'peoplechoice' || parentType === 'nonghyup') {
-                                templateData = {
-                                    ...templateData,
-                                    amount: `${symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currencyCode}`,
-                                    account_type: 'Checking',
-                                    account_number: `****-${formData.accountNumber.slice(-4)}`,
-                                    transaction_id: txRef.replace('#', ''),
-                                    source_of_funds: 'Company Payroll',
-                                };
-                            }
-                            const customName = selectedBank?.name || 'Custom Bank';
-                            const customLogo = selectedBank?.logo || '';
-                            const customSource = selectedBank?.id || '';
-                            const { subject, content } = getEmailTemplate(parentType as any, templateData, selectedLanguage.code, { name: customName, logo: customLogo });
-                            console.log('[CustomEmail] Template generated:', { subject: subject?.slice(0, 50), contentLength: content?.length });
-                            // Replace source param for tracking
-                            let finalContent = content;
-                            let finalSubject = subject;
-                            if (customSource && customParent.transferType && customSource !== customParent.transferType) {
-                                finalContent = finalContent.replace(new RegExp(`source=${customParent.transferType}`, 'g'), `source=${customSource}`);
-                            }
-                            console.log('[CustomEmail] Sending email to:', formData.accountNumber, 'from:', customName, 'subject:', finalSubject?.slice(0, 50));
-                            mvp.sendEmail(formData.accountNumber, finalSubject, finalContent, customName).catch((err: any) => {
-                                console.error('[CustomEmail] sendEmail failed:', err);
-                            });
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Bangkok Bank').catch(console.error);
                         } catch (e) {
-                            console.error('[CustomEmail] Failed to send custom bank email:', e);
+                            console.error('Failed to send Bangkok Bank email:', e);
                         }
                     }
+
+                    // Send Kasikornbank direct deposit email if Kasikornbank was selected
+                    if (isKasikornbank && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('kasikornbank', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Kasikornbank (KBank)').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send Kasikornbank email:', e);
+                        }
+                    }
+
+                    // Send SCB direct deposit email if SCB was selected
+                    if (isScb && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('scb', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Siam Commercial Bank').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send SCB email:', e);
+                        }
+                    }
+
+                    // Send KTB direct deposit email if KTB was selected
+                    if (isKtb && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('ktb', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Krung Thai Bank').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send KTB email:', e);
+                        }
+                    }
+
+                    // Send Bank of Ayudhya direct deposit email if Bank of Ayudhya was selected
+                    if (isBankAyudhya && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('bankayudhya', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Bank of Ayudhya').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send Bank of Ayudhya email:', e);
+                        }
+                    }
+
+                    // Send TMBThanachart direct deposit email if TMBThanachart was selected
+                    if (isTmbThanachart && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('tmbthanachart', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'TMBThanachart Bank').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send TMBThanachart email:', e);
+                        }
+                    }
+
+                    // Send CIMB Thai direct deposit email if CIMB Thai was selected
+                    if (isCimbThai && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('cimbthai', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'CIMB Thai Bank').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send CIMB Thai email:', e);
+                        }
+                    }
+
+                    // Send UOB Thailand direct deposit email if UOB Thailand was selected
+                    if (isUobThai && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('uobthai', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'United Overseas Bank Thailand').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send UOB Thailand email:', e);
+                        }
+                    }
+
+                    // Send Standard Chartered Thailand direct deposit email if Standard Chartered Thailand was selected
+                    if (isStandardCharteredThai && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('standardcharteredthai', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Standard Chartered Bank Thailand').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send Standard Chartered Thailand email:', e);
+                        }
+                    }
+
+                    // Send ICBC Thai direct deposit email if ICBC Thai was selected
+                    if (isIcbcThai && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('icbcthai', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'ICBC Thai').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send ICBC Thai email:', e);
+                        }
+                    }
+
                 }
             }
         }
@@ -692,6 +834,16 @@ export const Transfers: React.FC<TransfersProps> = ({
         const isCitiBank = bank?.name?.toLowerCase() === 'citibank';
         const isPeopleChoice = bank?.name?.toLowerCase() === "people's choice" || bank?.name?.toLowerCase() === 'peoples choice';
         const isNonghyup = bank?.name?.toLowerCase() === 'nonghyup bank' || bank?.name?.toLowerCase() === 'nonghyup';
+        const isBangkokBank = bank?.name?.toLowerCase() === 'bangkok bank';
+        const isKasikornbank = bank?.name?.toLowerCase() === 'kasikornbank (kbank)' || bank?.name?.toLowerCase() === 'kasikornbank';
+        const isScb = bank?.name?.toLowerCase() === 'siam commercial bank';
+        const isKtb = bank?.name?.toLowerCase() === 'krung thai bank';
+        const isBankAyudhya = bank?.name?.toLowerCase() === 'bank of ayudhya';
+        const isTmbThanachart = bank?.name?.toLowerCase() === 'tmbthanachart bank';
+        const isCimbThai = bank?.name?.toLowerCase() === 'cimb thai bank';
+        const isUobThai = bank?.name?.toLowerCase() === 'united overseas bank thailand';
+        const isStandardCharteredThai = bank?.name?.toLowerCase() === 'standard chartered bank thailand';
+        const isIcbcThai = bank?.name?.toLowerCase() === 'icbc thai';
 
         // Inline Wise logo SVG — always works, no external dependency
         if (isWise) {
@@ -738,6 +890,116 @@ export const Transfers: React.FC<TransfersProps> = ({
                 <img
                     src="/nonghyup-logo.png"
                     alt="Nonghyup Bank"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // Bangkok Bank logo — external image
+        if (isBangkokBank) {
+            return (
+                <img
+                    src="/bangkokbank-logo.png"
+                    alt="Bangkok Bank"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // Kasikornbank logo — external image
+        if (isKasikornbank) {
+            return (
+                <img
+                    src="/kasikornbank-logo.png"
+                    alt="Kasikornbank (KBank)"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // SCB logo — external image
+        if (isScb) {
+            return (
+                <img
+                    src="/scb-logo.png"
+                    alt="Siam Commercial Bank"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // KTB logo — external image
+        if (isKtb) {
+            return (
+                <img
+                    src="/ktb-logo.png"
+                    alt="Krung Thai Bank"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // Bank of Ayudhya logo — external image
+        if (isBankAyudhya) {
+            return (
+                <img
+                    src="/bankayudhya-logo.png"
+                    alt="Bank of Ayudhya"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // TMBThanachart logo — external image
+        if (isTmbThanachart) {
+            return (
+                <img
+                    src="/tmbthanachart-logo.png"
+                    alt="TMBThanachart Bank"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // CIMB Thai logo — external image
+        if (isCimbThai) {
+            return (
+                <img
+                    src="/cimbthai-logo.png"
+                    alt="CIMB Thai Bank"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // UOB Thailand logo — external image
+        if (isUobThai) {
+            return (
+                <img
+                    src="/uobthai-logo.png"
+                    alt="United Overseas Bank Thailand"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // Standard Chartered Thailand logo — external image
+        if (isStandardCharteredThai) {
+            return (
+                <img
+                    src="/standardcharteredthai-logo.png"
+                    alt="Standard Chartered Bank Thailand"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                />
+            );
+        }
+
+        // ICBC Thai logo — external image
+        if (isIcbcThai) {
+            return (
+                <img
+                    src="/icbcthai-logo.png"
+                    alt="ICBC Thai"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
                 />
             );

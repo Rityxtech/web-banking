@@ -15,17 +15,15 @@ const fmt$ = (v: any) => {
     return m[1] + n.toLocaleString('en-US', opts) + m[3];
 };
 
-export const getWiseEmailTemplate = (data: any, lang?: string, customName?: string, customLogo?: string) => {
-    const brandName = customName || 'Wise';
-    const logoUrl = customLogo || 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Wise_Logo_512x124.svg';
-    const watermarkGroup = Array(3).fill(brandName).join('      ');
+export const getWiseEmailTemplate = (data: any, lang?: string) => {
+    const watermarkGroup = Array(3).fill('Wise').join('      ');
     const watermark = Array(6).fill(watermarkGroup).join('\\A\\A ');
     return `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${brandName}</title>
+    <title>Wise</title>
     <!--[if mso]>
     <style type="text/css">
         body, table, td, th, div, p, a, h1, h2, h3, h4, h5, h6 { font-family: 'Courier New', Courier, monospace !important; }
@@ -217,11 +215,11 @@ export const getWiseEmailTemplate = (data: any, lang?: string, customName?: stri
                 <div class="receipt-content">
         
         <div class="logo-container">
-            <img src="${logoUrl}" alt="${brandName}" class="wise-logo" width="340" style="display: block; width: 60%; height: auto; border: 0; border-radius: 0; margin: 0 auto;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e8/Wise_Logo_512x124.svg" alt="Wise" class="wise-logo" width="340" style="display: block; width: 60%; height: auto; border: 0; border-radius: 0; margin: 0 auto;">
         </div>
 
         <div class="company-details">
-            ${brandName} Payments Ltd.<br>
+            Wise Payments Ltd.<br>
             (Formerly TransferWise)<br>
             6th Floor, Tea Building<br>
             56 Shoreditch High Street<br>
@@ -379,7 +377,7 @@ export const getWiseEmailTemplate = (data: any, lang?: string, customName?: stri
         <div class="footer-msg">
             ${data.status === 'Failed' ? t('tx_desc_failed', lang) : data.status === 'Pending' ? t('tx_desc_pending', lang) : data.status === 'On Hold' ? t('tx_desc_onhold', lang) : data.status === 'Processing' ? t('tx_desc_processing', lang) : t('tx_desc_success', lang)}<br>
             ${t('track_transfers_anytime', lang)} www.wise.com<br><br>
-            ${t('thank_you_for_using', lang)} ${brandName}.
+            ${t('thank_you_for_using', lang)} Wise.
         </div>
 
                 </div>

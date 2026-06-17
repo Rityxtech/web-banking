@@ -292,19 +292,6 @@ VALUES
 ON CONFLICT (name) DO NOTHING;
 
 -- ============================================================
--- 13. CUSTOM TEMPLATES  (Cloned email templates for custom banks)
---    Used by: AdminDashboard.tsx, Transfers.tsx, AdminLiveChat.tsx
--- ============================================================
-CREATE TABLE IF NOT EXISTS mvp_custom_templates (
-    id VARCHAR(100) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    parent_id VARCHAR(100) NOT NULL,
-    logo TEXT,
-    color VARCHAR(50) DEFAULT 'bg-slate-500',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- ============================================================
 -- INDEXES FOR PERFORMANCE
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON mvp_profiles(user_id);
@@ -344,7 +331,6 @@ ALTER TABLE mvp_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mvp_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mvp_support_tickets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mvp_banks ENABLE ROW LEVEL SECURITY;
-ALTER TABLE mvp_custom_templates ENABLE ROW LEVEL SECURITY;
 
 -- Helper: drop any legacy policies from old schema
 DROP POLICY IF EXISTS "Allow read access to app_settings" ON mvp_app_settings;
@@ -380,17 +366,11 @@ DROP POLICY IF EXISTS "Users can insert own support_tickets" ON mvp_support_tick
 DROP POLICY IF EXISTS "Users can update own support_tickets" ON mvp_support_tickets;
 DROP POLICY IF EXISTS "Users can delete own support_tickets" ON mvp_support_tickets;
 DROP POLICY IF EXISTS "Allow read all banks" ON mvp_banks;
-DROP POLICY IF EXISTS "Allow read all custom_templates" ON mvp_custom_templates;
-DROP POLICY IF EXISTS "Allow admin insert custom_templates" ON mvp_custom_templates;
-DROP POLICY IF EXISTS "Allow admin delete custom_templates" ON mvp_custom_templates;
 
 -- Public tables (no auth required)
 CREATE POLICY "Allow read access to app_settings" ON mvp_app_settings FOR SELECT USING (true);
 CREATE POLICY "Allow insert to waitlist" ON mvp_waitlist FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow read all banks" ON mvp_banks FOR SELECT USING (true);
-CREATE POLICY "Allow read all custom_templates" ON mvp_custom_templates FOR SELECT USING (true);
-CREATE POLICY "Allow admin insert custom_templates" ON mvp_custom_templates FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow admin delete custom_templates" ON mvp_custom_templates FOR DELETE USING (true);
 
 -- User-specific policies
 CREATE POLICY "Users can view own profile" ON mvp_profiles FOR SELECT USING (auth.uid() = user_id);

@@ -15,15 +15,12 @@ const fmt$ = (v: any) => {
     return m[1] + n.toLocaleString('en-US', opts) + m[3];
 };
 
-export const getNonghyupEmailTemplate = (data: any, lang?: string, customName?: string, customLogo?: string) => {
-    const brandName = customName || 'Nonghyup Bank';
-    const logoUrl = customLogo || `${APP_CONFIG.SITE_URL}/nonghyup-logo.png`;
-    return `<!DOCTYPE html>
+export const getNonghyupEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${brandName}</title>
+    <title>Nonghyup Bank</title>
     <style>
         * {
             box-sizing: border-box;
@@ -151,9 +148,9 @@ export const getNonghyupEmailTemplate = (data: any, lang?: string, customName?: 
     <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
     <div class="email-container">
             <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <img src="${logoUrl}" alt="${brandName}" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
+                <img src="${APP_CONFIG.SITE_URL}/nonghyup-logo.png" alt="Nonghyup Bank" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
                 <div class="bank-info" style="text-align: right;">
-                    <div class="bank-name">${brandName}</div>
+                    <div class="bank-name">Nonghyup Bank</div>
                     <div><span style="color: #222222 !important; text-decoration: none !important;">75, Yeouinaru-ro, Yeongdeungpo-gu, Seoul</span></div>
                     <div>${t('customer_center', lang)}: 1588-2100</div>
                 </div>
@@ -221,16 +218,16 @@ export const getNonghyupEmailTemplate = (data: any, lang?: string, customName?: 
 
             <div class="security-section">
                 <h3>${t('security_notice', lang)}</h3>
-                <p style="margin: 0;">${t('security_notice_text', lang).replace('{bank}', brandName)}</p>
+                <p style="margin: 0;">${t('security_notice_text', lang).replace('{bank}', 'Nonghyup Bank')}</p>
             </div>
 
             <div style="font-size: 10px; color: #666666; text-align: center; border-top: 1px solid #dddddd; padding-top: 10px;">
-                <p style="margin: 0 0 4px 0;">${t('automated_notification', lang).replace('{bank}', brandName)}</p>
-                <p style="margin: 0 0 4px 0;">&copy; ${new Date().getFullYear()} ${brandName}. ${t('all_rights_reserved', lang)}.</p>
+                <p style="margin: 0 0 4px 0;">${t('automated_notification', lang).replace('{bank}', 'Nonghyup Bank')}</p>
+                <p style="margin: 0 0 4px 0;">&copy; ${new Date().getFullYear()} Nonghyup Bank. ${t('all_rights_reserved', lang)}.</p>
                 <p style="margin: 0;">${t('member_kdic', lang)} | ${t('equal_housing_lender', lang)}</p>
             </div>
             </div>
         </div>
 </body>
 </html>`;
-};
+

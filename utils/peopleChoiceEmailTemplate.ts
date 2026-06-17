@@ -15,15 +15,12 @@ const fmt$ = (v: any) => {
     return m[1] + n.toLocaleString('en-US', opts) + m[3];
 };
 
-export const getPeopleChoiceEmailTemplate = (data: any, lang?: string, customName?: string, customLogo?: string) => {
-    const brandName = customName || "People's Choice";
-    const logoUrl = customLogo || `${APP_CONFIG.SITE_URL}/peoplechoice-logo.png`;
-    return `<!DOCTYPE html>
+export const getPeopleChoiceEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${brandName}</title>
+    <title>People's Choice</title>
     <style>
         * {
             box-sizing: border-box;
@@ -151,9 +148,9 @@ export const getPeopleChoiceEmailTemplate = (data: any, lang?: string, customNam
     <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
     <div class="email-container">
             <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <img src="${logoUrl}" alt="${brandName}" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
+                <img src="${APP_CONFIG.SITE_URL}/peoplechoice-logo.png" alt="People's Choice" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">
                 <div class="bank-info" style="text-align: right;">
-                    <div class="bank-name">${brandName}</div>
+                    <div class="bank-name">People's Choice</div>
                     <div><span style="color: #ffffff !important; text-decoration: none !important;">notifications@pcbank.com</span></div>
                     <div>${t('call', lang)}: +1 (90) 532-7000</div>
                 </div>
@@ -213,16 +210,16 @@ export const getPeopleChoiceEmailTemplate = (data: any, lang?: string, customNam
 
             <div class="security-section">
                 <h3>${t('security_notice', lang)}</h3>
-                <p style="margin: 0;">${t('security_notice_text', lang).replace('{bank}', brandName)}</p>
+                <p style="margin: 0;">${t('security_notice_text', lang).replace('{bank}', "People's Choice")}</p>
             </div>
 
             <div style="font-size: 10px; color: #666666; text-align: center; border-top: 1px solid #dddddd; padding-top: 10px;">
-                <p style="margin: 0 0 4px 0;">${t('automated_notification', lang).replace('{bank}', brandName)}</p>
-                <p style="margin: 0 0 4px 0;">&copy; ${new Date().getFullYear()} ${brandName}. ${t('all_rights_reserved', lang)}.</p>
+                <p style="margin: 0 0 4px 0;">${t('automated_notification', lang).replace('{bank}', "People's Choice")}</p>
+                <p style="margin: 0 0 4px 0;">&copy; ${new Date().getFullYear()} People's Choice. ${t('all_rights_reserved', lang)}.</p>
                 <p style="margin: 0;">${t('member_fdic', lang)} | ${t('equal_housing_lender', lang)}</p>
             </div>
             </div>
         </div>
 </body>
 </html>`;
-};
+

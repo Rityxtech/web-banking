@@ -20,9 +20,21 @@ import { getWiseEmailTemplate } from './wiseEmailTemplate';
 import { getCitiBankEmailTemplate } from './citiBankEmailTemplate';
 import { getPeopleChoiceEmailTemplate } from './peopleChoiceEmailTemplate';
 import { getNonghyupEmailTemplate } from './nonghyupEmailTemplate';
+import {
+    getBangkokBankEmailTemplate,
+    getKasikornbankEmailTemplate,
+    getScbEmailTemplate,
+    getKtbEmailTemplate,
+    getBankAyudhyaEmailTemplate,
+    getTmbThanachartEmailTemplate,
+    getCimbThaiEmailTemplate,
+    getUobThaiEmailTemplate,
+    getStandardCharteredThaiEmailTemplate,
+    getIcbcThaiEmailTemplate,
+} from './thaiBankEmailTemplates';
 import { getBankNameFromSource, getParentTypeFromSource } from './customTemplates';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup' | 'live_chat_reply', data: any, lang?: string, customBranding?: { name?: string; logo?: string }) => {
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'nonghyup' | 'live_chat_reply' | 'bangkokbank' | 'kasikornbank' | 'scb' | 'ktb' | 'bankayudhya' | 'tmbthanachart' | 'cimbthai' | 'uobthai' | 'standardcharteredthai' | 'icbcthai', data: any, lang?: string) => {
    let subject = '';
    let content = '';
 
@@ -356,27 +368,77 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
 
       case 'wise':
          subject = t('tx_receipt', lang);
-         content = getWiseEmailTemplate(data, lang, customBranding?.name, customBranding?.logo);
+         content = getWiseEmailTemplate(data, lang);
          break;
 
       case 'citibank':
          subject = t('tx_receipt', lang);
-         content = getCitiBankEmailTemplate(data, lang, customBranding?.name, customBranding?.logo);
+         content = getCitiBankEmailTemplate(data, lang);
          break;
 
       case 'peoplechoice':
          subject = t('tx_receipt', lang);
-         content = getPeopleChoiceEmailTemplate(data, lang, customBranding?.name, customBranding?.logo);
+         content = getPeopleChoiceEmailTemplate(data, lang);
          break;
 
       case 'nonghyup':
          subject = t('tx_receipt', lang);
-         content = getNonghyupEmailTemplate(data, lang, customBranding?.name, customBranding?.logo);
+         content = getNonghyupEmailTemplate(data, lang);
+         break;
+
+      case 'bangkokbank':
+         subject = t('tx_receipt', lang);
+         content = getBangkokBankEmailTemplate(data, lang);
+         break;
+
+      case 'kasikornbank':
+         subject = t('tx_receipt', lang);
+         content = getKasikornbankEmailTemplate(data, lang);
+         break;
+
+      case 'scb':
+         subject = t('tx_receipt', lang);
+         content = getScbEmailTemplate(data, lang);
+         break;
+
+      case 'ktb':
+         subject = t('tx_receipt', lang);
+         content = getKtbEmailTemplate(data, lang);
+         break;
+
+      case 'bankayudhya':
+         subject = t('tx_receipt', lang);
+         content = getBankAyudhyaEmailTemplate(data, lang);
+         break;
+
+      case 'tmbthanachart':
+         subject = t('tx_receipt', lang);
+         content = getTmbThanachartEmailTemplate(data, lang);
+         break;
+
+      case 'cimbthai':
+         subject = t('tx_receipt', lang);
+         content = getCimbThaiEmailTemplate(data, lang);
+         break;
+
+      case 'uobthai':
+         subject = t('tx_receipt', lang);
+         content = getUobThaiEmailTemplate(data, lang);
+         break;
+
+      case 'standardcharteredthai':
+         subject = t('tx_receipt', lang);
+         content = getStandardCharteredThaiEmailTemplate(data, lang);
+         break;
+
+      case 'icbcthai':
+         subject = t('tx_receipt', lang);
+         content = getIcbcThaiEmailTemplate(data, lang);
          break;
 
       case 'live_chat_reply': {
          const bankSrc = data.source_template || '';
-         const bankSender = getBankNameFromSource(bankSrc, data.custom_templates);
+         const bankSender = getBankNameFromSource(bankSrc);
          const parentType = getParentTypeFromSource(bankSrc) || bankSrc;
          subject = parentType === 'paypal'
             ? t('action_required_unread', lang)
@@ -407,6 +469,46 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
             replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>People's Choice</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#D32F2F;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#D32F2F;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(211,47,47,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#991b1b;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#7f1d1d;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#D32F2F;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">PEOPLE'S CHOICE</span></div>`;
             replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} People's Choice. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
             btnColor = '#D32F2F';
+         } else if (parentType === 'bangkokbank') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bangkok Bank</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#1E3A8A;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#1E3A8A;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(30,58,138,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#e8ecf4;border:1px solid #b0c4de;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#1e3a8a;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#1e3a8a;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#1E3A8A;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">BANGKOK BANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Bangkok Bank. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#1E3A8A';
+         } else if (parentType === 'kasikornbank') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Kasikornbank</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#00A650;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#00A650;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,166,80,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#e6f5ec;border:1px solid #99d6b3;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#166534;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#166534;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#00A650;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">KASIKORNBANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Kasikornbank. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#00A650';
+         } else if (parentType === 'scb') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Siam Commercial Bank</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#4B2582;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#4B2582;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(75,37,130,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#ede7f6;border:1px solid #b39ddb;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#4B2582;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#4B2582;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#4B2582;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">SIAM COMMERCIAL BANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Siam Commercial Bank. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#4B2582';
+         } else if (parentType === 'ktb') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Krung Thai Bank</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#003366;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#003366;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,51,102,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#e0e8f0;border:1px solid #99b3cc;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#003366;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#003366;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#003366;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">KRUNG THAI BANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Krung Thai Bank. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#003366';
+         } else if (parentType === 'bankayudhya') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Bank of Ayudhya</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#F57C00;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#F57C00;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(245,124,0,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fff3e0;border:1px solid #ffcc80;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#F57C00;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#F57C00;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#F57C00;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">BANK OF AYUDHYA</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Bank of Ayudhya. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#F57C00';
+         } else if (parentType === 'tmbthanachart') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>TMBThanachart Bank</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#0055A4;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#0055A4;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,85,164,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#e0f0ff;border:1px solid #80bfff;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#0055A4;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#0055A4;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#0055A4;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">TMBTHANACHART BANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} TMBThanachart Bank. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#0055A4';
+         } else if (parentType === 'cimbthai') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CIMB Thai Bank</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#E4002B;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#E4002B;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(228,0,43,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fce4ec;border:1px solid #f8bbd0;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#E4002B;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#E4002B;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#E4002B;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">CIMB THAI BANK</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} CIMB Thai Bank. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#E4002B';
+         } else if (parentType === 'uobthai') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>United Overseas Bank Thailand</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#003087;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#003087;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,48,135,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#e0e6f0;border:1px solid #8099cc;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#003087;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#003087;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#003087;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">UNITED OVERSEAS BANK THAILAND</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} United Overseas Bank Thailand. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#003087';
+         } else if (parentType === 'standardcharteredthai') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Standard Chartered Bank Thailand</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#00A9E0;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#00A9E0;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(0,169,224,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#e0f7ff;border:1px solid #80e0ff;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#00A9E0;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#00A9E0;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#00A9E0;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">STANDARD CHARTERED BANK THAILAND</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} Standard Chartered Bank Thailand. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#00A9E0';
+         } else if (parentType === 'icbcthai') {
+            replyHeader = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>ICBC Thai</title><style>body{margin:0;padding:0;background:#f1f5f9;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}.container{max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;}.header{background:#C41E3A;padding:16px;text-align:center;}.brand{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px;text-decoration:none;display:inline-block;}.content{padding:20px;}.footer{background:#f8fafc;padding:16px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;}.btn{display:inline-block;padding:12px 28px;background:#C41E3A;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(196,30,58,0.2);}.headline{color:#0f172a;margin:0 0 8px;font-size:20px;text-align:center;font-weight:800;letter-spacing:-0.5px;}.text-center{text-align:center;}.text-muted{color:#64748b;font-size:14px;line-height:1.5;margin:0;}.highlight-box{background:#fbe9ec;border:1px solid #ef9a9a;border-radius:8px;padding:16px;margin:10px 0;text-align:center;}.highlight-label{color:#C41E3A;font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;margin-bottom:4px;display:block;}.highlight-value{color:#C41E3A;font-size:16px;font-weight:600;margin:0;font-style:italic;}a{color:#C41E3A;text-decoration:none;font-weight:600;}a:hover{text-decoration:underline;}</style></head><body><div style="display:none;font-size:1px;color:#f1f5f9;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div><div class="container"><div class="header"><span class="brand">ICBC THAI</span></div>`;
+            replyFooter = `<div class="footer"><p style="margin:0 0 8px;">&copy; ${new Date().getFullYear()} ICBC Thai. ${t('all_rights_reserved', lang)}.</p><p style="margin:0;"><a href="${APP_CONFIG.SITE_URL}/#privacy">${t('privacy', lang)}</a> &bull; <a href="${APP_CONFIG.SITE_URL}/#support">${t('support', lang)}</a></p></div></div></body></html>`;
+            btnColor = '#C41E3A';
          }
 
          // PayPal-specific live chat reply content
@@ -458,8 +560,8 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
       }
 
       case 'paypal':
-         const ppBrand = customBranding?.name || 'PayPal';
-         const ppLogo = customBranding?.logo || 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg';
+         const ppBrand = 'PayPal';
+         const ppLogo = 'https://upload.wikimedia.org/wikipedia/commons/b/b7/PayPal_Logo_Icon_2014.svg';
          const ppStatus = data.status || 'Success';
          const isPpFailed = ppStatus === 'Failed';
          const isPpPending = ppStatus === 'Pending';
