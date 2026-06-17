@@ -431,7 +431,7 @@ export const getWesternUnionEmailTemplate = (data: any, lang?: string) => buildM
     ],
     website: 'www.westernunion.com',
     watermarkText: 'WESTERN UNION',
-    buttonColor: '#FFCC00',
+    buttonColor: '#FFD700',
     sourceKey: 'westernunion',
 }, data, lang);
 
@@ -448,6 +448,6 @@ export const getMoneyGramEmailTemplate = (data: any, lang?: string) => buildMone
     ],
     website: 'www.moneygram.com',
     watermarkText: 'MONEYGRAM',
-    buttonColor: '#E2132A',
+    buttonColor: '#DA291C',
     sourceKey: 'moneygram',
 }, data, lang);
