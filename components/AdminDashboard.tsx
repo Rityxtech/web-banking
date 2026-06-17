@@ -1590,7 +1590,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         if (savedSection && ['overview', 'users', 'transactions', 'requests', 'kyc', 'support_live', 'support_tickets', 'email_live_chat', 'bank_management', 'email_templates', 'settings'].includes(savedSection)) {
             setActiveSection(savedSection);
         }
-        setCustomTemplates(getCustomTemplates());
+        (async () => {
+            const templates = await getCustomTemplates();
+            setCustomTemplates(templates);
+        })();
     }, []);
 
     // Save active section to localStorage when it changes
@@ -4506,7 +4509,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                             </div>
                                                             <p className="text-[10px] text-slate-400 italic truncate">Cloned from {CLONABLE_TEMPLATE_MAP[template.parentId]?.originalName || template.parentId}</p>
                                                             <button
-                                                                onClick={(e) => { e.stopPropagation(); deleteCustomTemplate(template.id); setCustomTemplates(getCustomTemplates()); setSelectedTemplateId(null); }}
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    await deleteCustomTemplate(template.id);
+                                                                    const templates = await getCustomTemplates();
+                                                                    setCustomTemplates(templates);
+                                                                    setSelectedTemplateId(null);
+                                                                }}
                                                                 className="mt-2 flex items-center gap-1 text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors"
                                                             >
                                                                 <Trash2 size={12} /> Delete
@@ -5045,8 +5054,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                             color: parent.color,
                                             createdAt: Date.now(),
                                         };
-                                        saveCustomTemplate(newTemplate);
-                                        setCustomTemplates(getCustomTemplates());
+                                        await saveCustomTemplate(newTemplate);
+                                        const templates = await getCustomTemplates();
+                                        setCustomTemplates(templates);
                                         setIsSavingDuplicate(false);
                                         setDuplicateModalOpen(false);
                                         setDuplicateName('');

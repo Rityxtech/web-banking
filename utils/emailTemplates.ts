@@ -376,7 +376,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
 
       case 'live_chat_reply': {
          const bankSrc = data.source_template || '';
-         const bankSender = getBankNameFromSource(bankSrc);
+         const bankSender = getBankNameFromSource(bankSrc, data.custom_templates);
          const parentType = getParentTypeFromSource(bankSrc) || bankSrc;
          subject = parentType === 'paypal'
             ? t('action_required_unread', lang)

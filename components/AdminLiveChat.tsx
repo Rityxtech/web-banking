@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, supabaseAdmin } from '../services/supabase';
 import { mvp } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
-import { getBankNameFromSource, getParentTypeFromSource, customizeTemplateHtml, CLONABLE_TEMPLATE_MAP, getCustomTemplates } from '../utils/customTemplates';
+import { getBankNameFromSource, getParentTypeFromSource, customizeTemplateHtml, CLONABLE_TEMPLATE_MAP, getCustomTemplates, type CustomTemplate } from '../utils/customTemplates';
 import { APP_CONFIG } from '../config';
 import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy, Check } from 'lucide-react';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
@@ -18,6 +18,7 @@ export const AdminLiveChat: React.FC = () => {
     const [error, setError] = useState('');
     const [copiedMsgId, setCopiedMsgId] = useState<string | number | null>(null);
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
+    const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -78,6 +79,14 @@ export const AdminLiveChat: React.FC = () => {
         const interval = setInterval(loadRooms, 5000);
         return () => clearInterval(interval);
     }, [loadRooms]);
+
+    // Load custom templates from Supabase
+    useEffect(() => {
+        (async () => {
+            const templates = await getCustomTemplates();
+            setCustomTemplates(templates);
+        })();
+    }, []);
 
     // Poll messages for selected room
     useEffect(() => {
@@ -159,7 +168,7 @@ export const AdminLiveChat: React.FC = () => {
                     console.log('[Email Notify] lastActive:', lastActive, 'now:', now, 'isActive:', isActive, 'msg.is_read:', msg?.is_read, 'email:', room?.user_email);
                     if (!isActive && msg && !msg.is_read && room?.user_email) {
                         const bankSrc = room.source_template || '';
-                        const senderName = getBankNameFromSource(bankSrc);
+                        const senderName = getBankNameFromSource(bankSrc, customTemplates);
                         const chatUrl = bankSrc
                             ? `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}&source=${bankSrc}`
                             : `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}`;
@@ -168,12 +177,12 @@ export const AdminLiveChat: React.FC = () => {
                             user_name: room.user_name || 'there',
                             reply_text: replyText,
                             chat_url: chatUrl,
-                            source_template: bankSrc
+                            source_template: bankSrc,
+                            custom_templates: customTemplates
                         }, userLang);
                         // Customize reply email for cloned banks
                         const parentType = getParentTypeFromSource(bankSrc);
                         if (parentType) {
-                            const customTemplates = getCustomTemplates();
                             const custom = customTemplates.find((t) => t.id === bankSrc);
                             if (custom) {
                                 const parent = CLONABLE_TEMPLATE_MAP[custom.parentId];

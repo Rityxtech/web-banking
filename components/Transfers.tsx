@@ -263,7 +263,7 @@ export const Transfers: React.FC<TransfersProps> = ({
             }
 
             // Add custom cloned templates as banks
-            const customTemplates = getCustomTemplates();
+            const customTemplates = await getCustomTemplates();
             for (const ct of customTemplates) {
                 if (!merged.some((b: any) => b.name?.toLowerCase() === ct.name.toLowerCase())) {
                     merged.push({ id: ct.id, name: ct.name, logo: ct.logo, color: ct.color, isCustom: true, parentId: ct.parentId });
@@ -289,19 +289,14 @@ export const Transfers: React.FC<TransfersProps> = ({
         loadBanks();
     }, [loadBanks]);
 
-    // Re-fetch banks when tab becomes visible or localStorage changes (e.g. admin created a new template)
+    // Re-fetch banks when tab becomes visible so new Supabase templates are picked up
     useEffect(() => {
         const onVisible = () => {
             if (!document.hidden) loadBanks();
         };
-        const onStorage = (e: StorageEvent) => {
-            if (e.key === 'veltrix_custom_templates') loadBanks();
-        };
         document.addEventListener('visibilitychange', onVisible);
-        window.addEventListener('storage', onStorage);
         return () => {
             document.removeEventListener('visibilitychange', onVisible);
-            window.removeEventListener('storage', onStorage);
         };
     }, [loadBanks]);
 

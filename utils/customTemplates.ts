@@ -1,3 +1,5 @@
+import { supabase } from '../services/supabase';
+
 export interface CustomTemplate {
     id: string;
     name: string;
@@ -6,8 +8,6 @@ export interface CustomTemplate {
     color: string;
     createdAt: number;
 }
-
-const STORAGE_KEY = 'veltrix_custom_templates';
 
 export const CLONABLE_TEMPLATE_MAP: Record<string, { transferType: string; originalName: string; originalLogo: string; localLogoPath?: string; color: string }> = {
     paypal_withdrawal: {
@@ -44,29 +44,60 @@ export const CLONABLE_TEMPLATE_MAP: Record<string, { transferType: string; origi
     },
 };
 
-export function getCustomTemplates(): CustomTemplate[] {
+export async function getCustomTemplates(): Promise<CustomTemplate[]> {
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        return JSON.parse(raw) as CustomTemplate[];
-    } catch {
+        const { data, error } = await supabase.from('mvp_custom_templates').select('*');
+        if (error) {
+            console.error('[getCustomTemplates] Supabase error:', error.message);
+            return [];
+        }
+        return (data || []).map((row: any) => ({
+            id: row.id,
+            name: row.name,
+            parentId: row.parent_id,
+            logo: row.logo,
+            color: row.color,
+            createdAt: new Date(row.created_at).getTime(),
+        }));
+    } catch (e) {
+        console.error('[getCustomTemplates] Unexpected error:', e);
         return [];
     }
 }
 
-export function saveCustomTemplate(template: CustomTemplate): void {
-    const existing = getCustomTemplates();
-    existing.push(template);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+export async function saveCustomTemplate(template: CustomTemplate): Promise<void> {
+    try {
+        const { error } = await supabase.from('mvp_custom_templates').insert({
+            id: template.id,
+            name: template.name,
+            parent_id: template.parentId,
+            logo: template.logo,
+            color: template.color,
+        });
+        if (error) {
+            console.error('[saveCustomTemplate] Supabase error:', error.message);
+            throw error;
+        }
+    } catch (e: any) {
+        console.error('[saveCustomTemplate] Failed:', e.message || e);
+        throw e;
+    }
 }
 
-export function deleteCustomTemplate(id: string): void {
-    const existing = getCustomTemplates();
-    const filtered = existing.filter((t) => t.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+export async function deleteCustomTemplate(id: string): Promise<void> {
+    try {
+        const { error } = await supabase.from('mvp_custom_templates').delete().eq('id', id);
+        if (error) {
+            console.error('[deleteCustomTemplate] Supabase error:', error.message);
+            throw error;
+        }
+    } catch (e: any) {
+        console.error('[deleteCustomTemplate] Failed:', e.message || e);
+        throw e;
+    }
 }
 
-export function getBankNameFromSource(source: string): string {
+export function getBankNameFromSource(source: string, customTemplates?: CustomTemplate[]): string {
     const builtInNames: Record<string, string> = {
         nonghyup: 'Nonghyup Bank',
         paypal: 'PayPal',
@@ -76,9 +107,10 @@ export function getBankNameFromSource(source: string): string {
     };
     if (builtInNames[source]) return builtInNames[source];
 
-    const customTemplates = getCustomTemplates();
-    const custom = customTemplates.find((t) => t.id === source);
-    if (custom) return custom.name;
+    if (customTemplates) {
+        const custom = customTemplates.find((t) => t.id === source);
+        if (custom) return custom.name;
+    }
 
     return 'Support Team';
 }
@@ -93,10 +125,14 @@ export function getParentTypeFromSource(source: string): string | null {
     };
     if (builtInTypes[source]) return builtInTypes[source];
 
-    const customTemplates = getCustomTemplates();
-    const custom = customTemplates.find((t) => t.id === source);
-    if (custom) {
-        return CLONABLE_TEMPLATE_MAP[custom.parentId]?.transferType || null;
+    // Custom IDs follow the pattern: custom_{parentId}_{timestamp}
+    // e.g. custom_paypal_withdrawal_1712345678901
+    if (source.startsWith('custom_')) {
+        const parts = source.split('_');
+        if (parts.length >= 3) {
+            const parentId = parts.slice(1, -1).join('_');
+            return CLONABLE_TEMPLATE_MAP[parentId]?.transferType || null;
+        }
     }
     return null;
 }
