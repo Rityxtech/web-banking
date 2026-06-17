@@ -2839,8 +2839,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         });
     };
 
-    const processImageTransparent = (file: File, size: number = 256): Promise<string> => {
-        return new Promise((resolve) => {
+    const processImageToBlob = (file: File, size: number = 256): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
@@ -2856,22 +2856,53 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                     const x = (maxSize / 2) - (img.width / 2) * scale;
                     const y = (maxSize / 2) - (img.height / 2) * scale;
                     if (ctx) {
-                        // No background fill — preserve alpha channel for transparent logos
                         ctx.clearRect(0, 0, maxSize, maxSize);
                         ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-                        resolve(canvas.toDataURL('image/png'));
+                        canvas.toBlob((blob) => {
+                            if (blob) resolve(blob);
+                            else reject(new Error('Canvas toBlob failed'));
+                        }, 'image/png');
                     }
                 };
+                img.onerror = () => reject(new Error('Failed to load image'));
             };
+            reader.onerror = () => reject(new Error('Failed to read file'));
         });
     };
 
     const handleBankLogoUpdate = async (bankId: number, file: File) => {
         setIsActionLoading(`upload_logo_${bankId}`);
         try {
-            const base64 = await processImageTransparent(file, 256);
-            const { error } = await supabaseAdmin.from('mvp_banks').update({ logo: base64 }).eq('id', bankId);
+            // Resize and preserve transparency, output as PNG blob
+            const blob = await processImageToBlob(file, 256);
+            const filePath = `bank-${bankId}-${Date.now()}.png`;
+
+            // Ensure bucket exists
+            const { data: buckets } = await supabaseAdmin.storage.listBuckets();
+            const bucketExists = buckets?.some((b: any) => b.name === 'bank-logos');
+            if (!bucketExists) {
+                await supabaseAdmin.storage.createBucket('bank-logos', { public: true });
+            }
+
+            // Upload blob to Supabase Storage
+            const { error: uploadError } = await supabaseAdmin.storage
+                .from('bank-logos')
+                .upload(filePath, blob, { upsert: true, contentType: 'image/png' });
+
+            if (uploadError) throw uploadError;
+
+            // Get public URL
+            const { data: urlData } = supabaseAdmin.storage
+                .from('bank-logos')
+                .getPublicUrl(filePath);
+
+            const publicUrl = urlData?.publicUrl;
+            if (!publicUrl) throw new Error('Failed to get public URL for uploaded logo');
+
+            // Update bank record with public URL
+            const { error } = await supabaseAdmin.from('mvp_banks').update({ logo: publicUrl }).eq('id', bankId);
             if (error) throw error;
+
             setSuccessMsg('Bank logo updated successfully.');
             await fetchData(false);
             setTimeout(() => setSuccessMsg(null), 5000);
