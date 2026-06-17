@@ -371,82 +371,82 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
          break;
 
       case 'wise':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — Wise`;
          content = getWiseEmailTemplate(data, lang);
          break;
 
       case 'citibank':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — CitiBank`;
          content = getCitiBankEmailTemplate(data, lang);
          break;
 
       case 'peoplechoice':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — People's Choice`;
          content = getPeopleChoiceEmailTemplate(data, lang);
          break;
 
       case 'nonghyup':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — Nonghyup Bank`;
          content = getNonghyupEmailTemplate(data, lang);
          break;
 
       case 'bangkokbank':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — Bangkok Bank`;
          content = getBangkokBankEmailTemplate(data, lang);
          break;
 
       case 'kasikornbank':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — Kasikornbank`;
          content = getKasikornbankEmailTemplate(data, lang);
          break;
 
       case 'scb':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — SCB`;
          content = getScbEmailTemplate(data, lang);
          break;
 
       case 'ktb':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — Krung Thai Bank`;
          content = getKtbEmailTemplate(data, lang);
          break;
 
       case 'bankayudhya':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — Bank of Ayudhya`;
          content = getBankAyudhyaEmailTemplate(data, lang);
          break;
 
       case 'tmbthanachart':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — TMBThanachart Bank`;
          content = getTmbThanachartEmailTemplate(data, lang);
          break;
 
       case 'cimbthai':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — CIMB Thai`;
          content = getCimbThaiEmailTemplate(data, lang);
          break;
 
       case 'uobthai':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — UOB Thai`;
          content = getUobThaiEmailTemplate(data, lang);
          break;
 
       case 'standardcharteredthai':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — Standard Chartered`;
          content = getStandardCharteredThaiEmailTemplate(data, lang);
          break;
 
       case 'icbcthai':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — ICBC Thai`;
          content = getIcbcThaiEmailTemplate(data, lang);
          break;
 
       case 'westernunion':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — Western Union`;
          content = getWesternUnionEmailTemplate(data, lang);
          break;
 
       case 'moneygram':
-         subject = t('tx_receipt', lang);
+         subject = `${t('tx_receipt', lang)} — MoneyGram`;
          content = getMoneyGramEmailTemplate(data, lang);
          break;
 
