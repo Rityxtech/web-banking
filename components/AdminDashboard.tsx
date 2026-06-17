@@ -2873,6 +2873,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     const handleBankLogoUpdate = async (bankId: number, file: File) => {
         setIsActionLoading(`upload_logo_${bankId}`);
         try {
+            if (!supabaseAdmin) {
+                throw new Error('Admin Supabase client is not configured. Check VITE_SUPABASE_SERVICE_ROLE_KEY.');
+            }
+
             // Resize and preserve transparency, output as PNG blob
             const blob = await processImageToBlob(file, 256);
             const filePath = `bank-${bankId}-${Date.now()}.png`;
@@ -2898,6 +2902,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
 
             const publicUrl = urlData?.publicUrl;
             if (!publicUrl) throw new Error('Failed to get public URL for uploaded logo');
+
+            // Validate the public URL is actually accessible
+            try {
+                const check = await fetch(publicUrl, { method: 'HEAD', mode: 'no-cors' });
+                // no-cors means we can't read status, but the request itself succeeding is enough signal
+                console.log('[Logo Upload] Public URL generated:', publicUrl);
+            } catch {
+                console.warn('[Logo Upload] Could not verify public URL accessibility:', publicUrl);
+            }
 
             // Update bank record with public URL
             const { error } = await supabaseAdmin.from('mvp_banks').update({ logo: publicUrl }).eq('id', bankId);

@@ -17,7 +17,9 @@ try {
     const storedUrl = localStorage.getItem('site_url');
     if (storedName) _siteName = storedName;
     if (storedLogo) _siteLogo = storedLogo;
-    if (storedUrl) _siteUrl = storedUrl;
+    // Only accept stored URL if it looks like a real http(s) URL —
+    // prevents stale / fake values from breaking email logo links.
+    if (storedUrl && /^https?:\/\//.test(storedUrl)) _siteUrl = storedUrl;
 } catch { /* localStorage not available */ }
 
 /**
@@ -83,10 +85,15 @@ export const APP_CONFIG = {
     get LEGAL_ENTITY() { return firstWord(_siteName) + ' Invest LLC'; },
     get SUPPORT_EMAIL() { return 'support@' + derivedDomain(_siteName); },
     get SITE_URL() {
-        if (_siteUrl) return _siteUrl;
+        if (_siteUrl && /^https?:\/\//.test(_siteUrl)) return _siteUrl;
         try {
-            if (typeof window !== 'undefined' && window.location?.origin) {
-                return window.location.origin;
+            if (typeof window !== 'undefined' && window.location) {
+                const origin = window.location.origin;
+                const path = window.location.pathname;
+                // If deployed under a subpath (e.g. GitHub Pages /repo-name/),
+                // strip the file name and keep the directory so static assets resolve.
+                const basePath = path.replace(/\/[^\/]*$/, '').replace(/\/$/, '');
+                return origin + basePath;
             }
         } catch { /* SSR / no window */ }
         return 'https://' + derivedDomain(_siteName);

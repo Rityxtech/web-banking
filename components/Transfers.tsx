@@ -591,6 +591,8 @@ export const Transfers: React.FC<TransfersProps> = ({
                     if (isBangkokBank && formData.accountNumber) {
                         const now = new Date();
                         const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        console.log('[Bangkok Bank Email] selectedBank.logo =', selectedBank?.logo);
+                        console.log('[Bangkok Bank Email] APP_CONFIG.SITE_URL =', APP_CONFIG.SITE_URL);
                         try {
                             const { subject, content } = getEmailTemplate('bangkokbank', {
                                 recipient_name: formData.recipientName,

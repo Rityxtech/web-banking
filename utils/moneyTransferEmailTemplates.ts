@@ -27,12 +27,15 @@ interface MoneyTransferConfig {
     sourceKey: string;
 }
 
-/** Reject base64 / data URIs — email clients can't render them and they bloat email size */
-const resolveLogoUrl = (logoUrl?: string, fallbackPath?: string): string => {
+/** Reject base64 / data URIs — email clients can't render them and they bloat email size.
+ *  Returns the logo URL if it's a valid public http(s) URL, otherwise null so the
+ *  template can fall back to a text logo instead of a broken image.
+ */
+const resolveLogoUrl = (logoUrl?: string, fallbackPath?: string): string | null => {
     if (logoUrl && /^https?:\/\//.test(logoUrl)) return logoUrl;
     const base = APP_CONFIG.SITE_URL || '';
     const path = fallbackPath || '';
-    if (!base || !path) return path;
+    if (!base || !path) return null;
     return base.replace(/\/$/, '') + (path.startsWith('/') ? path : '/' + path);
 };
 
@@ -235,7 +238,12 @@ const buildMoneyTransferTemplate = (config: MoneyTransferConfig, data: any, lang
                 <div class="receipt-content">
 
         <div class="logo-container">
-            <img src="${resolveLogoUrl(data.logo_url, config.logoPath)}" alt="${config.logoAlt}" class="brand-logo" width="340" style="display: block; width: 60%; height: auto; border: 0; border-radius: 0; margin: 0 auto;">
+            ${(() => {
+                const logoUrl = resolveLogoUrl(data.logo_url, config.logoPath);
+                return logoUrl
+                    ? `<img src="${logoUrl}" alt="${config.logoAlt}" class="brand-logo" width="340" style="display: block; width: 60%; height: auto; border: 0; border-radius: 0; margin: 0 auto;">`
+                    : `<div class="brand-logo" style="width: 60%; margin: 0 auto; text-align: center; font-size: 18px; font-weight: bold; color: #333333; padding: 10px 0;">${config.logoAlt}</div>`;
+            })()}
         </div>
 
         <div class="company-details">
