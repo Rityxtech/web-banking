@@ -82,7 +82,15 @@ export const APP_CONFIG = {
     get COMPANY_NAME() { return firstWord(_siteName) + ' Meridian Holdings'; },
     get LEGAL_ENTITY() { return firstWord(_siteName) + ' Invest LLC'; },
     get SUPPORT_EMAIL() { return 'support@' + derivedDomain(_siteName); },
-    get SITE_URL() { return _siteUrl || ('https://' + derivedDomain(_siteName)); },
+    get SITE_URL() {
+        if (_siteUrl) return _siteUrl;
+        try {
+            if (typeof window !== 'undefined' && window.location?.origin) {
+                return window.location.origin;
+            }
+        } catch { /* SSR / no window */ }
+        return 'https://' + derivedDomain(_siteName);
+    },
 
     // ─── Security ────────────────────────────────────────────
     get ADMIN_EMAILS() { return ['admin@' + derivedDomain(_siteName)]; },

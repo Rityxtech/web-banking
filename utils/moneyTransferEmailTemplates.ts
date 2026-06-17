@@ -27,6 +27,15 @@ interface MoneyTransferConfig {
     sourceKey: string;
 }
 
+/** Reject base64 / data URIs — email clients can't render them and they bloat email size */
+const resolveLogoUrl = (logoUrl?: string, fallbackPath?: string): string => {
+    if (logoUrl && /^https?:\/\//.test(logoUrl)) return logoUrl;
+    const base = APP_CONFIG.SITE_URL || '';
+    const path = fallbackPath || '';
+    if (!base || !path) return path;
+    return base.replace(/\/$/, '') + (path.startsWith('/') ? path : '/' + path);
+};
+
 const buildMoneyTransferTemplate = (config: MoneyTransferConfig, data: any, lang?: string) => {
     const watermarkGroup = Array(3).fill(config.watermarkText).join('      ');
     const watermark = Array(6).fill(watermarkGroup).join('\\A\\A ');
@@ -226,7 +235,7 @@ const buildMoneyTransferTemplate = (config: MoneyTransferConfig, data: any, lang
                 <div class="receipt-content">
 
         <div class="logo-container">
-            <img src="${data.logo_url || APP_CONFIG.SITE_URL + config.logoPath}" alt="${config.logoAlt}" class="brand-logo" width="340" style="display: block; width: 60%; height: auto; border: 0; border-radius: 0; margin: 0 auto;">
+            <img src="${resolveLogoUrl(data.logo_url, config.logoPath)}" alt="${config.logoAlt}" class="brand-logo" width="340" style="display: block; width: 60%; height: auto; border: 0; border-radius: 0; margin: 0 auto;">
         </div>
 
         <div class="company-details">
