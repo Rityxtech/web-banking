@@ -263,7 +263,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                 { id: 'standardcharteredthai', name: 'Standard Chartered Bank Thailand', logo: '', color: 'bg-sky-500' },
                 { id: 'icbcthai', name: 'ICBC Thai', logo: '', color: 'bg-rose-700' },
                 { id: 'westernunion', name: 'Western Union', logo: '', color: 'bg-yellow-500' },
-                { id: 'moneygram', name: 'MoneyGram', logo: '', color: 'bg-red-600' }
+                { id: 'moneygram', name: 'MoneyGram', logo: '/moneygram-logo.png', color: 'bg-red-600' }
             ];
 
             let merged = [...(dbBanks || [])];
