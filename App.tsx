@@ -1768,7 +1768,7 @@ function App() {
                             user={currentUser}
                             accounts={accounts}
                             isBalanceHidden={isBalanceHidden}
-                            maxLimit={globalSettings.maxTxLimit}
+                            maxLimit={globalSettings.enableDailyLimit ? globalSettings.maxTxLimit : Infinity}
                             shouldFail={globalSettings.disableTransactions}
                             kycLevel={kycLevel}
                             dailyLimit={currentLimits.daily}
@@ -1833,7 +1833,7 @@ function App() {
                             accounts={accounts}
                             isBalanceHidden={isBalanceHidden}
                             transactions={transactions}
-                            maxLimit={globalSettings.maxTxLimit}
+                            maxLimit={globalSettings.enableDailyLimit ? globalSettings.maxTxLimit : Infinity}
                             shouldFail={globalSettings.disableTransactions}
                             kycLevel={kycLevel}
                             dailyLimit={currentLimits.daily}
