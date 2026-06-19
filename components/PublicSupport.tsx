@@ -23,6 +23,7 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
     const [sessionUserId, setSessionUserId] = useState<string | null>(null);
     const [trackEmail, setTrackEmail] = useState('');
     const composeFileRef = useRef<HTMLInputElement>(null);
+    const replyFileRef = useRef<HTMLInputElement>(null);
     const [attachment, setAttachment] = useState<File | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -130,14 +131,15 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
         }
     };
 
-    const handleReply = async () => {
-        if (!replyText.trim() || !viewingTicket) return;
+    const handleReply = async (overrideText?: string) => {
+        const text = (overrideText ?? replyText).trim();
+        if (!text || !viewingTicket) return;
         setIsSendingReply(true);
         try {
             await supabase.from('mvp_messages').insert([{
                 user_id: getUserId(),
                 ticket_id: viewingTicket.id,
-                text: replyText,
+                text: text,
                 sender: 'user'
             }]);
             setReplyText('');
@@ -146,6 +148,24 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
             console.error(e);
         } finally {
             setIsSendingReply(false);
+        }
+    };
+
+    const handleReplyFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !viewingTicket) return;
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            alert('Only images and videos are supported');
+            return;
+        }
+        try {
+            const base64 = await fileToBase64(file);
+            const mediaMsg = `[MEDIA:${file.type}]${base64}`;
+            await handleReply(mediaMsg);
+        } catch (err) {
+            console.error('File upload error', err);
+        } finally {
+            if (replyFileRef.current) replyFileRef.current.value = '';
         }
     };
 
@@ -390,8 +410,16 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
                             {viewingTicket.status !== 'Closed' && (
                                 <div className="p-3 border-t border-white/10 bg-white/5">
                                     <div className="flex gap-2">
+                                        <input type="file" ref={replyFileRef} className="hidden" accept="image/*,video/*" onChange={handleReplyFileSelect} />
+                                        <button
+                                            onClick={() => replyFileRef.current?.click()}
+                                            className="p-3 bg-white/10 text-white/50 rounded-xl hover:bg-white/20 transition-colors active:scale-95"
+                                            title="Upload image or video"
+                                        >
+                                            <Paperclip size={16} />
+                                        </button>
                                         <input value={replyText} onChange={e => setReplyText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleReply()} placeholder="Write a reply..." className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-blue-500 transition-all placeholder:text-white/30" disabled={isSendingReply} />
-                                        <button onClick={handleReply} disabled={!replyText.trim() || isSendingReply} className="px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-xl transition-all active:scale-95 flex items-center justify-center shadow-lg shadow-blue-600/20">
+                                        <button onClick={() => handleReply()} disabled={!replyText.trim() || isSendingReply} className="px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-xl transition-all active:scale-95 flex items-center justify-center shadow-lg shadow-blue-600/20">
                                             {isSendingReply ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                                         </button>
                                     </div>

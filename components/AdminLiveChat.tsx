@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, supabaseAdmin } from '../services/supabase';
-import { mvp } from '../services/mvpService';
+import { mvp, fileToBase64 } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
 import { getBankNameFromSource, getParentTypeFromSource } from '../utils/customTemplates';
 import { APP_CONFIG } from '../config';
-import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy, Check } from 'lucide-react';
+import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy, Check, Paperclip } from 'lucide-react';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
 
 export const AdminLiveChat: React.FC = () => {
@@ -19,6 +19,7 @@ export const AdminLiveChat: React.FC = () => {
     const [copiedMsgId, setCopiedMsgId] = useState<string | number | null>(null);
     const [deletingRoomId, setDeletingRoomId] = useState<number | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const selectedRoom = rooms.find(r => r.id === selectedRoomId) || null;
@@ -110,9 +111,9 @@ export const AdminLiveChat: React.FC = () => {
         }
     }, [messages]);
 
-    const handleSend = async () => {
-        if (!input.trim() || !selectedRoomId) return;
-        const text = input.trim();
+    const handleSend = async (overrideText?: string) => {
+        const text = (overrideText ?? input).trim();
+        if (!text || !selectedRoomId) return;
         setInput('');
         setSending(true);
 
@@ -235,6 +236,38 @@ export const AdminLiveChat: React.FC = () => {
         // Approximate: we can't easily count without querying, so we'll show a dot
         // based on whether the last message is from user and unread
         return 0;
+    };
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedRoomId) return;
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            alert('Only images and videos are supported');
+            return;
+        }
+        try {
+            const base64 = await fileToBase64(file);
+            const mediaMsg = `[MEDIA:${file.type}]${base64}`;
+            await handleSend(mediaMsg);
+        } catch (err) {
+            console.error('File upload error', err);
+        } finally {
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const renderMessageContent = (text: string) => {
+        const mediaMatch = text.match(/^\[MEDIA:(.*?)\](.*)$/s);
+        if (mediaMatch) {
+            const type = mediaMatch[1];
+            const data = mediaMatch[2];
+            if (type.startsWith('image/')) {
+                return <img src={data} alt="uploaded" className="max-w-full rounded-lg" style={{ maxHeight: '200px' }} />;
+            } else if (type.startsWith('video/')) {
+                return <video src={data} controls className="max-w-full rounded-lg" style={{ maxHeight: '200px' }} />;
+            }
+        }
+        return <span className="whitespace-pre-wrap">{text}</span>;
     };
 
     const formatTime = (dateStr?: string) => {
@@ -365,7 +398,7 @@ export const AdminLiveChat: React.FC = () => {
                                             ? 'bg-blue-600 text-white rounded-tr-none'
                                             : 'bg-white dark:bg-[#233648] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-[#324d67] rounded-tl-none'
                                     }`}>
-                                        {msg.text}
+                                        {renderMessageContent(msg.text)}
                                         <div className={`text-[10px] mt-1 opacity-50 font-mono flex items-center gap-1 ${msg.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}>
                                             {formatTime(msg.created_at)} · {msg.sender_type === 'admin' && msg.is_read ? <span className="text-[8px] font-bold text-amber-400">Seen</span> : msg.sender_type === 'admin' ? <span className="text-[8px] font-bold text-amber-400">Unread</span> : null}
                                         </div>
@@ -382,6 +415,14 @@ export const AdminLiveChat: React.FC = () => {
                         {/* Input */}
                         <div className="p-3 md:p-4 border-t border-slate-200 dark:border-[#233648] bg-white dark:bg-[#111a22]">
                             <div className="flex gap-2 max-w-4xl mx-auto">
+                                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileSelect} />
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors active:scale-95"
+                                    title="Upload image or video"
+                                >
+                                    <Paperclip size={18} />
+                                </button>
                                 <textarea
                                     value={input}
                                     onChange={e => setInput(e.target.value)}
@@ -391,7 +432,7 @@ export const AdminLiveChat: React.FC = () => {
                                     className="flex-1 bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400 resize-none"
                                 />
                                 <button
-                                    onClick={handleSend}
+                                    onClick={() => handleSend()}
                                     disabled={!input.trim() || sending}
                                     className="px-4 py-2 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 disabled:opacity-50 active:scale-95"
                                 >

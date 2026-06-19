@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { mvp } from '../services/mvpService';
+import { mvp, fileToBase64 } from '../services/mvpService';
 import { supabase, supabaseAdmin } from '../services/supabase';
 import { APP_CONFIG } from '../config';
 import {
@@ -1770,6 +1770,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
     const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
     const [chatInput, setChatInput] = useState('');
     const chatEndRef = useRef<HTMLDivElement>(null);
+    const chatFileRef = useRef<HTMLInputElement>(null);
 
     const [selectedKycUser, setSelectedKycUser] = useState<any | null>(null);
     const [previewDoc, setPreviewDoc] = useState<string | null>(null);
@@ -3220,9 +3221,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
         } catch (err: any) { setErrorMsg(err.message || "Card operation failed."); } finally { setIsActionLoading(null); }
     };
 
-    const handleSendChat = async () => {
-        if (!chatInput.trim() || (!activeChatUser && !selectedTicketId)) return;
-        const text = chatInput;
+    const handleSendChat = async (overrideText?: string) => {
+        const text = (overrideText ?? chatInput).trim();
+        if (!text || (!activeChatUser && !selectedTicketId)) return;
         setChatInput('');
         const targetUserId = activeChatUser || supportTickets.find(t => t.id === selectedTicketId)?.user_id;
         const tId = activeSection === 'support_tickets' ? selectedTicketId : null;
@@ -3233,6 +3234,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
             await supabaseAdmin.from('mvp_messages').insert([{ user_id: targetUserId, ticket_id: tId, text: text, sender: 'admin', is_read: 0 }]);
             await fetchData(false);
         } catch (err) { console.error("Chat sync error", err); }
+    };
+
+    const handleFileSelectChat = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || (!activeChatUser && !selectedTicketId)) return;
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            alert('Only images and videos are supported');
+            return;
+        }
+        try {
+            const base64 = await fileToBase64(file);
+            const mediaMsg = `[MEDIA:${file.type}]${base64}`;
+            await handleSendChat(mediaMsg);
+        } catch (err) {
+            console.error('File upload error', err);
+        } finally {
+            if (chatFileRef.current) chatFileRef.current.value = '';
+        }
     };
 
     const handleResolveSession = async () => {
@@ -4779,8 +4798,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                 </div>
                                                 <div className="p-3 md:p-4 border-t border-slate-200 dark:border-[#233648] bg-white dark:bg-[#111a22]">
                                                     <div className="flex gap-2 max-w-4xl mx-auto">
+                                                        <input type="file" ref={chatFileRef} className="hidden" accept="image/*,video/*" onChange={handleFileSelectChat} />
+                                                        <button
+                                                            onClick={() => chatFileRef.current?.click()}
+                                                            className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors active:scale-95"
+                                                            title="Upload image or video"
+                                                        >
+                                                            <Paperclip size={18} />
+                                                        </button>
                                                         <textarea value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && e.ctrlKey && handleSendChat()} placeholder="Reply to thread..." rows={3} className="flex-1 bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl px-3 md:px-4 py-2 md:py-3 text-[11px] md:text-xs font-bold dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none" />
-                                                        <button onClick={handleSendChat} disabled={!chatInput.trim()} className="size-9 md:size-12 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-blue-600 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"><Send size={16} /></button>
+                                                        <button onClick={() => handleSendChat()} disabled={!chatInput.trim()} className="size-9 md:size-12 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-blue-600 transition-all shadow-lg shadow-primary/20 disabled:opacity-50"><Send size={16} /></button>
                                                     </div>
                                                 </div>
                                             </>
@@ -4944,8 +4971,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout, onExit
                                                 </div>
                                                 <div className="p-3 md:p-4 border-t border-slate-200 dark:border-[#233648] bg-white dark:bg-[#111a22]">
                                                     <div className="flex gap-2 max-w-4xl mx-auto">
+                                                        <input type="file" ref={chatFileRef} className="hidden" accept="image/*,video/*" onChange={handleFileSelectChat} />
+                                                        <button
+                                                            onClick={() => chatFileRef.current?.click()}
+                                                            className="p-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors active:scale-95"
+                                                            title="Upload image or video"
+                                                        >
+                                                            <Paperclip size={18} />
+                                                        </button>
                                                         <textarea value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && e.ctrlKey && handleSendChat()} placeholder="Transmit response..." rows={3} className="flex-1 bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl px-3 md:px-4 py-2 md:py-3 text-[11px] md:text-xs font-bold dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none" />
-                                                        <button onClick={handleSendChat} disabled={!chatInput.trim()} className="size-9 md:size-12 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-blue-600 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 active:scale-95"><Send size={16} /></button>
+                                                        <button onClick={() => handleSendChat()} disabled={!chatInput.trim()} className="size-9 md:size-12 rounded-xl bg-primary text-white flex items-center justify-center hover:bg-blue-600 transition-all shadow-lg shadow-primary/20 disabled:opacity-50 active:scale-95"><Send size={16} /></button>
                                                     </div>
                                                 </div>
                                             </>

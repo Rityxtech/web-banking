@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabase';
-import { Send, MessageCircle, User, Mail, Loader2, CheckCheck } from 'lucide-react';
+import { Send, MessageCircle, User, Mail, Loader2, CheckCheck, Paperclip } from 'lucide-react';
 import { APP_CONFIG } from '../config';
+import { fileToBase64 } from '../services/mvpService';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
 
 const STORAGE_KEY = 'live_chat_session';
@@ -17,6 +18,7 @@ export const LiveChat: React.FC = () => {
     const [error, setError] = useState('');
     const [source, setSource] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Try to restore session from URL params or localStorage on mount
     useEffect(() => {
@@ -189,9 +191,9 @@ export const LiveChat: React.FC = () => {
         }
     };
 
-    const handleSend = async () => {
-        if (!input.trim() || !room) return;
-        const text = input.trim();
+    const handleSend = async (overrideText?: string) => {
+        const text = (overrideText ?? input).trim();
+        if (!text || !room) return;
         setInput('');
 
         try {
@@ -213,6 +215,38 @@ export const LiveChat: React.FC = () => {
         } catch (e) {
             console.error('Failed to send message:', e);
         }
+    };
+
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !room) return;
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+            alert('Only images and videos are supported');
+            return;
+        }
+        try {
+            const base64 = await fileToBase64(file);
+            const mediaMsg = `[MEDIA:${file.type}]${base64}`;
+            await handleSend(mediaMsg);
+        } catch (err) {
+            console.error('File upload error', err);
+        } finally {
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const renderMessageContent = (text: string) => {
+        const mediaMatch = text.match(/^\[MEDIA:(.*?)\](.*)$/s);
+        if (mediaMatch) {
+            const type = mediaMatch[1];
+            const data = mediaMatch[2];
+            if (type.startsWith('image/')) {
+                return <img src={data} alt="uploaded" className="max-w-full rounded-lg" style={{ maxHeight: '200px' }} />;
+            } else if (type.startsWith('video/')) {
+                return <video src={data} controls className="max-w-full rounded-lg" style={{ maxHeight: '200px' }} />;
+            }
+        }
+        return <span className="whitespace-pre-wrap">{text}</span>;
     };
 
     const formatTime = (dateStr?: string) => {
@@ -329,7 +363,7 @@ export const LiveChat: React.FC = () => {
                                         : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-bl-md'
                                 }`}
                             >
-                                {msg.text}
+                                {renderMessageContent(msg.text)}
                             </div>
                             <span className="text-[10px] text-slate-400 mt-1 px-1">
                                 {formatTime(msg.created_at)}
@@ -342,6 +376,14 @@ export const LiveChat: React.FC = () => {
             {/* Input */}
             <div className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-3 md:p-4">
                 <div className="flex items-center gap-2">
+                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileSelect} />
+                    <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors active:scale-95"
+                        title="Upload image or video"
+                    >
+                        <Paperclip size={18} />
+                    </button>
                     <input
                         type="text"
                         value={input}
@@ -351,7 +393,7 @@ export const LiveChat: React.FC = () => {
                         className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
                     />
                     <button
-                        onClick={handleSend}
+                        onClick={() => handleSend()}
                         disabled={!input.trim() || loading}
                         className="p-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-xl transition-colors flex items-center justify-center shadow-md shadow-blue-600/10"
                     >
