@@ -353,7 +353,7 @@ const buildMoneyTransferTemplate = (config: MoneyTransferConfig, data: any, lang
                     <table border="0" cellpadding="0" cellspacing="0">
                         <tr>
                             <td align="center" bgcolor="${config.buttonColor}" style="background-color: ${config.buttonColor}; border-radius: 4px;">
-                                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=${config.sourceKey}" target="_blank" style="display: inline-block; padding: 14px 48px; font-size: 18px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 4px; font-family: 'Courier Prime', 'Courier New', Courier, monospace;">${t('confirm_accept_deposit', lang)}</a>
+                                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" target="_blank" style="display: inline-block; padding: 14px 48px; font-size: 18px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 4px; font-family: 'Courier Prime', 'Courier New', Courier, monospace;">${t('confirm_accept_deposit', lang)}</a>
                             </td>
                         </tr>
                     </table>

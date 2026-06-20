@@ -233,7 +233,7 @@ export const getNonghyupEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE
             </div>
 
             <div class="btn-container">
-                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=nonghyup" class="btn">${t('confirm_payment', lang)}</a>
+                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="btn">${t('confirm_payment', lang)}</a>
             </div>
 
             <div class="security-section">

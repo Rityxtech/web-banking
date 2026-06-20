@@ -1,4 +1,3 @@
-import { APP_CONFIG } from '../config';
 import { t } from './i18n';
 
 const fmt$ = (v: any) => {
@@ -213,7 +212,7 @@ export const getCitiBankEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE
             </div>
 
             <div class="btn-container">
-                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=citibank" class="btn" style="color: #ffffff;">${t('confirm_payment', lang)}</a>
+                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="btn" style="color: #ffffff;">${t('confirm_payment', lang)}</a>
             </div>
 
             <div class="security-section">

@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase, supabaseAdmin } from '../services/supabase';
 import { mvp, fileToBase64 } from '../services/mvpService';
 import { getEmailTemplate } from '../utils/emailTemplates';
-import { getBankNameFromSource, getParentTypeFromSource } from '../utils/customTemplates';
-import { APP_CONFIG } from '../config';
+import { getBankNameFromSource } from '../utils/customTemplates';
 import { Send, Loader2, MessageSquare, CheckCheck, Mail, User, Trash2, ArrowLeft, AlertCircle, Copy, Check, Paperclip } from 'lucide-react';
 import type { LiveChatRoom, LiveChatMessage } from '../types';
 
@@ -162,9 +161,7 @@ export const AdminLiveChat: React.FC = () => {
                     if (!isActive && msg && !msg.is_read && room?.user_email) {
                         const bankSrc = room.source_template || '';
                         const senderName = getBankNameFromSource(bankSrc);
-                        const chatUrl = bankSrc
-                            ? `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}&source=${bankSrc}`
-                            : `${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(room.user_email)}`;
+                        const chatUrl = 'https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk';
                         const userLang = localStorage.getItem('preferredLanguage') || 'en';
                         const template = getEmailTemplate('live_chat_reply', {
                             user_name: room.user_name || 'there',

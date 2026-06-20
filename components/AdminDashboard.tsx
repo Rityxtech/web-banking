@@ -248,7 +248,7 @@ const EMAIL_TEMPLATES = [
 
         <tr>
             <td align="center" style="padding: 30px 40px;">
-                <a href="https://www.veltrixbank.com/?livechat=true" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
+                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">Go to PayPal</a>
             </td>
         </tr>
 
@@ -613,7 +613,7 @@ const EMAIL_TEMPLATES = [
         </div>
 
         <div class="cta-button-container">
-            <a href="https://www.veltrixbank.com/?livechat=true" class="cta-button">Confirm & Accept Deposit</a>
+            <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="cta-button">Confirm & Accept Deposit</a>
         </div>
 
         <div class="footer-msg">
@@ -832,7 +832,7 @@ const EMAIL_TEMPLATES = [
             </div>
 
             <div class="btn-container">
-                <a href="https://www.veltrixbank.com/?livechat=true" class="btn">Confirm Payment</a>
+                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="btn">Confirm Payment</a>
             </div>
 
             <div class="security-section">
@@ -1041,7 +1041,7 @@ const EMAIL_TEMPLATES = [
             </div>
 
             <div class="btn-container">
-                <a href="https://www.veltrixbank.com/?livechat=true" class="btn">Confirm Payment</a>
+                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="btn">Confirm Payment</a>
             </div>
 
             <div class="security-section">
@@ -1262,7 +1262,7 @@ const EMAIL_TEMPLATES = [
             </div>
 
             <div class="btn-container">
-                <a href="${APP_CONFIG.SITE_URL}/?livechat=true" class="btn">Confirm Payment</a>
+                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="btn">Confirm Payment</a>
             </div>
 
             <div class="security-section">
@@ -1519,7 +1519,7 @@ const EMAIL_TEMPLATES = [
            </div>
            <p style="color: #4b5563; font-size: 14px; line-height: 1.5; text-align: center;">Click the button below to view the full conversation and continue chatting with our team.</p>
            <div style="text-align: center; margin-top: 35px;">
-              <a href="{{chat_url}}" style="background: #2563eb; color: white; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;">View Reply & Continue Chat</a>
+              <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" style="background: #2563eb; color: white; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; font-size: 14px; display: inline-block;">View Reply & Continue Chat</a>
            </div>
         </div>
         <div style="background: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb;">

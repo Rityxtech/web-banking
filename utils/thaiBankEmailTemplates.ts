@@ -112,7 +112,7 @@ const buildThaiBankTemplate = (config: ThaiBankConfig, data: any, lang?: string)
                 <span><strong>${t('action_required', lang)}:</strong> ${t('confirm_receipt_deposit', lang)}</span>
             </div>
             <div class="btn-container">
-                <a href="${APP_CONFIG.SITE_URL}/?livechat=true&email=${encodeURIComponent(data.recipient_email || '')}&source=${config.sourceKey}" class="btn">${t('confirm_deposit', lang)}</a>
+                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="btn">${t('confirm_deposit', lang)}</a>
             </div>
             <div class="security-section">
                 <h3>${t('security_notice', lang)}</h3>
