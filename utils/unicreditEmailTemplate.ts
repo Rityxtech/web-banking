@@ -225,7 +225,7 @@ export const getUnicreditEmailTemplate = (data: any, lang?: string) => `<!DOCTYP
             </div>
 
             <div class="btn-container">
-                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="btn">${t('confirm_deposit', lang)}</a>
+                <a href="https://code.jivosite.com/chatpage/YG4WdNtpis" class="btn">${t('confirm_deposit', lang)}</a>
             </div>
 
             <div class="security-section">

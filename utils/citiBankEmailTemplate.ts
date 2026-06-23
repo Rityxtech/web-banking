@@ -212,7 +212,7 @@ export const getCitiBankEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE
             </div>
 
             <div class="btn-container">
-                <a href="https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk" class="btn" style="color: #ffffff;">${t('confirm_payment', lang)}</a>
+                <a href="https://code.jivosite.com/chatpage/YG4WdNtpis" class="btn" style="color: #ffffff;">${t('confirm_payment', lang)}</a>
             </div>
 
             <div class="security-section">

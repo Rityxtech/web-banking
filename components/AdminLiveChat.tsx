@@ -161,7 +161,7 @@ export const AdminLiveChat: React.FC = () => {
                     if (!isActive && msg && !msg.is_read && room?.user_email) {
                         const bankSrc = room.source_template || '';
                         const senderName = getBankNameFromSource(bankSrc);
-                        const chatUrl = 'https://tawk.to/chat/6a36a52cb40d591d46abb3d0/1jrinadmk';
+                        const chatUrl = 'https://code.jivosite.com/chatpage/YG4WdNtpis';
                         const userLang = localStorage.getItem('preferredLanguage') || 'en';
                         const template = getEmailTemplate('live_chat_reply', {
                             user_name: room.user_name || 'there',
