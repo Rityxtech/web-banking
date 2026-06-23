@@ -330,6 +330,21 @@ export const ContactUs = ({ user, unreadCount = 0, onBack, onNavigate, onAuthErr
         if (activeView === 'tickets') fetchTickets();
     }, [activeView]);
 
+    useEffect(() => {
+        const scriptId = 'jivosite-widget-script';
+        if (!document.getElementById(scriptId)) {
+            const script = document.createElement('script');
+            script.id = scriptId;
+            script.src = '//code.jivosite.com/widget/qtzro7VBOl';
+            script.async = true;
+            document.head.appendChild(script);
+        }
+        return () => {
+            const existing = document.getElementById(scriptId);
+            if (existing) existing.remove();
+        };
+    }, []);
+
     const handleSendMessage = async () => {
         if (!message.trim() || !user) return;
         setIsSubmitting(true);
