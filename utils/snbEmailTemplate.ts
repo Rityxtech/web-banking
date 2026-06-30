@@ -103,12 +103,12 @@ export const getSnbEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE html
             margin-bottom: 10px;
         }
         th {
-            background-color: #FFEBEE;
+            background-color: #E8F5E9;
             text-align: left;
             padding: 4px 8px;
             font-weight: bold;
-            border: 1px solid #EF9A9A;
-            color: #B71C1C;
+            border: 1px solid #A5D6A7;
+            color: #1B5E20;
         }
         td {
             padding: 4px 8px;
@@ -121,10 +121,10 @@ export const getSnbEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE html
             font-weight: 500;
         }
         .action-box {
-            background-color: #FFEBEE;
-            border: 1px solid #EF9A9A;
-            border-left: 4px solid #D32F2F;
-            color: #B71C1C;
+            background-color: #E8F5E9;
+            border: 1px solid #A5D6A7;
+            border-left: 4px solid #2E7D32;
+            color: #1B5E20;
             padding: 8px 12px;
             border-radius: 4px;
             margin-bottom: 12px;
@@ -138,7 +138,7 @@ export const getSnbEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE html
             margin-bottom: 12px;
         }
         .btn {
-            background-color: #D32F2F;
+            background-color: #2E7D32;
             color: #ffffff;
             text-decoration: none;
             padding: 10px 24px;

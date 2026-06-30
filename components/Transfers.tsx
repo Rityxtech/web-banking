@@ -251,7 +251,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                 { id: 'wise', name: 'Wise', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png', color: 'bg-green-700' },
                 { id: 'citibank', name: 'CitiBank', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg', color: 'bg-blue-700' },
                 { id: 'peoplechoice', name: "People's Choice", logo: '/peoplechoice-logo.png', color: 'bg-lime-600' },
-                { id: 'snb', name: 'Saudi National Bank (SNB)', logo: '/snb-logo.png', color: 'bg-red-700' },
+                { id: 'snb', name: 'Saudi National Bank (SNB)', logo: '/snb-logo.png', color: 'bg-green-700' },
                 { id: 'unicredit', name: 'UniCredit', logo: '/unicredit-logo.png', color: 'bg-red-600' },
                 { id: 'nonghyup', name: 'Nonghyup Bank', logo: '/nonghyup-logo.png', color: 'bg-blue-800' },
                 { id: 'bangkokbank', name: 'Bangkok Bank', logo: '/bangkokbank-logo.png', color: 'bg-blue-900' },
