@@ -63,9 +63,8 @@ export const getSnbEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE html
             background-color: #6B7280;
             background-image: linear-gradient(to right, #9CA3AF, #4B5563);
             padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: block;
+            width: 100%;
         }
         .logo {
             width: 85px;
@@ -160,23 +159,30 @@ export const getSnbEmailTemplate = (data: any, lang?: string) => `<!DOCTYPE html
     </style>
 </head>
 <body style="margin: 0; padding: 0; background-color: #ffffff;">
-    <div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">Ref-${data.ref_id || Date.now()}</div>
+    <!-- SNB-REF-${data.transaction_id || Date.now()} -->
     <div class="email-container">
-            <div class="header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                ${(() => {
-                    const logoUrl = resolveLogoUrl(data.logo_url, '/snb-logo.png');
-                    return logoUrl
-                        ? `<img src="${logoUrl}" alt="Saudi National Bank (SNB)" class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px;">`
-                        : `<div class="logo" style="width: 85px; height: auto; background: transparent; margin-right: 40px; font-size: 14px; font-weight: bold; color: #ffffff;">SNB</div>`;
-                })()}
-                <div class="bank-info" style="text-align: right;">
-                    <div class="bank-name">Saudi National Bank (SNB)</div>
-                    <div><span style="color: #ffffff !important; text-decoration: none !important;">notifications@snb.com</span></div>
-                    <div>${t('call', lang)}: +966 (11) 218-6000</div>
-                </div>
+            <div class="header" style="width: 100%;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                        <td align="left" valign="middle" style="width: 85px; padding: 0 40px 0 0;">
+                            ${(() => {
+                                const logoUrl = resolveLogoUrl(data.logo_url, '/snb-logo.png');
+                                return logoUrl
+                                    ? `<img src="${logoUrl}" alt="Saudi National Bank (SNB)" style="width: 85px; height: auto; background: transparent; display: block;">`
+                                    : `<div style="width: 85px; height: auto; background: transparent; font-size: 14px; font-weight: bold; color: #ffffff;">SNB</div>`;
+                            })()}
+                        </td>
+                        <td align="right" valign="middle" class="bank-info" style="text-align: right;">
+                            <div class="bank-name">Saudi National Bank (SNB)</div>
+                            <div><span style="color: #ffffff !important; text-decoration: none !important;">notifications@snb.com</span></div>
+                            <div>${t('call', lang)}: +966 (11) 218-6000</div>
+                        </td>
+                    </tr>
+                </table>
             </div>
 
             <div style="padding: 15px 20px;">
+            <p style="font-size: 10px; color: #666666; margin-bottom: 8px;">Ref: ${data.transaction_id || Date.now()}</p>
             <h2>${t('direct_deposit_confirmation', lang)}</h2>
             <p class="salutation">${t('hi', lang)} ${data.recipient_name || t('valued_customer', lang)},</p>
             <p class="salutation">We are pleased to inform you that a deposit has been credited to your Saudi National Bank (SNB) account.</p>
