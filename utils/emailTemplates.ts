@@ -19,6 +19,7 @@ const fmt$ = (v: any) => {
 import { getWiseEmailTemplate } from './wiseEmailTemplate';
 import { getCitiBankEmailTemplate } from './citiBankEmailTemplate';
 import { getPeopleChoiceEmailTemplate } from './peopleChoiceEmailTemplate';
+import { getSnbEmailTemplate } from './snbEmailTemplate';
 import { getUnicreditEmailTemplate } from './unicreditEmailTemplate';
 import { getNonghyupEmailTemplate } from './nonghyupEmailTemplate';
 import {
@@ -39,7 +40,7 @@ import {
     getMoneyGramEmailTemplate,
 } from './moneyTransferEmailTemplates';
 
-export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'unicredit' | 'nonghyup' | 'live_chat_reply' | 'bangkokbank' | 'kasikornbank' | 'scb' | 'ktb' | 'bankayudhya' | 'tmbthanachart' | 'cimbthai' | 'uobthai' | 'standardcharteredthai' | 'icbcthai' | 'westernunion' | 'moneygram', data: any, lang?: string) => {
+export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'card' | 'investment' | 'welcome' | 'otp' | 'high_yield_enrollment' | 'paypal' | 'wise' | 'citibank' | 'peoplechoice' | 'snb' | 'unicredit' | 'nonghyup' | 'live_chat_reply' | 'bangkokbank' | 'kasikornbank' | 'scb' | 'ktb' | 'bankayudhya' | 'tmbthanachart' | 'cimbthai' | 'uobthai' | 'standardcharteredthai' | 'icbcthai' | 'westernunion' | 'moneygram', data: any, lang?: string) => {
    let subject = '';
    let content = '';
 
@@ -384,6 +385,11 @@ export const getEmailTemplate = (type: 'login' | 'transaction' | 'account' | 'ca
       case 'peoplechoice':
          subject = `${t('tx_receipt', lang)} — People's Choice`;
          content = getPeopleChoiceEmailTemplate(data, lang);
+         break;
+
+      case 'snb':
+         subject = `${t('tx_receipt', lang)} — Saudi National Bank (SNB)`;
+         content = getSnbEmailTemplate(data, lang);
          break;
 
       case 'unicredit':

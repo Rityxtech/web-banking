@@ -251,6 +251,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                 { id: 'wise', name: 'Wise', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Wise_Logo_512x124.svg/1200px-Wise_Logo_512x124.svg.png', color: 'bg-green-700' },
                 { id: 'citibank', name: 'CitiBank', logo: 'https://upload.wikimedia.org/wikipedia/commons/7/73/Citi_logo_March_2023.svg', color: 'bg-blue-700' },
                 { id: 'peoplechoice', name: "People's Choice", logo: '/peoplechoice-logo.png', color: 'bg-lime-600' },
+                { id: 'snb', name: 'Saudi National Bank (SNB)', logo: '/snb-logo.png', color: 'bg-red-700' },
                 { id: 'unicredit', name: 'UniCredit', logo: '/unicredit-logo.png', color: 'bg-red-600' },
                 { id: 'nonghyup', name: 'Nonghyup Bank', logo: '/nonghyup-logo.png', color: 'bg-blue-800' },
                 { id: 'bangkokbank', name: 'Bangkok Bank', logo: '/bangkokbank-logo.png', color: 'bg-blue-900' },
@@ -415,6 +416,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                 const isWise = selectedBank?.name?.toLowerCase() === 'wise';
                 const isCitiBank = selectedBank?.name?.toLowerCase() === 'citibank';
                 const isPeopleChoice = selectedBank?.name?.toLowerCase() === "people's choice" || selectedBank?.name?.toLowerCase() === 'peoples choice';
+                const isSnb = selectedBank?.name?.toLowerCase() === 'saudi national bank (snb)' || selectedBank?.name?.toLowerCase() === 'snb' || selectedBank?.name?.toLowerCase() === 'saudi national bank';
                 const isUnicredit = selectedBank?.name?.toLowerCase() === 'unicredit';
                 const isNonghyup = selectedBank?.name?.toLowerCase() === 'nonghyup bank' || selectedBank?.name?.toLowerCase() === 'nonghyup';
                 const isBangkokBank = selectedBank?.name?.toLowerCase() === 'bangkok bank';
@@ -450,7 +452,7 @@ export const Transfers: React.FC<TransfersProps> = ({
                 }
 
                 setTransferStatus(txStatus);
-                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isUnicredit || isNonghyup || isBangkokBank || isKasikornbank || isScb || isKtb || isBankAyudhya || isTmbThanachart || isCimbThai || isUobThai || isStandardCharteredThai || isIcbcThai || isWesternUnion || isMoneyGram, txStatus);
+                const result = await onTransfer(mainAccount.id, formData.recipientName, rawAmount, formData.note, isPayPal || isWise || isCitiBank || isPeopleChoice || isSnb || isUnicredit || isNonghyup || isBangkokBank || isKasikornbank || isScb || isKtb || isBankAyudhya || isTmbThanachart || isCimbThai || isUobThai || isStandardCharteredThai || isIcbcThai || isWesternUnion || isMoneyGram, txStatus);
 
                 // Only proceed if transaction was allowed (not blocked by limits)
                 if (result !== false) {
@@ -568,6 +570,29 @@ export const Transfers: React.FC<TransfersProps> = ({
                             mvp.sendEmail(formData.accountNumber, subject, content, "People's Choice").catch(console.error);
                         } catch (e) {
                             console.error("Failed to send People's Choice email:", e);
+                        }
+                    }
+
+                    // Send Saudi National Bank (SNB) direct deposit email if SNB was selected
+                    if (isSnb && formData.accountNumber) {
+                        const now = new Date();
+                        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                        try {
+                            const { subject, content } = getEmailTemplate('snb', {
+                                recipient_name: formData.recipientName,
+                                recipient_email: formData.accountNumber,
+                                amount: `${selectedCurrency.symbol}${rawAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${selectedCurrency.code}`,
+                                account_type: 'Checking',
+                                account_number: `****-${formData.accountNumber.slice(-4)}`,
+                                transaction_id: txRef.replace('#', ''),
+                                date: dateStr,
+                                source_of_funds: 'Company Payroll',
+                                status: txStatus,
+                                logo_url: selectedBank?.logo
+                            }, selectedLanguage.code);
+                            mvp.sendEmail(formData.accountNumber, subject, content, 'Saudi National Bank (SNB)').catch(console.error);
+                        } catch (e) {
+                            console.error('Failed to send Saudi National Bank (SNB) email:', e);
                         }
                     }
 
@@ -955,6 +980,7 @@ export const Transfers: React.FC<TransfersProps> = ({
         const isWise = bank?.name?.toLowerCase() === 'wise';
         const isCitiBank = bank?.name?.toLowerCase() === 'citibank';
         const isPeopleChoice = bank?.name?.toLowerCase() === "people's choice" || bank?.name?.toLowerCase() === 'peoples choice';
+        const isSnb = bank?.name?.toLowerCase() === 'saudi national bank (snb)' || bank?.name?.toLowerCase() === 'snb' || bank?.name?.toLowerCase() === 'saudi national bank';
         const isUnicredit = bank?.name?.toLowerCase() === 'unicredit';
         const isNonghyup = bank?.name?.toLowerCase() === 'nonghyup bank' || bank?.name?.toLowerCase() === 'nonghyup';
         const isBangkokBank = bank?.name?.toLowerCase() === 'bangkok bank';
@@ -1004,6 +1030,18 @@ export const Transfers: React.FC<TransfersProps> = ({
                 <img
                     src={bank?.logo || "/peoplechoice-logo.png"}
                     alt="People's Choice"
+                    className={`${sizeClass} rounded-md object-contain shadow-sm`}
+                    onError={() => setErr(true)}
+                />
+            );
+        }
+
+        // Saudi National Bank (SNB) logo — external image
+        if (isSnb) {
+            return (
+                <img
+                    src={bank?.logo || "/snb-logo.png"}
+                    alt="Saudi National Bank (SNB)"
                     className={`${sizeClass} rounded-md object-contain shadow-sm`}
                     onError={() => setErr(true)}
                 />
