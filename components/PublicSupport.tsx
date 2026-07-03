@@ -21,6 +21,7 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
     const [isSendingReply, setIsSendingReply] = useState(false);
     const [hasSession, setHasSession] = useState(false);
     const [sessionUserId, setSessionUserId] = useState<string | null>(null);
+    const [isSessionLoading, setIsSessionLoading] = useState(true);
     const [trackEmail, setTrackEmail] = useState('');
     const composeFileRef = useRef<HTMLInputElement>(null);
     const replyFileRef = useRef<HTMLInputElement>(null);
@@ -28,14 +29,22 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            if (data.session) {
-                setHasSession(true);
-                setSessionUserId(data.session.user.id);
-                setEmail(data.session.user.email || '');
-                setTrackEmail(data.session.user.email || '');
+        const loadSession = async () => {
+            try {
+                const { data, error } = await supabase.auth.getUser();
+                if (!error && data?.user) {
+                    setHasSession(true);
+                    setSessionUserId(data.user.id);
+                    setEmail(data.user.email || '');
+                    setTrackEmail(data.user.email || '');
+                }
+            } catch (e) {
+                console.error('Failed to load auth user:', e);
+            } finally {
+                setIsSessionLoading(false);
             }
-        });
+        };
+        loadSession();
     }, []);
 
     useEffect(() => {
@@ -44,15 +53,15 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
         }
     }, [ticketMessages]);
 
-    const getUserId = () => sessionUserId || email.trim();
+    const getUserId = () => sessionUserId;
 
     const handleSubmit = async () => {
         setErrorMsg('');
         if (!message.trim()) { setErrorMsg('Please enter a message.'); return; }
-        if (!hasSession && !email.trim()) { setErrorMsg('Please enter your email address.'); return; }
+        const userId = getUserId();
+        if (!userId) { setErrorMsg('You must be signed in to submit a ticket. Please log in or use the appeal form on the lockout screen.'); return; }
         setIsSubmitting(true);
         try {
-            const userId = getUserId();
             const payload: any = {
                 user_id: userId,
                 subject,
@@ -90,13 +99,12 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
         }
     };
 
-    const fetchTickets = async (searchEmail?: string) => {
-        const targetEmail = searchEmail || email;
-        if (!hasSession && !targetEmail.trim()) { setErrorMsg('Enter your email to track tickets.'); return; }
+    const fetchTickets = async () => {
+        const userId = getUserId();
+        if (!userId) { setErrorMsg('You must be signed in to view your tickets.'); return; }
         setIsLoadingTickets(true);
         setErrorMsg('');
         try {
-            const userId = hasSession ? sessionUserId : targetEmail.trim();
             const { data, error } = await supabase.from('mvp_support_tickets')
                 .select('*')
                 .eq('user_id', userId)
@@ -134,10 +142,15 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
     const handleReply = async (overrideText?: string) => {
         const text = (overrideText ?? replyText).trim();
         if (!text || !viewingTicket) return;
+        const userId = getUserId();
+        if (!userId) {
+            setErrorMsg('You must be signed in to reply to tickets.');
+            return;
+        }
         setIsSendingReply(true);
         try {
             await supabase.from('mvp_messages').insert([{
-                user_id: getUserId(),
+                user_id: userId,
                 ticket_id: viewingTicket.id,
                 text: text,
                 sender: 'user'
@@ -278,7 +291,7 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
                                 </div>
                             )}
                         </div>
-                        <button onClick={handleSubmit} disabled={isSubmitting || !message.trim() || (!hasSession && !email.trim())} className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20 transition-all active:scale-[0.98]">
+                        <button onClick={handleSubmit} disabled={isSubmitting || isSessionLoading || !message.trim() || !getUserId()} className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20 transition-all active:scale-[0.98]">
                             {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />} Submit Ticket
                         </button>
                         <p className="text-center text-[10px] text-white/30 font-medium">
@@ -291,11 +304,9 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
                 {activeView === 'tickets' && (
                     <div className="space-y-5 animate-in fade-in">
                         {!hasSession && (
-                            <div className="flex gap-2">
-                                <input type="email" value={trackEmail} onChange={e => setTrackEmail(e.target.value)} placeholder="Enter your email" className="flex-1 p-3 bg-black/40 border border-white/10 rounded-xl text-sm font-bold text-white outline-none focus:border-blue-500 placeholder:text-white/30" />
-                                <button onClick={() => fetchTickets(trackEmail)} disabled={isLoadingTickets || !trackEmail.trim()} className="px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all">
-                                    {isLoadingTickets ? <Loader2 size={14} className="animate-spin" /> : 'Track'}
-                                </button>
+                            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
+                                <p className="text-xs font-black text-red-400 uppercase tracking-widest">Sign In Required</p>
+                                <p className="text-[10px] text-red-300/80 mt-1">You must be signed in to view your tickets.</p>
                             </div>
                         )}
                         {hasSession && (
