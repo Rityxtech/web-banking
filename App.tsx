@@ -231,6 +231,7 @@ const SuspendedScreen = ({ user, onLogout }: { user: User, onLogout: () => void 
     const [existingTicket, setExistingTicket] = useState<any>(null);
     const [isChecking, setIsChecking] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const checkExisting = async () => {
@@ -246,18 +247,32 @@ const SuspendedScreen = ({ user, onLogout }: { user: User, onLogout: () => void 
         e.preventDefault();
         if (!message.trim() || existingTicket) return;
         setIsSubmitting(true);
+        setError('');
         try {
+            const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
+            if (authErr || !authUser) {
+                setError('Session error. Please log in again.');
+                return;
+            }
             const { data: res, error: ticketErr } = await supabase.from('mvp_support_tickets').insert([{
-                user_id: user.id,
+                user_id: authUser.id,
                 subject: 'Account Suspension Appeal',
                 message: `[LOCKOUT PROTOCOL APPEAL]: ${message}`,
                 status: 'Open'
             }]).select('id');
-            if (!ticketErr && res) {
+            if (ticketErr) {
+                setError(ticketErr.message || 'Failed to submit ticket. Please try again.');
+                console.error(ticketErr);
+                return;
+            }
+            if (res) {
                 setExistingTicket({ id: res[0]?.id, status: 'Open' });
                 setMessage('');
             }
-        } catch (err) { console.error(err); } finally { setIsSubmitting(false); }
+        } catch (err: any) {
+            setError(err.message || 'Failed to submit ticket. Please try again.');
+            console.error(err);
+        } finally { setIsSubmitting(false); }
     };
 
     if (isChecking) return <div className="min-h-screen bg-[#0B0E14] flex flex-col items-center justify-center gap-4"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /><p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Syncing Security Node...</p></div>;
@@ -279,6 +294,11 @@ const SuspendedScreen = ({ user, onLogout }: { user: User, onLogout: () => void 
                             </div>
                         ) : showForm ? (
                             <form onSubmit={handleSubmitTicket} className="space-y-6">
+                                {error && (
+                                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-xs font-bold text-center">
+                                        {error}
+                                    </div>
+                                )}
                                 <textarea rows={3} autoFocus value={message} onChange={e => setMessage(e.target.value)} placeholder="Explain your situation..." className="w-full p-4 bg-black/60 border border-white/10 rounded-2xl text-sm text-white focus:border-red-600 outline-none transition-all resize-none shadow-inner"></textarea>
                                 <button type="submit" disabled={isSubmitting || !message.trim()} className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2">
                                     {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Transmit Signal

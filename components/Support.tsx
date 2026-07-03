@@ -112,8 +112,14 @@ const TicketTerminal = ({ ticket, user, onBack, onAuthError, onRefreshCounts }: 
         setSending(true);
 
         try {
+            const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
+            if (authErr || !authUser) {
+                console.error("Auth error sending message:", authErr);
+                if (onAuthError) onAuthError(authErr || new Error('No authenticated user'));
+                return;
+            }
             const { error: msgErr } = await supabase.from('mvp_messages').insert([{
-                user_id: user.id,
+                user_id: authUser.id,
                 ticket_id: ticket.id,
                 text: text,
                 sender: 'user'
@@ -121,6 +127,8 @@ const TicketTerminal = ({ ticket, user, onBack, onAuthError, onRefreshCounts }: 
 
             if (!msgErr) {
                 await loadMsgs();
+            } else {
+                console.error("Message insert error:", msgErr);
             }
         } catch (e: any) {
             console.error("Transmission failed:", e.message);
@@ -303,6 +311,7 @@ export const ContactUs = ({ user, unreadCount = 0, onBack, onNavigate, onAuthErr
     const [message, setMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMsg, setSuccessMsg] = useState('');
+    const [error, setError] = useState('');
     const [tickets, setTickets] = useState<any[]>([]);
     const [isLoadingTickets, setIsLoadingTickets] = useState(false);
     const [attachment, setAttachment] = useState<File | null>(null);
@@ -348,22 +357,36 @@ export const ContactUs = ({ user, unreadCount = 0, onBack, onNavigate, onAuthErr
     const handleSendMessage = async () => {
         if (!message.trim() || !user) return;
         setIsSubmitting(true);
+        setError('');
         try {
+            const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
+            if (authErr || !authUser) {
+                setError('Session error. Please log in again.');
+                if (onAuthError) onAuthError(authErr || new Error('No authenticated user'));
+                return;
+            }
+            const userId = authUser.id;
             const { data: ticketData, error: ticketErr } = await supabase.from('mvp_support_tickets').insert([{
-                user_id: user.id,
+                user_id: userId,
                 subject,
                 message,
                 status: 'Open'
             }]).select('id');
 
-            if (!ticketErr && ticketData) {
+            if (ticketErr) {
+                setError(ticketErr.message || 'Failed to submit ticket. Please try again.');
+                console.error("Ticket creation error:", ticketErr);
+                return;
+            }
+
+            if (ticketData) {
                 const newTicketId = ticketData[0]?.id;
                 if (attachment && newTicketId) {
                     try {
                         const base64 = await fileToBase64(attachment);
                         const mediaMsg = `[MEDIA:${attachment.type}]${base64}`;
                         await supabase.from('mvp_messages').insert([{
-                            user_id: user.id,
+                            user_id: userId,
                             ticket_id: newTicketId,
                             text: mediaMsg,
                             sender: 'user'
@@ -382,6 +405,7 @@ export const ContactUs = ({ user, unreadCount = 0, onBack, onNavigate, onAuthErr
                 }, 1200);
             }
         } catch (e: any) {
+            setError(e.message || 'Failed to submit ticket. Please try again.');
             console.error("Creation fault:", e.message);
             if (e.message === 'AUTH_SESSION_EXPIRED' || e.message?.includes('AUTH_SESSION_LOST')) {
                 if (onAuthError) onAuthError(e);
@@ -441,6 +465,12 @@ export const ContactUs = ({ user, unreadCount = 0, onBack, onNavigate, onAuthErr
                                 <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs rounded-2xl flex items-start gap-3 border border-emerald-100 dark:border-emerald-800 shadow-sm animate-in zoom-in">
                                     <CheckCircle size={20} className="shrink-0" />
                                     <div><p className="font-black uppercase tracking-widest mb-1">Transmission Success</p><p className="font-medium opacity-80">{successMsg}</p></div>
+                                </div>
+                            )}
+                            {error && (
+                                <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs rounded-2xl flex items-start gap-3 border border-red-100 dark:border-red-800 shadow-sm animate-in zoom-in">
+                                    <AlertCircle size={20} className="shrink-0" />
+                                    <div><p className="font-black uppercase tracking-widest mb-1">Transmission Failed</p><p className="font-medium opacity-80">{error}</p></div>
                                 </div>
                             )}
 
