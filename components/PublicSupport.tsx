@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { APP_CONFIG } from '../config';
 import { ArrowLeft, Send, Ticket, CheckCircle, Loader2, Inbox, MessageSquare, Clock, ChevronRight, Paperclip, X, Headphones, User, AlertCircle } from 'lucide-react';
-import { supabase } from '../services/supabase';
+import { supabase, supabaseAdmin } from '../services/supabase';
 import { fileToBase64 } from '../services/mvpService';
 
 export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { onBack: () => void; initialSubject?: string }) => {
@@ -55,11 +55,36 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
 
     const getUserId = () => sessionUserId;
 
+    const findUserByEmail = async (targetEmail: string): Promise<string | null> => {
+        if (!supabaseAdmin) return null;
+        try {
+            const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+            if (error || !data?.users) {
+                console.error('Failed to lookup user by email:', error);
+                return null;
+            }
+            const found = data.users.find((u: any) => u.email?.toLowerCase() === targetEmail.toLowerCase());
+            return found?.id || null;
+        } catch (e) {
+            console.error('Error looking up user by email:', e);
+            return null;
+        }
+    };
+
+    const resolveUserId = async (): Promise<{ userId: string | null; client: any }> => {
+        const authId = getUserId();
+        if (authId) return { userId: authId, client: supabase };
+        const targetEmail = (trackEmail || email).trim();
+        if (!targetEmail) return { userId: null, client: supabase };
+        const foundId = await findUserByEmail(targetEmail);
+        return { userId: foundId, client: supabaseAdmin };
+    };
+
     const handleSubmit = async () => {
         setErrorMsg('');
         if (!message.trim()) { setErrorMsg('Please enter a message.'); return; }
-        const userId = getUserId();
-        if (!userId) { setErrorMsg('You must be signed in to submit a ticket. Please log in or use the appeal form on the lockout screen.'); return; }
+        const { userId, client } = await resolveUserId();
+        if (!userId) { setErrorMsg('No account found for this email. Please use the email address registered on your account.'); return; }
         setIsSubmitting(true);
         try {
             const payload: any = {
@@ -68,14 +93,14 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
                 message,
                 status: 'Open'
             };
-            const { data, error } = await supabase.from('mvp_support_tickets').insert([payload]).select('id');
+            const { data, error } = await client.from('mvp_support_tickets').insert([payload]).select('id');
             if (!error && data && data.length > 0) {
                 const newTicketId = data[0]?.id;
                 if (attachment && newTicketId) {
                     try {
                         const base64 = await fileToBase64(attachment);
                         const mediaMsg = `[MEDIA:${attachment.type}]${base64}`;
-                        await supabase.from('mvp_messages').insert([{
+                        await client.from('mvp_messages').insert([{
                             user_id: userId,
                             ticket_id: newTicketId,
                             text: mediaMsg,
@@ -100,12 +125,12 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
     };
 
     const fetchTickets = async () => {
-        const userId = getUserId();
-        if (!userId) { setErrorMsg('You must be signed in to view your tickets.'); return; }
-        setIsLoadingTickets(true);
         setErrorMsg('');
+        const { userId, client } = await resolveUserId();
+        if (!userId) { setErrorMsg('No account found for this email. Please use the email address registered on your account.'); return; }
+        setIsLoadingTickets(true);
         try {
-            const { data, error } = await supabase.from('mvp_support_tickets')
+            const { data, error } = await client.from('mvp_support_tickets')
                 .select('*')
                 .eq('user_id', userId)
                 .limit(50);
@@ -142,14 +167,14 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
     const handleReply = async (overrideText?: string) => {
         const text = (overrideText ?? replyText).trim();
         if (!text || !viewingTicket) return;
-        const userId = getUserId();
+        const { userId, client } = await resolveUserId();
         if (!userId) {
-            setErrorMsg('You must be signed in to reply to tickets.');
+            setErrorMsg('No account found for this email. Please use the email address registered on your account.');
             return;
         }
         setIsSendingReply(true);
         try {
-            await supabase.from('mvp_messages').insert([{
+            await client.from('mvp_messages').insert([{
                 user_id: userId,
                 ticket_id: viewingTicket.id,
                 text: text,
@@ -291,7 +316,7 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
                                 </div>
                             )}
                         </div>
-                        <button onClick={handleSubmit} disabled={isSubmitting || isSessionLoading || !message.trim() || !getUserId()} className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20 transition-all active:scale-[0.98]">
+                        <button onClick={handleSubmit} disabled={isSubmitting || isSessionLoading || !message.trim() || (!getUserId() && !email.trim())} className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:hover:bg-blue-600 text-white rounded-2xl font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20 transition-all active:scale-[0.98]">
                             {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />} Submit Ticket
                         </button>
                         <p className="text-center text-[10px] text-white/30 font-medium">
@@ -304,9 +329,11 @@ export const PublicSupport = ({ onBack, initialSubject = 'General Inquiry' }: { 
                 {activeView === 'tickets' && (
                     <div className="space-y-5 animate-in fade-in">
                         {!hasSession && (
-                            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
-                                <p className="text-xs font-black text-red-400 uppercase tracking-widest">Sign In Required</p>
-                                <p className="text-[10px] text-red-300/80 mt-1">You must be signed in to view your tickets.</p>
+                            <div className="flex gap-2">
+                                <input type="email" value={trackEmail} onChange={e => setTrackEmail(e.target.value)} placeholder="Enter your email" className="flex-1 p-3 bg-black/40 border border-white/10 rounded-xl text-sm font-bold text-white outline-none focus:border-blue-500 placeholder:text-white/30" />
+                                <button onClick={() => fetchTickets()} disabled={isLoadingTickets || !trackEmail.trim()} className="px-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all">
+                                    {isLoadingTickets ? <Loader2 size={14} className="animate-spin" /> : 'Track'}
+                                </button>
                             </div>
                         )}
                         {hasSession && (
