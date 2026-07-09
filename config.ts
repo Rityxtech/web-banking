@@ -109,6 +109,9 @@ export const APP_CONFIG = {
     get SAVINGS_PRODUCT_NAME() { return firstWord(_siteName) + ' Elite'; },
     get INVEST_PRODUCT_NAME() { return firstWord(_siteName) + ' Invest'; },
 
+    // ─── Live Chat ───────────────────────────────────────────
+    JIVOCHAT_URL: 'https://code.jivosite.com/chatpage/YG4WdNtpis',
+
     // ─── Backend ─────────────────────────────────────────────
     API_BASE_URL: '/api/db',
 

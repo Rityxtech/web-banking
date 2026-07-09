@@ -225,58 +225,7 @@ const WaitlistScreen = ({ onAdminLogin }: { onAdminLogin: () => void }) => {
     );
 };
 
-const SuspendedScreen = ({ user, onLogout }: { user: User, onLogout: () => void }) => {
-    const [message, setMessage] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [existingTicket, setExistingTicket] = useState<any>(null);
-    const [isChecking, setIsChecking] = useState(true);
-    const [showForm, setShowForm] = useState(false);
-    const [error, setError] = useState('');
-
-    useEffect(() => {
-        const checkExisting = async () => {
-            const { data: tickets } = await supabase.from('mvp_support_tickets').select('id,subject,status').limit(10);
-            const appeal = (tickets || []).find((t: any) => t.subject === 'Account Suspension Appeal' && t.status === 'Open');
-            if (appeal) setExistingTicket(appeal);
-            setIsChecking(false);
-        };
-        checkExisting();
-    }, []);
-
-    const handleSubmitTicket = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!message.trim() || existingTicket) return;
-        setIsSubmitting(true);
-        setError('');
-        try {
-            const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
-            if (authErr || !authUser) {
-                setError('Session error. Please log in again.');
-                return;
-            }
-            const { data: res, error: ticketErr } = await supabase.from('mvp_support_tickets').insert([{
-                user_id: authUser.id,
-                subject: 'Account Suspension Appeal',
-                message: `[LOCKOUT PROTOCOL APPEAL]: ${message}`,
-                status: 'Open'
-            }]).select('id');
-            if (ticketErr) {
-                setError(ticketErr.message || 'Failed to submit ticket. Please try again.');
-                console.error(ticketErr);
-                return;
-            }
-            if (res) {
-                setExistingTicket({ id: res[0]?.id, status: 'Open' });
-                setMessage('');
-            }
-        } catch (err: any) {
-            setError(err.message || 'Failed to submit ticket. Please try again.');
-            console.error(err);
-        } finally { setIsSubmitting(false); }
-    };
-
-    if (isChecking) return <div className="min-h-screen bg-[#0B0E14] flex flex-col items-center justify-center gap-4"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /><p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Syncing Security Node...</p></div>;
-
+const SuspendedScreen = ({ onLogout }: { onLogout: () => void }) => {
     return (
         <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center p-3">
             <div className="w-full max-lg bg-[#151A25] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
@@ -286,32 +235,12 @@ const SuspendedScreen = ({ user, onLogout }: { user: User, onLogout: () => void 
                     <h1 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter">Security Lockout</h1>
                     <p className="text-slate-400 text-sm leading-relaxed mb-10 max-w-[320px] mx-auto">Your access has been restricted. Assets are secured but non-transferable.</p>
                     <div className="bg-black/40 rounded-3xl p-8 border border-white/5 text-left mb-8 shadow-inner">
-                        <h3 className="font-bold text-white mb-6 flex items-center gap-2 uppercase tracking-widest text-xs opacity-60"><Ticket size={14} className="text-blue-500" /> Support Channel</h3>
-                        {existingTicket ? (
-                            <div className="py-8 text-center animate-in fade-in">
-                                <Clock size={40} className="text-amber-500 mx-auto mb-4" />
-                                <h4 className="text-amber-400 font-black uppercase tracking-widest text-sm">Appeal Pending</h4>
-                            </div>
-                        ) : showForm ? (
-                            <form onSubmit={handleSubmitTicket} className="space-y-6">
-                                {error && (
-                                    <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400 text-xs font-bold text-center">
-                                        {error}
-                                    </div>
-                                )}
-                                <textarea rows={3} autoFocus value={message} onChange={e => setMessage(e.target.value)} placeholder="Explain your situation..." className="w-full p-4 bg-black/60 border border-white/10 rounded-2xl text-sm text-white focus:border-red-600 outline-none transition-all resize-none shadow-inner"></textarea>
-                                <button type="submit" disabled={isSubmitting || !message.trim()} className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2">
-                                    {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Transmit Signal
-                                </button>
-                                <button type="button" onClick={() => setShowForm(false)} className="w-full text-center text-[9px] font-bold text-slate-600 uppercase">Return</button>
-                            </form>
-                        ) : (
-                            <div className="text-center">
-                                <button onClick={() => setShowForm(true)} className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 mx-auto">
-                                    <MessageSquare size={18} className="text-blue-500" /> Open Appeal Ticket
-                                </button>
-                            </div>
-                        )}
+                        <h3 className="font-bold text-white mb-6 flex items-center gap-2 uppercase tracking-widest text-xs opacity-60"><MessageSquare size={14} className="text-blue-500" /> Support Channel</h3>
+                        <div className="text-center">
+                            <button onClick={() => window.open(APP_CONFIG.JIVOCHAT_URL, '_blank')} className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 mx-auto">
+                                <MessageSquare size={18} className="text-blue-500" /> Contact Support
+                            </button>
+                        </div>
                     </div>
                     <button onClick={onLogout} className="flex items-center gap-2 mx-auto text-slate-500 hover:text-white font-black text-xs transition-colors uppercase tracking-[0.2em]">
                         <LogOut size={14} /> Disconnect Node
@@ -1422,7 +1351,7 @@ function App() {
 
     // Maintenance mode no longer blocks the login page - check happens at login attempt in Auth.tsx
 
-    if (isSuspended && currentUser && !isAdminMode) return <SuspendedScreen user={currentUser} onLogout={handleLogout} />;
+    if (isSuspended && currentUser && !isAdminMode) return <SuspendedScreen onLogout={handleLogout} />;
 
     if (isAccountIncomplete && rawSessionUser) {
         return <CompleteRegistration user={rawSessionUser} onComplete={() => {

@@ -717,7 +717,7 @@ export const Auth: React.FC<AuthProps> = ({ type, authFeedback, initialEmail = '
               <button
                 onClick={() => {
                   setShowSuspendedModal(false);
-                  if (onContactSupport) onContactSupport('Account Suspension Appeal');
+                  window.open(APP_CONFIG.JIVOCHAT_URL, '_blank');
                 }}
                 className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-opacity flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20"
               >
